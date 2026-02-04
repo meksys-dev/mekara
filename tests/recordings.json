@@ -1,0 +1,30 @@
+{
+  "recordings": [
+    {
+      "name": "sync-help-manual",
+      "type": "dojo",
+      "dojo_tag": "training/intro/manual",
+      "split_marker": "//systematize"
+    },
+    {
+      "name": "sync-help-systematized",
+      "type": "dojo",
+      "dojo_tag": "training/intro/systematized"
+    },
+    {
+      "name": "sync-help-unchanged",
+      "type": "dojo",
+      "dojo_tag": "training/intro/unchanged"
+    },
+    {
+      "name": "sync-help-compile",
+      "type": "dojo",
+      "dojo_tag": "training/intro/unchanged"
+    },
+    {
+      "name": "sync-help-mechanized",
+      "type": "dojo",
+      "dojo_tag": "training/intro/mechanized"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      - poetry-cache:/root/.cache/pypoetry
+    command: sleep infinity
+    depends_on:
+      - docs
+    environment:
+      - DOCS_URL=http://docs:4913
+
+  docs:
+    build:
+      context: ../docs
+      dockerfile: Dockerfile
+    volumes:
+      # Mount source files for live reload, but use container's node_modules
+      - ../docs/docs:/app/docs:cached
+      - ../docs/src:/app/src:cached
+      - ../docs/static:/app/static:cached
+      - ../docs/docusaurus.config.ts:/app/docusaurus.config.ts:cached
+      - ../docs/sidebars.ts:/app/sidebars.ts:cached
+      - ../docs/tsconfig.json:/app/tsconfig.json:cached
+    ports:
+      - "4913:4913"
+
+volumes:
+  poetry-cache:

@@ -1,0 +1,307 @@
+[32m[1m❯ [0mwhat's the current state of the help message?
+
+[33m[1m🔧 Bash [0m[33m[2m[0m[33m[2m{"co[0m[33m[2mmman[0m[33m[2md": "cd /[0m[33m[2mUser[0m[33m[2ms/amos/Do[0m[33m[2mcuments[0m[33m[2m/re[0m[33m[2mal/Proj[0m[33m[2mects/Meksys[0m[33m[2m/dojo/pytho[0m[33m[2mn && uv run[0m[33m[2m dojo --help[0m[33m[2m"[0m[33m[2m, "descrip[0m[33m[2mtion"[0m[33m[2m: "Sho[0m[33m[2mw dojo C[0m[33m[2mLI hel[0m[33m[2mp mes[0m[33m[2msage"}[0m
+[32m   ✓ [0m[32m[2musage: dojo [-h] [--version] {training} ...
+
+Dojo - A Python CLI tool
+
+positional arguments:
+  {training}  Available commands
+    training  Receive guidance on your path to AI mastery
+
+options:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+
+For more information, visit the project repository.
+warning: `VIRTUAL_ENV=/Users/amos/Library/Caches/pypoetry/virtualenvs/mekara-EzCXPSPB-py3.12` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead[0m
+[36m[22mThe[0m[36m[22m current[0m[36m[22m help message for[0m[36m[22m the[0m[36m[22m `[0m[36m[22mdojo` CLI[0m[36m[22m shows[0m[36m[22m:[0m[36m[22m
+
+-[0m[36m[22m **[0m[36m[22mUsage[0m[36m[22m**: `dojo [-h] [[0m[36m[22m--version] {training} ...[0m[36m[22m`
+- **Description[0m[36m[22m**: "[0m[36m[22mDojo - A Python CLI tool[0m[36m[22m"[0m[36m[22m
+- **Commands[0m[36m[22m**: One[0m[36m[22m sub[0m[36m[22mcommand available[0m[36m[22m: `training`[0m[36m[22m -[0m[36m[22m "[0m[36m[22mReceive guidance on your path to AI[0m[36m[22m mastery"[0m[36m[22m
+- **Options**[0m[36m[22m:
+  - `-h, --[0m[36m[22mhelp`[0m[36m[22m -[0m[36m[22m show help[0m[36m[22m message[0m[36m[22m
+  - `--version` - show[0m[36m[22m version number[0m[36m[22m
+-[0m[36m[22m **Footer[0m[36m[22m**: "For more information, visit the[0m[36m[22m project repository."[0m
+[32m[1m❯ [0mhm... is that up-to-date with the README?
+
+[33m[1m🔧 Glob [0m[33m[2m[0m[33m[2m{"pattern"[0m[33m[2m: "READ[0m[33m[2mME*"}[0m
+[32m   ✓ [0m[32m[2m/Users/amos/Documents/real/Projects/Meksys/dojo/python/.pytest_cache/README.md
+/Users/amos/Documents/real/Projects/Meksys/dojo/python/README.md[0m
+
+[33m[1m🔧 Read [0m[33m[2m[0m[33m[2m{"file_pa[0m[33m[2mth":[0m[33m[2m "/Us[0m[33m[2mers/a[0m[33m[2mmos/Docume[0m[33m[2mnts/real[0m[33m[2m/Project[0m[33m[2ms/Meksy[0m[33m[2ms/dojo/p[0m[33m[2myt[0m[33m[2mhon/R[0m[33m[2mEADME.md"}[0m
+[32m   ✓ [0m[32m[2m     1→# dojo
+     2→
+     3→Dojo - A Python CLI tool
+     4→
+     5→## Setup
+     6→
+     7→Install dependencies using uv:
+     8→
+     9→```bash
+    10→uv sync
+    11→```
+    12→
+    13→Set up pre-commit hooks (for contributors):
+    14→
+    15→```bash
+    16→uv run pre-commit install
+    17→```
+    18→
+    19→## Usage
+    20→
+    21→Run the CLI tool:
+    22→
+    23→```bash
+    24→uv run dojo
+    25→```
+    26→
+    27→Output:
+    28→```
+    29→Hello from dojo!
+    30→```
+    31→
+    32→View help text:
+    33→
+    34→```bash
+    35→uv run dojo --help
+    36→```
+    37→
+    38→Output:
+    39→```
+    40→usage: dojo [-h] [--version]
+    41→
+    42→Dojo - A Python CLI tool
+    43→
+    44→options:
+    45→  -h, --help  show this help message and exit
+    46→  --version   show program's version number and exit
+    47→
+    48→For more information, visit the project repository.
+    49→```
+    50→
+    51→## Testing
+    52→
+    53→Run tests:
+    54→
+    55→```bash
+    56→uv run pytest
+    57→```
+    58→
+    59→## Pre-commit Hooks
+    60→
+    61→This project uses pre-commit hooks to ensure code quality. The hooks automatically run on every commit and check:
+    62→
+    63→- **Formatting**: Code is formatted with `ruff format`
+    64→- **Linting**: Code is linted with `ruff` (auto-fixes applied when possible)
+    65→- **Type-checking**: Code is type-checked with `mypy` in strict mode
+    66→
+    67→To manually run all hooks:
+    68→
+    69→```bash
+    70→uv run pre-commit run --all-files
+    71→```
+    72→
+    73→Note: Tests are run in CI, not as pre-commit hooks, to keep commits fast.
+    74→
+    75→## Continuous Integration
+    76→
+    77→This repository uses GitHub Actions for continuous integration. All checks must pass before code can be merged to `main`.
+    78→
+    79→### Workflows
+    80→
+    81→**Pre-commit Checks** (`.github/workflows/pre-commit.yml`)
+    82→- Runs all pre-commit hooks on every push and pull request
+    83→- Ensures code formatting, linting, and type-checking pass
+    84→
+    85→**Tests** (`.github/workflows/tests.yml`)
+    86→- Runs the test suite with `pytest -v` on every push and pull request
+    87→- Validates all tests pass in a clean environment
+    88→
+    89→### Branch Protection
+    90→
+    91→The `main` branch is protected with the following rules:
+    92→
+    93→- ✅ All CI checks must pass before merging
+    94→- ✅ Branches must be up-to-date with `main` before merging
+    95→- ✅ Linear history required (squash or rebase merge only)
+    96→- ✅ No force pushes allowed
+    97→- ✅ No direct commits to `main` (all changes via pull requests)
+    98→- ✅ Rules enforced for all users, including admins
+    99→- ✅ Merged branches are automatically deleted
+   100→
+   101→## Documentation
+   102→
+   103→Project documentation lives in the `docs` branch, an orphan branch with separate history from the main codebase.
+   104→
+   105→### Local Setup for Contributors
+   106→
+   107→AI agent commands and development workflows assume documentation is set up as a sibling worktree:
+   108→
+   109→```bash
+   110→# From the project root, add the docs branch as a sibling worktree
+   111→git worktree add ../docs docs
+   112→```
+   113→
+   114→This creates the following directory structure:
+   115→
+   116→```
+   117→parent-directory/
+   118→├── python/          # main branch (this repo)
+   119→└── docs/            # docs branch worktree
+   120→```
+   121→
+   122→With this setup, documentation can be edited alongside code without branch switching.
+   123→
+
+<system-reminder>
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+</system-reminder>
+[0m
+[36m[22mNo[0m[36m[22m, the README is **[0m[36m[22mout[0m[36m[22m of date**. Here[0m[36m[22m's the disc[0m[36m[22mrepancy:
+
+**[0m[36m[22mREADME shows[0m[36m[22m**[0m[36m[22m ([0m[36m[22mlines[0m[36m[22m 40[0m[36m[22m-48[0m[36m[22m):
+```[0m[36m[22m
+usage[0m[36m[22m: dojo [-h] [--[0m[36m[22mversion][0m[36m[22m
+
+Dojo - A Python CLI tool[0m[36m[22m
+
+options:
+  -h,[0m[36m[22m --help  show this help message an[0m[36m[22md exit
+  --version   show program[0m[36m[22m's version number and exit[0m[36m[22m
+
+For more information, visit the project repository[0m[36m[22m.
+```
+
+**[0m[36m[22mActual[0m[36m[22m current[0m[36m[22m help[0m[36m[22m**[0m[36m[22m:
+```
+usage: dojo[0m[36m[22m [-h] [--version][0m[36m[22m {training} ...
+
+Dojo[0m[36m[22m - A Python CLI tool
+
+positional[0m[36m[22m arguments:
+  {training}  [0m[36m[22mAvailable commands
+    training  Receive[0m[36m[22m guidance on your path to AI mastery[0m[36m[22m
+
+options:
+  -h,[0m[36m[22m --help  show this help message an[0m[36m[22md exit
+  --version   show program[0m[36m[22m's version number and exit
+
+For more[0m[36m[22m information, visit the project repository.[0m[36m[22m
+```
+
+The README is missing[0m[36m[22m:[0m[36m[22m
+1. The `[0m[36m[22m{[0m[36m[22mtraining}` sub[0m[36m[22mcommand in[0m[36m[22m the usage line
+2. The entire[0m[36m[22m "[0m[36m[22mposit[0m[36m[22mional arguments" section showing[0m[36m[22m the[0m[36m[22m `[0m[36m[22mtraining[0m[36m[22m` command[0m[36m[22m
+
+Woul[0m[36m[22md you like me to update[0m[36m[22m the README to reflect[0m[36m[22m the current CLI[0m[36m[22m state[0m[36m[22m?[0m
+[32m[1m❯ [0myes, please update the README's help text to match the current help
+
+[33m[1m🔧 Edit [0m[33m[2m[0m[33m[2m{"file_path"[0m[33m[2m: "/Use[0m[33m[2mrs/amos/[0m[33m[2mDocument[0m[33m[2ms/real[0m[33m[2m/Proje[0m[33m[2mcts/Meksys/[0m[33m[2mdojo/python[0m[33m[2m/README.[0m[33m[2mmd"[0m[33m[2m, "old_stri[0m[33m[2mng": "```\n[0m[33m[2musage[0m[33m[2m: dojo [-h][0m[33m[2m [--vers[0m[33m[2mion][0m[33m[2m\n\nDoj[0m[33m[2mo - A Pyt[0m[33m[2mhon CLI [0m[33m[2mtool\n[0m[33m[2m\noptions:\[0m[33m[2mn  -h, -[0m[33m[2m-help  [0m[33m[2mshow this[0m[33m[2m help me[0m[33m[2mssage [0m[33m[2mand [0m[33m[2mexit\n  [0m[33m[2m--versi[0m[33m[2mon   show [0m[33m[2mprogram's[0m[33m[2m version[0m[33m[2m number and[0m[33m[2m exit\n\nFor[0m[33m[2m mor[0m[33m[2me info[0m[33m[2mrmation,[0m[33m[2m visit th[0m[33m[2me proje[0m[33m[2mct rep[0m[33m[2mository.[0m[33m[2m\n```"[0m[33m[2m, "new_s[0m[33m[2mtrin[0m[33m[2mg": "[0m[33m[2m```\nu[0m[33m[2msage: [0m[33m[2mdojo [[0m[33m[2m-h] [[0m[33m[2m--[0m[33m[2mversion] {[0m[33m[2mtraini[0m[33m[2mng} ...\n\nD[0m[33m[2moj[0m[33m[2mo -[0m[33m[2m A[0m[33m[2m Python C[0m[33m[2mLI tool[0m[33m[2m\n\npo[0m[33m[2msiti[0m[33m[2monal arg[0m[33m[2muments:\n  [0m[33m[2m{training}  [0m[33m[2mAvailable[0m[33m[2m commands\n[0m[33m[2m    trai[0m[33m[2mni[0m[33m[2mng  Rece[0m[33m[2miv[0m[33m[2me guida[0m[33m[2mnc[0m[33m[2me o[0m[33m[2mn your path [0m[33m[2mto A[0m[33m[2mI m[0m[33m[2mastery\n\[0m[33m[2mnop[0m[33m[2mtions[0m[33m[2m:\n  -h, [0m[33m[2m--h[0m[33m[2melp  show t[0m[33m[2mhis h[0m[33m[2melp[0m[33m[2m messa[0m[33m[2mge and exit\[0m[33m[2mn  --[0m[33m[2mversion   s[0m[33m[2mhow pro[0m[33m[2mgram's [0m[33m[2mversion [0m[33m[2mnu[0m[33m[2mmber and exi[0m[33m[2mt\n[0m[33m[2m\nFor more i[0m[33m[2mnformation, [0m[33m[2mvisit the p[0m[33m[2mrojec[0m[33m[2mt reposito[0m[33m[2mry.\n```"}[0m
+[32m   ✓ [0m[32m[2mThe file /Users/amos/Documents/real/Projects/Meksys/dojo/python/README.md has been updated. Here's the result of running `cat -n` on a snippet of the edited file:
+    35→uv run dojo --help
+    36→```
+    37→
+    38→Output:
+    39→```
+    40→usage: dojo [-h] [--version] {training} ...
+    41→
+    42→Dojo - A Python CLI tool
+    43→
+    44→positional arguments:
+    45→  {training}  Available commands
+    46→    training  Receive guidance on your path to AI mastery
+    47→
+    48→options:
+    49→  -h, --help  show this help message and exit
+    50→  --version   show program's version number and exit
+    51→
+    52→For more information, visit the project repository.
+    53→```
+    54→
+    55→## Testing
+    56→
+    57→Run tests:[0m
+[36m[22mDone[0m[36m[22m! The[0m[36m[22m README now matches the current CLI[0m[36m[22m help output[0m[36m[22m,[0m[36m[22m including[0m[36m[22m the `training[0m[36m[22m` sub[0m[36m[22mcommand.[0m
+[32m[1m❯ [0m/systematize have the output file be sync-help.md. do not bother with documentation
+[36m[22mLooking[0m[36m[22m at the conversation, I need to identify[0m[36m[22m the problem-[0m[36m[22msolving pattern that[0m[36m[22m was[0m[36m[22m use[0m[36m[22md.[0m[36m[22m
+
+**What[0m[36m[22m was the problem?[0m[36m[22m**
+The user wante[0m[36m[22md to[0m[36m[22m check[0m[36m[22m if the[0m[36m[22m CLI[0m[36m[22m help[0m[36m[22m message[0m[36m[22m was[0m[36m[22m up[0m[36m[22m-to-date with the README[0m[36m[22m. It[0m[36m[22m wasn[0m[36m[22m't -[0m[36m[22m the README was missing[0m[36m[22m the `training` subcommand that[0m[36m[22m ha[0m[36m[22md been[0m[36m[22m added to the CLI.
+
+**What[0m[36m[22m were[0m[36m[22m the key steps?[0m[36m[22m**
+1. Ran[0m[36m[22m `--[0m[36m[22mhelp` to get[0m[36m[22m current[0m[36m[22m CLI[0m[36m[22m output[0m[36m[22m
+2. Foun[0m[36m[22md an[0m[36m[22md read the README[0m[36m[22m
+3. Compare[0m[36m[22md the two an[0m[36m[22md identified the disc[0m[36m[22mrepancy
+4. Updated the README[0m[36m[22m to match the current CLI help[0m[36m[22m
+
+**What's[0m[36m[22m the general[0m[36m[22m pattern?**[0m[36m[22m
+Synchron[0m[36m[22mizing[0m[36m[22m documentation with actual[0m[36m[22m CLI[0m[36m[22m behavior[0m[36m[22m -[0m[36m[22m checking[0m[36m[22m if documente[0m[36m[22md help[0m[36m[22m text[0m[36m[22m matches reality[0m[36m[22m an[0m[36m[22md updating docs[0m[36m[22m when[0m[36m[22m they[0m[36m[22m drift[0m[36m[22m.
+
+Let[0m[36m[22m me create the comman[0m[36m[22md:[0m
+[33m[1m🔧 Write [0m[33m[2m[0m[33m[2m{"fil[0m[33m[2me_path[0m[33m[2m": "/Use[0m[33m[2mrs/amos/Docu[0m[33m[2mment[0m[33m[2ms/re[0m[33m[2mal[0m[33m[2m/Projects/[0m[33m[2mMeksys/[0m[33m[2mdojo/python[0m[33m[2m/.claude/[0m[33m[2mcommands/s[0m[33m[2mync-help[0m[33m[2m.md"[0m[33m[2m, "conte[0m[33m[2mnt": "Synchr[0m[33m[2monize CLI[0m[33m[2m help text [0m[33m[2min docume[0m[33m[2mntation wi[0m[33m[2mth actual CL[0m[33m[2mI output.\[0m[33m[2mn\n<UserCont[0m[33m[2mext>[0m[33m[2m$ARG[0m[33m[2mUMENTS</Us[0m[33m[2merContext>\[0m[33m[2mn\n##[0m[33m[2m Pr[0m[33m[2moce[0m[33m[2mss[0m[33m[2m\n\n##[0m[33m[2m# Ste[0m[33m[2mp 0: Ga[0m[33m[2mther i[0m[33m[2mnform[0m[33m[2mati[0m[33m[2mon\n[0m[33m[2m\nGat[0m[33m[2mher the f[0m[33m[2mollowing[0m[33m[2m infor[0m[33m[2mmation from[0m[33m[2m the use[0m[33m[2mr-provide[0m[33m[2md [0m[33m[2mcontext:\n[0m[33m[2m- The CLI co[0m[33m[2mmmand to c[0m[33m[2mheck (de[0m[33m[2mfault[0m[33m[2m: the projec[0m[33m[2mt's main CL[0m[33m[2mI en[0m[33m[2mtry poin[0m[33m[2mt)\n- The [0m[33m[2mdo[0m[33m[2mcumentation [0m[33m[2mfile [0m[33m[2mto [0m[33m[2mupdate (defa[0m[33m[2mult: REA[0m[33m[2mDME.m[0m[33m[2md)\n\[0m[33m[2mnIf the d[0m[33m[2mefaults a[0m[33m[2mre app[0m[33m[2mropria[0m[33m[2mte, procee[0m[33m[2md without[0m[33m[2m asking.[0m[33m[2m\n\n### Ste[0m[33m[2mp 1: Com[0m[33m[2mpar[0m[33m[2me help t[0m[33m[2mext\[0m[33m[2mn\nRu[0m[33m[2mn the[0m[33m[2m CLI with[0m[33m[2m `--hel[0m[33m[2mp` and [0m[33m[2mcompare its [0m[33m[2moutput a[0m[33m[2mgainst th[0m[33m[2me help text [0m[33m[2mshown in t[0m[33m[2mhe documen[0m[33m[2mta[0m[33m[2mtion fi[0m[33m[2mle[0m[33m[2m. [0m[33m[2mIdentif[0m[33m[2my any di[0m[33m[2mscrepancies.[0m[33m[2m\n\n### Ste[0m[33m[2mp 2: [0m[33m[2mUpdate docum[0m[33m[2ment[0m[33m[2mation\n\nIf [0m[33m[2mthere a[0m[33m[2mre [0m[33m[2mdifferences,[0m[33m[2m update th[0m[33m[2me d[0m[33m[2mocu[0m[33m[2mmentation[0m[33m[2m to [0m[33m[2mma[0m[33m[2mtch the [0m[33m[2mcurrent CLI[0m[33m[2m out[0m[33m[2mput exactly[0m[33m[2m.\n\n## Key [0m[33m[2mPr[0m[33m[2minciples\n\[0m[33m[2mn- **Truth l[0m[33m[2mives in t[0m[33m[2mhe c[0m[33m[2mode** [0m[33m[2m- The CLI's [0m[33m[2mactua[0m[33m[2ml output[0m[33m[2m is auth[0m[33m[2moritativ[0m[33m[2me; documen[0m[33m[2mtation s[0m[33m[2mhould refle[0m[33m[2mct it, no[0m[33m[2mt the other [0m[33m[2mway around[0m[33m[2m\n[0m[33m[2m- *[0m[33m[2m*Exact [0m[33m[2mmatc[0m[33m[2mh matter[0m[33m[2ms** - Help[0m[33m[2m te[0m[33m[2mxt in docs[0m[33m[2m sho[0m[33m[2muld match CL[0m[33m[2mI outpu[0m[33m[2mt v[0m[33m[2merba[0m[33m[2mtim, inclu[0m[33m[2mdi[0m[33m[2mng whi[0m[33m[2mtespace[0m[33m[2m and f[0m[33m[2mormat[0m[33m[2mting\n"}[0m
+[32m   ✓ [0m[32m[2mFile created successfully at: /Users/amos/Documents/real/Projects/Meksys/dojo/python/.claude/commands/sync-help.md[0m
+
+[33m[1m🔧 mcp__mekara__continue [0m[33m[2m[0m[33m[2m{"outpu[0m[33m[2mts": "{}[0m[33m[2m"}[0m
+[32m   ✓ [0m[2m(1 content blocks)[0m
+
+
+[32m✓ [0mScript completed successfully[2m in 1 steps[0m
+
+[32m[1m❯ [0mSkip step 0. We're always going to be checking the same file with the same command, so put the exact uv command in there. Make sure the steps continue to start from 0.
+
+[33m[1m🔧 Read [0m[33m[2m[0m[33m[2m{"file[0m[33m[2m_path"[0m[33m[2m: "/[0m[33m[2mUsers/amos/D[0m[33m[2mocu[0m[33m[2mme[0m[33m[2mnts/r[0m[33m[2mea[0m[33m[2ml/Projects/[0m[33m[2mMe[0m[33m[2mksys/d[0m[33m[2mojo/python[0m[33m[2m/.[0m[33m[2mclaude/comma[0m[33m[2mnd[0m[33m[2ms/sync[0m[33m[2m-he[0m[33m[2mlp.[0m[33m[2mmd"}[0m
+[32m   ✓ [0m[32m[2m     1→Synchronize CLI help text in documentation with actual CLI output.
+     2→
+     3→<UserContext>$ARGUMENTS</UserContext>
+     4→
+     5→## Process
+     6→
+     7→### Step 0: Gather information
+     8→
+     9→Gather the following information from the user-provided context:
+    10→- The CLI command to check (default: the project's main CLI entry point)
+    11→- The documentation file to update (default: README.md)
+    12→
+    13→If the defaults are appropriate, proceed without asking.
+    14→
+    15→### Step 1: Compare help text
+    16→
+    17→Run the CLI with `--help` and compare its output against the help text shown in the documentation file. Identify any discrepancies.
+    18→
+    19→### Step 2: Update documentation
+    20→
+    21→If there are differences, update the documentation to match the current CLI output exactly.
+    22→
+    23→## Key Principles
+    24→
+    25→- **Truth lives in the code** - The CLI's actual output is authoritative; documentation should reflect it, not the other way around
+    26→- **Exact match matters** - Help text in docs should match CLI output verbatim, including whitespace and formatting
+    27→
+
+<system-reminder>
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+</system-reminder>
+[0m
+
+[33m[1m🔧 Edit [0m[33m[2m[0m[33m[2m{"file_p[0m[33m[2math": "/Us[0m[33m[2mer[0m[33m[2ms/amos/D[0m[33m[2mocuments/r[0m[33m[2meal/[0m[33m[2mProje[0m[33m[2mcts/Me[0m[33m[2mksys[0m[33m[2m/do[0m[33m[2mjo/pyth[0m[33m[2mon/.cla[0m[33m[2mude/[0m[33m[2mcommands/s[0m[33m[2myn[0m[33m[2mc-help.md"[0m[33m[2m, "old[0m[33m[2m_string[0m[33m[2m": "## Proce[0m[33m[2mss\n\n### S[0m[33m[2mtep 0: Gath[0m[33m[2mer i[0m[33m[2mnformat[0m[33m[2mion\n\[0m[33m[2mnGather th[0m[33m[2me follo[0m[33m[2mwing infor[0m[33m[2mmat[0m[33m[2mion f[0m[33m[2mrom the [0m[33m[2muser-provide[0m[33m[2md contex[0m[33m[2mt:\n- T[0m[33m[2mhe CLI comma[0m[33m[2mnd to ch[0m[33m[2meck[0m[33m[2m (de[0m[33m[2mfault: the p[0m[33m[2mroject's [0m[33m[2mma[0m[33m[2min CLI entry[0m[33m[2m point)\n[0m[33m[2m- The doc[0m[33m[2mume[0m[33m[2mntation[0m[33m[2m file to up[0m[33m[2mdate (def[0m[33m[2mault: READM[0m[33m[2mE.md)\[0m[33m[2mn\nIf th[0m[33m[2me defaults[0m[33m[2m a[0m[33m[2mre appr[0m[33m[2mopriate, pr[0m[33m[2moceed wit[0m[33m[2mhout a[0m[33m[2mski[0m[33m[2mng.\n\n### [0m[33m[2mStep 1: Co[0m[33m[2mmpare help t[0m[33m[2mext\n\n[0m[33m[2mRun th[0m[33m[2me CLI with[0m[33m[2m `--h[0m[33m[2melp` and c[0m[33m[2momp[0m[33m[2mare its outp[0m[33m[2mut agains[0m[33m[2mt the help t[0m[33m[2mext[0m[33m[2m sho[0m[33m[2mwn in t[0m[33m[2mhe [0m[33m[2mdocumentati[0m[33m[2mon fil[0m[33m[2me. Ide[0m[33m[2mntify an[0m[33m[2my disc[0m[33m[2mrepanci[0m[33m[2mes.\n\n[0m[33m[2m### Step [0m[33m[2m2: Update[0m[33m[2m docume[0m[33m[2mntat[0m[33m[2mion"[0m[33m[2m, "new_s[0m[33m[2mtrin[0m[33m[2mg":[0m[33m[2m "## Proc[0m[33m[2mess\n[0m[33m[2m\n### Ste[0m[33m[2mp 0: [0m[33m[2mCompa[0m[33m[2mre[0m[33m[2m h[0m[33m[2melp text\n\[0m[33m[2mnRun [0m[33m[2m`uv ru[0m[33m[2mn dojo [0m[33m[2m--he[0m[33m[2mlp` an[0m[33m[2md compare it[0m[33m[2ms outp[0m[33m[2mut[0m[33m[2m a[0m[33m[2mgai[0m[33m[2mnst the h[0m[33m[2melp tex[0m[33m[2mt shown i[0m[33m[2mn README.[0m[33m[2mmd. Ide[0m[33m[2mntify any d[0m[33m[2misc[0m[33m[2mrep[0m[33m[2mancies.\n\n#[0m[33m[2m## [0m[33m[2mStep 1: U[0m[33m[2mpdat[0m[33m[2me docum[0m[33m[2mentatio[0m[33m[2mn"}[0m
+[32m   ✓ [0m[32m[2mThe file /Users/amos/Documents/real/Projects/Meksys/dojo/python/.claude/commands/sync-help.md has been updated. Here's the result of running `cat -n` on a snippet of the edited file:
+     1→Synchronize CLI help text in documentation with actual CLI output.
+     2→
+     3→<UserContext>$ARGUMENTS</UserContext>
+     4→
+     5→## Process
+     6→
+     7→### Step 0: Compare help text
+     8→
+     9→Run `uv run dojo --help` and compare its output against the help text shown in README.md. Identify any discrepancies.
+    10→
+    11→### Step 1: Update documentation
+    12→
+    13→If there are differences, update the documentation to match the current CLI output exactly.
+    14→
+    15→## Key Principles[0m
+[36m[22mDone[0m[36m[22m.[0m[36m[22m The comman[0m[36m[22md now[0m[36m[22m has[0m[36m[22m 2[0m[36m[22m steps starting[0m[36m[22m from 0:[0m[36m[22m
+-[0m[36m[22m **[0m[36m[22mStep 0**: Compare[0m[36m[22m help text ([0m[36m[22mhar[0m[36m[22mdcoded to[0m[36m[22m `[0m[36m[22muv run dojo --help`[0m[36m[22m an[0m[36m[22md README[0m[36m[22m.md)
+- **Step [0m[36m[22m1**: Update documentation[0m

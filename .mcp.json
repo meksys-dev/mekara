@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mekara": {
+      "type": "stdio",
+      "command": "mekara",
+      "args": ["mcp"]
+    }
+  }
+}

@@ -1,0 +1,1 @@
+0. Together with the user, pick an adjective and a noun. For example, "green clouds."

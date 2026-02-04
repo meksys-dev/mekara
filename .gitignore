@@ -1,0 +1,25 @@
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+/.venv/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.coverage
+.mypy_cache/
+
+# Rust leftovers from the previous toolchain
+/target
+
+# Node artifacts inside docs
+/docs/node_modules
+.pnpm-store
+
+.claude/settings.local.json
+
+# mekara script execution state (resumable but session-specific)
+.mekara/cassettes/
+.mekara/.sync-in-progress

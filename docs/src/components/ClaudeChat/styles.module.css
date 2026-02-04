@@ -1,0 +1,327 @@
+.chatContainer {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  max-height: 600px;
+  overflow-y: auto;
+  background: var(--ifm-background-surface-color);
+}
+
+.userMessage,
+.claudeMessage {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.userMessage {
+  background: var(--ifm-color-emphasis-200);
+  margin-left: 2rem;
+}
+
+.claudeMessage {
+  background: var(--ifm-color-emphasis-100);
+  margin-right: 2rem;
+}
+
+.messageLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 0.5rem;
+}
+
+.messageContent {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.messageContent p {
+  margin: 0 0 0.5rem 0;
+}
+
+.messageContent p:last-child {
+  margin-bottom: 0;
+}
+
+.commandBadge {
+  color: var(--ifm-color-primary);
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+}
+
+/* Thinking - collapsed by default */
+.thinkingBlock {
+  margin-bottom: 0.5rem;
+}
+
+.thinkingToggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-500);
+  cursor: pointer;
+  font-style: italic;
+}
+
+.thinkingToggle:hover {
+  color: var(--ifm-color-emphasis-700);
+}
+
+.thinkingArrow {
+  font-style: normal;
+}
+
+.thinkingContent {
+  margin-top: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--ifm-color-emphasis-300);
+  color: var(--ifm-color-emphasis-500);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.thinkingContent p {
+  margin: 0 0 0.5rem 0;
+}
+
+/* Tool block */
+.toolBlock {
+  margin: 0.75rem 0;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.toolHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: var(--ifm-color-emphasis-200);
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.toolHeader:hover {
+  background: var(--ifm-color-emphasis-300);
+}
+
+.toolName {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.toolPrimary {
+  flex: 1;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expandIcon {
+  font-size: 0.7rem;
+  color: var(--ifm-color-emphasis-600);
+  flex-shrink: 0;
+}
+
+.toolDetails {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.toolDetails p {
+  margin: 0 0 0.5rem 0;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.toolResultSection {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.toolResultLabel {
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Code blocks - plain text style */
+.codeBlock {
+  margin: 0;
+  padding: 0.5rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+}
+
+/* Diff block - plain text style */
+.diffBlock {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.diffOld,
+.diffNew {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.diffLineOld {
+  color: #b31d28;
+  background: #ffeef0;
+}
+
+.diffLineNew {
+  color: #22863a;
+  background: #e6ffed;
+}
+
+[data-theme="dark"] .diffLineOld {
+  color: #f97583;
+  background: rgba(248, 81, 73, 0.15);
+}
+
+[data-theme="dark"] .diffLineNew {
+  color: #85e89d;
+  background: rgba(46, 160, 67, 0.15);
+}
+
+/* Detail rows for generic tool display */
+.detailRow {
+  margin-bottom: 0.25rem;
+}
+
+.detailKey {
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* File snapshot - no background */
+.fileSnapshot {
+  margin: 0.5rem 0;
+}
+
+.fileSnapshotHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px dashed var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-align: left;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.fileSnapshotHeader:hover {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.fileSnapshotHeaderExpanded {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px dashed var(--ifm-color-emphasis-300);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-align: left;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.fileSnapshotHeaderExpanded:hover {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.fileIcon {
+  font-size: 0.9rem;
+}
+
+.fileList {
+  flex: 1;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+}
+
+.fileDetails {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border: 1px dashed var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+}
+
+.fileDetailsInline {
+  padding: 0.5rem;
+  border: 1px dashed var(--ifm-color-emphasis-300);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+}
+
+.fileEntry {
+  margin-bottom: 0.75rem;
+}
+
+.fileEntry:last-child {
+  margin-bottom: 0;
+}
+
+.fileName {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.fileBackupInfo {
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.loading,
+.error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.error {
+  color: var(--ifm-color-danger);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .userMessage {
+  background: var(--ifm-color-emphasis-300);
+}
+
+[data-theme="dark"] .claudeMessage {
+  background: var(--ifm-color-emphasis-200);
+}
+
+[data-theme="dark"] .codeBlock {
+  background: var(--ifm-color-emphasis-200);
+}

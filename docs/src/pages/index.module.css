@@ -1,0 +1,103 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  --ifm-hero-background-color: #090b0d;
+  --ifm-hero-background-color-transparent: #090b0d66;
+  --ifm-hero-text-color: #bff7f9;
+  text-shadow:
+    0 0 7px var(--glow-cyan),
+    0 0 10px var(--glow-cyan),
+    0 0 21px var(--glow-cyan);
+  background-image: url("/img/mekara-full-size.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-height: 800px;
+
+  h1 {
+    font-family: "Dangrek", sans-serif;
+    font-weight: 400;
+    font-size: 80px;
+  }
+
+  p {
+    font-family: "Good Timing", sans-serif;
+  }
+
+  a {
+    font-family: "Nasalization", sans-serif;
+    text-transform: capitalize;
+    text-shadow:
+      0 0 1px var(--glow-cyan),
+      0 0 2px var(--glow-cyan),
+      0 0 5px var(--glow-cyan);
+    color: var(--ifm-hero-text-color);
+    background-color: transparent;
+    border: var(--ifm-color-primary) 1px solid;
+    transition: all 0.3s ease-in-out;
+  }
+
+  a:hover {
+    box-shadow:
+      0 0 5px var(--glow-cyan),
+      0 0 10px var(--glow-cyan),
+      0 0 20px var(--glow-cyan);
+  }
+}
+
+.heroText {
+  margin-top: 250px;
+  background-color: var(--ifm-hero-background-color-transparent);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 7px;
+  transform: scaleY(0);
+  opacity: 0;
+  animation: expandVertically 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+  transform-origin: center center;
+}
+
+@keyframes expandVertically {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: none;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out 0.8s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

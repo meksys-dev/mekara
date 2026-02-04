@@ -1,0 +1,3 @@
+[submodule "docs/static/fonts/private"]
+	path = docs/static/fonts/private
+	url = git@github.com:amosjyng/zamm-fonts.git

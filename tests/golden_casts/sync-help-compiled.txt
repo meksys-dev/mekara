@@ -1,0 +1,147 @@
+[32m[1m❯ [0m/sync-help
+[32m⚡ [0m[1mStep 0: [0muv run dojo --help
+[2musage: dojo [-h] [--version] {training} ...
+
+Dojo - A Python CLI tool
+
+positional arguments:
+  {training}  Available commands
+    training  Receive guidance on your path to AI mastery
+
+options:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+
+For more information, visit the project repository.
+[0m[32m⚡ [0m[1mStep 1: [0mcat README.md
+[2m# dojo
+
+Dojo - A Python CLI tool
+
+## Setup
+
+Install dependencies using uv:
+
+```bash
+uv sync
+```
+
+Set up pre-commit hooks (for contributors):
+
+```bash
+uv run pre-commit install
+```
+
+## Usage
+
+Run the CLI tool:
+
+```bash
+uv run dojo
+```
+
+Output:
+```
+Hello from dojo!
+```
+
+View help text:
+
+```bash
+uv run dojo --help
+```
+
+Output:
+```
+usage: dojo [-h] [--version] {training} ...
+
+Dojo - A Python CLI tool
+
+positional arguments:
+  {training}  Available commands
+    training  Receive guidance on your path to AI mastery
+
+options:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+
+For more information, visit the project repository.
+```
+
+## Testing
+
+Run tests:
+
+```bash
+uv run pytest
+```
+
+## Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality. The hooks automatically run on every commit and check:
+
+- **Formatting**: Code is formatted with `ruff format`
+- **Linting**: Code is linted with `ruff` (auto-fixes applied when possible)
+- **Type-checking**: Code is type-checked with `mypy` in strict mode
+
+To manually run all hooks:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+Note: Tests are run in CI, not as pre-commit hooks, to keep commits fast.
+
+## Continuous Integration
+
+This repository uses GitHub Actions for continuous integration. All checks must pass before code can be merged to `main`.
+
+### Workflows
+
+**Pre-commit Checks** (`.github/workflows/pre-commit.yml`)
+- Runs all pre-commit hooks on every push and pull request
+- Ensures code formatting, linting, and type-checking pass
+
+**Tests** (`.github/workflows/tests.yml`)
+- Runs the test suite with `pytest -v` on every push and pull request
+- Validates all tests pass in a clean environment
+
+### Branch Protection
+
+The `main` branch is protected with the following rules:
+
+- ✅ All CI checks must pass before merging
+- ✅ Branches must be up-to-date with `main` before merging
+- ✅ Linear history required (squash or rebase merge only)
+- ✅ No force pushes allowed
+- ✅ No direct commits to `main` (all changes via pull requests)
+- ✅ Rules enforced for all users, including admins
+- ✅ Merged branches are automatically deleted
+
+## Documentation
+
+Project documentation lives in the `docs` branch, an orphan branch with separate history from the main codebase.
+
+### Local Setup for Contributors
+
+AI agent commands and development workflows assume documentation is set up as a sibling worktree:
+
+```bash
+# From the project root, add the docs branch as a sibling worktree
+git worktree add ../docs docs
+```
+
+This creates the following directory structure:
+
+```
+parent-directory/
+├── python/          # main branch (this repo)
+└── docs/            # docs branch worktree
+```
+
+With this setup, documentation can be edited alongside code without branch switching.
+[0m[32m⚡ [0m[1mStep 2: [0m_check_discrepancy(help_output="usage: dojo [-h] [--version] {training} ...\n\nDojo - A Python CLI tool\n\npositional arguments:\n  {training}  Available commands\n    training  Receive guidance on your path to AI mastery\n\noptions:\n  -h, --help  show this help message and exit\n  --version   show program's version number and exit\n\nFor more information, visit the project repository.\n", doc_content="# dojo\n\nDojo - A Python CLI tool\n\n## Setup\n\nInstall dependencies using uv:\n\n```bash\nuv sync\n```\n\nSet up pre-commit hooks (for contributors):\n\n```bash\nuv run pre-commit install\n```\n\n## Usage\n\nRun the CLI tool:\n\n```bash\nuv run dojo\n```\n\nOutput:\n```\nHello from dojo!\n```\n\nView help text:\n\n```bash\nuv run dojo --help\n```\n\nOutput:\n```\nusage: dojo [-h] [--version] {training} ...\n\nDojo - A Python CLI tool\n\npositional arguments:\n  {training}  Available commands\n    training  Receive guidance on your path to AI mastery\n\noptions:\n  -h, --help  show this help message and exit\n  --version   show program's version number and exit\n\nFor more information, visit the project repository.\n```\n\n## Testing\n\nRun tests:\n\n```bash\nuv run pytest\n```\n\n## Pre-commit Hooks\n\nThis project uses pre-commit hooks to ensure code quality. The hooks automatically run on every commit and check:\n\n- **Formatting**: Code is formatted with `ruff format`\n- **Linting**: Code is linted with `ruff` (auto-fixes applied when possible)\n- **Type-checking**: Code is type-checked with `mypy` in strict mode\n\nTo manually run all hooks:\n\n```bash\nuv run pre-commit run --all-files\n```\n\nNote: Tests are run in CI, not as pre-commit hooks, to keep commits fast.\n\n## Continuous Integration\n\nThis repository uses GitHub Actions for continuous integration. All checks must pass before code can be merged to `main`.\n\n### Workflows\n\n**Pre-commit Checks** (`.github/workflows/pre-commit.yml`)\n- Runs all pre-commit hooks on every push and pull request\n- Ensures code formatting, linting, and type-checking pass\n\n**Tests** (`.github/workflows/tests.yml`)\n- Runs the test suite with `pytest -v` on every push and pull request\n- Validates all tests pass in a clean environment\n\n### Branch Protection\n\nThe `main` branch is protected with the following rules:\n\n- ✅ All CI checks must pass before merging\n- ✅ Branches must be up-to-date with `main` before merging\n- ✅ Linear history required (squash or rebase merge only)\n- ✅ No force pushes allowed\n- ✅ No direct commits to `main` (all changes via pull requests)\n- ✅ Rules enforced for all users, including admins\n- ✅ Merged branches are automatically deleted\n\n## Documentation\n\nProject documentation lives in the `docs` branch, an orphan branch with separate history from the main codebase.\n\n### Local Setup for Contributors\n\nAI agent commands and development workflows assume documentation is set up as a sibling worktree:\n\n```bash\n# From the project root, add the docs branch as a sibling worktree\ngit worktree add ../docs docs\n```\n\nThis creates the following directory structure:\n\n```\nparent-directory/\n├── python/          # main branch (this repo)\n└── docs/            # docs branch worktree\n```\n\nWith this setup, documentation can be edited alongside code without branch switching.\n")
+[2m  → False[0m
+
+[32m✓ [0mScript completed successfully[2m in 3 steps[0m
+

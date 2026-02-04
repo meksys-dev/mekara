@@ -1,0 +1,82 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: Ruff Format
+        entry: poetry run ruff format --exclude 'src/mekara/bundled/scripts' .mekara src tests
+        language: system
+        pass_filenames: false
+        files: ^(\.mekara|src|tests)/.*\.py$
+      - id: ruff-lint
+        name: Ruff Lint
+        entry: poetry run ruff check --exclude 'src/mekara/bundled/scripts' .mekara src tests
+        language: system
+        pass_filenames: false
+        files: ^(\.mekara|src|tests)/.*\.py$
+      - id: vulture
+        name: Vulture Dead Code
+        entry: poetry run vulture .mekara/scripts/compiled/ src/mekara/ --exclude 'src/mekara/bundled/scripts' --min-confidence 100
+        language: system
+        pass_filenames: false
+        files: ^(\.mekara|src)/.*\.py$
+      - id: pyright
+        name: Pyright Type Check
+        entry: poetry run pyright
+        language: system
+        pass_filenames: false
+        files: ^(\.mekara|src|tests)/
+      - id: forbid-type-workarounds
+        name: Forbid type checking workarounds
+        entry: bash scripts/hooks/forbid_type_workarounds.sh
+        language: system
+        pass_filenames: true
+        files: ^(\.mekara|src|tests)/.*\.py$
+        exclude: ^src/mekara/bundled/scripts/
+      - id: prettier-format
+        name: Prettier Format
+        entry: bash -c 'cd docs && pnpm prettier --write --list-different "${@#docs/}"' --
+        language: system
+        pass_filenames: true
+        files: ^docs/.*\.(js|jsx|ts|tsx|mts|json|md|mdx|yaml|yml|css|scss|html)$
+      - id: eslint-lint
+        name: ESLint Lint
+        entry: bash -c 'cd docs && pnpm eslint --fix "${@#docs/}"' --
+        language: system
+        pass_filenames: true
+        files: ^docs/.*\.(js|jsx|ts|tsx)$
+      - id: tsc-type-check
+        name: TypeScript Type Check
+        entry: bash -c 'cd docs && pnpm tsc --noEmit --skipLibCheck'
+        language: system
+        pass_filenames: false
+        files: ^docs/.*\.tsx?$
+      - id: docs-test
+        name: Docusaurus Tests
+        entry: bash -c 'cd docs && pnpm test'
+        language: system
+        pass_filenames: false
+        files: ^docs/.*\.tsx?$
+      - id: docs-build
+        name: Build Documentation
+        entry: bash -c 'cd docs/ && pnpm build'
+        language: system
+        pass_filenames: false
+        files: ^docs/
+      - id: sync-bundled-standards
+        name: Sync Bundled Standards
+        entry: bash -c 'python3 scripts/sync-standards.py && git add src/mekara/bundled/standards/'
+        language: system
+        pass_filenames: false
+        files: ^docs/docs/standards/.*\.md$
+      - id: check-bundled-scripts
+        name: Check Bundled Scripts Match Live
+        entry: bash scripts/hooks/check_bundled_scripts.sh
+        language: system
+        pass_filenames: false
+        files: ^(\.mekara/scripts/nl/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/)
+      - id: post-commit-cleanup
+        name: Clean up sync markers
+        entry: bash scripts/hooks/post_commit_cleanup.sh
+        language: system
+        stages: [post-commit]
+        always_run: true

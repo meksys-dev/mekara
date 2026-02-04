@@ -1,0 +1,17 @@
+{"type":"user","message":{"role":"user","content":"edit the file"},"uuid":"user-1","timestamp":"2026-02-01T15:00:00.000Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"thinking","thinking":"This is a thinking-only block with no other content."}]},"uuid":"thinking-only-1","timestamp":"2026-02-01T15:00:01.000Z"}
+{"type":"user","message":{"role":"user","content":"now make the edit"},"uuid":"user-2","timestamp":"2026-02-01T15:00:02.000Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"edit-tool-1","name":"Edit","input":{"file_path":"/path/to/file.ts","old_string":"const foo = 1;\nconst bar = 2;","new_string":"const foo = 42;\nconst bar = 2;\nconst baz = 3;"}}]},"uuid":"edit-1","timestamp":"2026-02-01T15:00:03.000Z"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"edit-tool-1","content":"File updated successfully"}]},"uuid":"edit-result-1","timestamp":"2026-02-01T15:00:04.000Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Done editing."}]},"uuid":"edit-done-1","timestamp":"2026-02-01T15:00:05.000Z"}
+{"type":"user","message":{"role":"user","content":"write a new file"},"uuid":"user-3","timestamp":"2026-02-01T15:00:06.000Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"write-tool-1","name":"Write","input":{"file_path":"/path/to/newfile.ts","content":"export const hello = 'world';\n"}}]},"uuid":"write-1","timestamp":"2026-02-01T15:00:07.000Z"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"write-tool-1","content":"File created successfully"}]},"uuid":"write-result-1","timestamp":"2026-02-01T15:00:08.000Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Created the file."}]},"uuid":"write-done-1","timestamp":"2026-02-01T15:00:09.000Z"}
+{"type":"user","message":{"role":"user","content":"search for something"},"uuid":"user-4","timestamp":"2026-02-01T15:00:10.000Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"grep-tool-1","name":"Grep","input":{"pattern":"export.*const","path":"/src"}}]},"uuid":"grep-1","timestamp":"2026-02-01T15:00:11.000Z"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"grep-tool-1","content":"/src/index.ts:1:export const foo = 1;"}]},"uuid":"grep-result-1","timestamp":"2026-02-01T15:00:12.000Z"}
+{"type":"file-history-snapshot","messageId":"snapshot-1","snapshot":{"messageId":"user-1","trackedFileBackups":{"README.md":{"backupFileName":"abc123@v1","version":1,"backupTime":"2026-02-01T15:00:00.000Z"}},"timestamp":"2026-02-01T15:00:13.000Z"}}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Found matches."}]},"uuid":"grep-done-1","timestamp":"2026-02-01T15:00:14.000Z"}
+{"type":"user","message":{"role":"user","content":"<command-message>sync-help</command-message>\n<command-name>/sync-help</command-name>"},"uuid":"user-5","timestamp":"2026-02-01T15:00:15.000Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Running sync-help command."}]},"uuid":"command-response-1","timestamp":"2026-02-01T15:00:16.000Z"}

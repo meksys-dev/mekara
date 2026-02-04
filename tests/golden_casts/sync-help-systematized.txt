@@ -1,0 +1,222 @@
+[32m[1m❯ [0m/sync-help
+
+[33m[1m🔧 Bash [0m[33m[2m[0m[33m[2m{"c[0m[33m[2mommand":[0m[33m[2m "[0m[33m[2muv run d[0m[33m[2moj[0m[33m[2mo --help"[0m[33m[2m, "[0m[33m[2mdescript[0m[33m[2mion": "Get[0m[33m[2m cu[0m[33m[2mrrent CL[0m[33m[2mI help o[0m[33m[2mutp[0m[33m[2mut"}[0m
+
+[33m[1m🔧 Read [0m[33m[2m[0m[33m[2m{"file_pa[0m[33m[2mth": "/[0m[33m[2mUse[0m[33m[2mrs/[0m[33m[2mamos/Doc[0m[33m[2mument[0m[33m[2ms/[0m[33m[2mrea[0m[33m[2ml/Projec[0m[33m[2mts[0m[33m[2m/Mek[0m[33m[2msys[0m[33m[2m/dojo/py[0m[33m[2mthon/RE[0m[33m[2mADME.md"}[0m
+[32m   ✓ [0m[32m[2musage: dojo [-h] [--version] {training} ...
+
+Dojo - A Python CLI tool
+
+positional arguments:
+  {training}  Available commands
+    training  Receive guidance on your path to AI mastery
+
+options:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+
+For more information, visit the project repository.
+warning: `VIRTUAL_ENV=/Users/amos/Library/Caches/pypoetry/virtualenvs/mekara-7i0yWtOA-py3.12` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead[0m
+[32m   ✓ [0m[32m[2m     1→# dojo
+     2→
+     3→Dojo - A Python CLI tool
+     4→
+     5→## Setup
+     6→
+     7→Install dependencies using uv:
+     8→
+     9→```bash
+    10→uv sync
+    11→```
+    12→
+    13→Set up pre-commit hooks (for contributors):
+    14→
+    15→```bash
+    16→uv run pre-commit install
+    17→```
+    18→
+    19→## Usage
+    20→
+    21→Run the CLI tool:
+    22→
+    23→```bash
+    24→uv run dojo
+    25→```
+    26→
+    27→Output:
+    28→```
+    29→Hello from dojo!
+    30→```
+    31→
+    32→View help text:
+    33→
+    34→```bash
+    35→uv run dojo --help
+    36→```
+    37→
+    38→Output:
+    39→```
+    40→usage: dojo [-h] [--version]
+    41→
+    42→Dojo - A Python CLI tool
+    43→
+    44→options:
+    45→  -h, --help  show this help message and exit
+    46→  --version   show program's version number and exit
+    47→
+    48→For more information, visit the project repository.
+    49→```
+    50→
+    51→## Testing
+    52→
+    53→Run tests:
+    54→
+    55→```bash
+    56→uv run pytest
+    57→```
+    58→
+    59→## Pre-commit Hooks
+    60→
+    61→This project uses pre-commit hooks to ensure code quality. The hooks automatically run on every commit and check:
+    62→
+    63→- **Formatting**: Code is formatted with `ruff format`
+    64→- **Linting**: Code is linted with `ruff` (auto-fixes applied when possible)
+    65→- **Type-checking**: Code is type-checked with `mypy` in strict mode
+    66→
+    67→To manually run all hooks:
+    68→
+    69→```bash
+    70→uv run pre-commit run --all-files
+    71→```
+    72→
+    73→Note: Tests are run in CI, not as pre-commit hooks, to keep commits fast.
+    74→
+    75→## Continuous Integration
+    76→
+    77→This repository uses GitHub Actions for continuous integration. All checks must pass before code can be merged to `main`.
+    78→
+    79→### Workflows
+    80→
+    81→**Pre-commit Checks** (`.github/workflows/pre-commit.yml`)
+    82→- Runs all pre-commit hooks on every push and pull request
+    83→- Ensures code formatting, linting, and type-checking pass
+    84→
+    85→**Tests** (`.github/workflows/tests.yml`)
+    86→- Runs the test suite with `pytest -v` on every push and pull request
+    87→- Validates all tests pass in a clean environment
+    88→
+    89→### Branch Protection
+    90→
+    91→The `main` branch is protected with the following rules:
+    92→
+    93→- ✅ All CI checks must pass before merging
+    94→- ✅ Branches must be up-to-date with `main` before merging
+    95→- ✅ Linear history required (squash or rebase merge only)
+    96→- ✅ No force pushes allowed
+    97→- ✅ No direct commits to `main` (all changes via pull requests)
+    98→- ✅ Rules enforced for all users, including admins
+    99→- ✅ Merged branches are automatically deleted
+   100→
+   101→## Documentation
+   102→
+   103→Project documentation lives in the `docs` branch, an orphan branch with separate history from the main codebase.
+   104→
+   105→### Local Setup for Contributors
+   106→
+   107→AI agent commands and development workflows assume documentation is set up as a sibling worktree:
+   108→
+   109→```bash
+   110→# From the project root, add the docs branch as a sibling worktree
+   111→git worktree add ../docs docs
+   112→```
+   113→
+   114→This creates the following directory structure:
+   115→
+   116→```
+   117→parent-directory/
+   118→├── python/          # main branch (this repo)
+   119→└── docs/            # docs branch worktree
+   120→```
+   121→
+   122→With this setup, documentation can be edited alongside code without branch switching.
+   123→
+
+<system-reminder>
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+</system-reminder>
+[0m
+[36m[22mI[0m[36m[22m foun[0m[36m[22md disc[0m[36m[22mrepancies between the documente[0m[36m[22md help[0m[36m[22m text and the current[0m[36m[22m CLI[0m[36m[22m output[0m[36m[22m. The README[0m[36m[22m shows an[0m[36m[22m out[0m[36m[22mdated version that[0m[36m[22m doesn't include[0m[36m[22m the `[0m[36m[22m{[0m[36m[22mtraining[0m[36m[22m}[0m[36m[22m` sub[0m[36m[22mcommand.[0m[36m[22m
+
+**[0m[36m[22mCurrent CLI output:**[0m[36m[22m
+```
+usage: [0m[36m[22mdojo [-h] [[0m[36m[22m--version][0m[36m[22m {[0m[36m[22mtraining[0m[36m[22m} ...[0m[36m[22m
+
+Dojo -[0m[36m[22m A Python CLI tool[0m[36m[22m
+
+posit[0m[36m[22mional arguments:
+  [0m[36m[22m{training}  [0m[36m[22mAvailable[0m[36m[22m commands[0m[36m[22m
+    training  [0m[36m[22mReceive[0m[36m[22m guidance[0m[36m[22m on your[0m[36m[22m path[0m[36m[22m to AI[0m[36m[22m mas[0m[36m[22mtery
+
+options:[0m[36m[22m
+  -h, --[0m[36m[22mhelp  show this help[0m[36m[22m message and exit
+  [0m[36m[22m--version   show program[0m[36m[22m's version number and exit[0m[36m[22m
+
+For more information, visit[0m[36m[22m the project repository.[0m[36m[22m
+```
+
+**Documente[0m[36m[22md ([0m[36m[22mout[0m[36m[22mdated)[0m[36m[22m:**
+```
+usage[0m[36m[22m: dojo [-h[0m[36m[22m] [--version][0m[36m[22m
+
+Dojo - A[0m[36m[22m Python CLI tool
+
+options[0m[36m[22m:
+  -h[0m[36m[22m, --help  show[0m[36m[22m this help message and exit[0m[36m[22m
+  --version   [0m[36m[22mshow program's version number[0m[36m[22m and exit
+
+For more[0m[36m[22m information, visit the project[0m[36m[22m repository.
+```[0m[36m[22m
+
+I[0m[36m[22m also[0m[36m[22m notice[0m[36m[22m the[0m[36m[22m example[0m[36m[22m output[0m[36m[22m `[0m[36m[22mHello[0m[36m[22m from[0m[36m[22m [0m[36m[22mdojo!` may[0m[36m[22m be st[0m[36m[22male. Let me check[0m[36m[22m what[0m[36m[22m the current output is[0m[36m[22m when[0m[36m[22m running `dojo`[0m[36m[22m without arguments[0m[36m[22m:[0m
+[33m[1m🔧 Bash [0m[33m[2m[0m[33m[2m{"command": [0m[33m[2m"uv run d[0m[33m[2moj[0m[33m[2mo 2>&1 [0m[33m[2m|| [0m[33m[2mtrue[0m[33m[2m"[0m[33m[2m, "des[0m[33m[2mcription"[0m[33m[2m: [0m[33m[2m"Check do[0m[33m[2mjo command o[0m[33m[2mutput"}[0m
+[32m   ✓ [0m[32m[2mwarning: `VIRTUAL_ENV=/Users/amos/Library/Caches/pypoetry/virtualenvs/mekara-7i0yWtOA-py3.12` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead
+Hello from dojo![0m
+[36m[22mGoo[0m[36m[22md,[0m[36m[22m the `[0m[36m[22mHello[0m[36m[22m from dojo!` output[0m[36m[22m is still[0m[36m[22m accurate[0m[36m[22m. Now I[0m[36m[22m'll[0m[36m[22m update the README[0m[36m[22m to fix[0m[36m[22m the outdated help text:[0m
+[33m[1m🔧 Edit [0m[33m[2m[0m[33m[2m{"fil[0m[33m[2me_path": [0m[33m[2m"/U[0m[33m[2msers/amos/Do[0m[33m[2mcume[0m[33m[2mnts/[0m[33m[2mre[0m[33m[2mal/Projec[0m[33m[2mts/M[0m[33m[2meksy[0m[33m[2ms/dojo/pyt[0m[33m[2mhon/[0m[33m[2mREA[0m[33m[2mDME.md"[0m[33m[2m, "old_strin[0m[33m[2mg": "Ou[0m[33m[2mtput:\[0m[33m[2mn```\nusag[0m[33m[2me: dojo [-h][0m[33m[2m [--ver[0m[33m[2msion[0m[33m[2m]\n\nDoj[0m[33m[2mo - A [0m[33m[2mPyt[0m[33m[2mhon CLI[0m[33m[2m too[0m[33m[2ml\n\no[0m[33m[2mptions:[0m[33m[2m\n  -h, --he[0m[33m[2mlp[0m[33m[2m  sh[0m[33m[2mow this help[0m[33m[2m message and[0m[33m[2m exit\n  [0m[33m[2m--version[0m[33m[2m   sh[0m[33m[2mow[0m[33m[2m progra[0m[33m[2mm's version[0m[33m[2m numb[0m[33m[2mer and exi[0m[33m[2mt\n\[0m[33m[2mnF[0m[33m[2mor more inf[0m[33m[2mormat[0m[33m[2mion, [0m[33m[2mvis[0m[33m[2mit the proje[0m[33m[2mct[0m[33m[2m repos[0m[33m[2mitory.\n``[0m[33m[2m`"[0m[33m[2m, "n[0m[33m[2mew_[0m[33m[2mstring": "[0m[33m[2mOutput:\n```[0m[33m[2m\nusage:[0m[33m[2m dojo [0m[33m[2m[-h] [--v[0m[33m[2mersion] [0m[33m[2m{training} [0m[33m[2m...\n\[0m[33m[2mnDojo [0m[33m[2m- A Pyt[0m[33m[2mho[0m[33m[2mn CLI[0m[33m[2m to[0m[33m[2mol\n\[0m[33m[2mnpositional[0m[33m[2m argume[0m[33m[2mnts[0m[33m[2m:\n  {[0m[33m[2mtra[0m[33m[2mining}  [0m[33m[2mAvailabl[0m[33m[2me [0m[33m[2mco[0m[33m[2mmma[0m[33m[2mnds\n   [0m[33m[2m trai[0m[33m[2mning  Recei[0m[33m[2mve guidance[0m[33m[2m on[0m[33m[2m your path t[0m[33m[2mo AI[0m[33m[2m mastery\n\n[0m[33m[2moptions:\[0m[33m[2mn  -h, --hel[0m[33m[2mp  show this[0m[33m[2m help messag[0m[33m[2me and e[0m[33m[2mxit\n  --ve[0m[33m[2mrsion [0m[33m[2m  show [0m[33m[2mprogra[0m[33m[2mm's v[0m[33m[2mersion n[0m[33m[2mumber a[0m[33m[2mnd exi[0m[33m[2mt\n\nFor mo[0m[33m[2mre[0m[33m[2m inf[0m[33m[2morm[0m[33m[2mation, v[0m[33m[2misit th[0m[33m[2me [0m[33m[2mproject rep[0m[33m[2mository.[0m[33m[2m\n```"}[0m
+[32m   ✓ [0m[32m[2mThe file /Users/amos/Documents/real/Projects/Meksys/dojo/python/README.md has been updated. Here's the result of running `cat -n` on a snippet of the edited file:
+    34→```bash
+    35→uv run dojo --help
+    36→```
+    37→
+    38→Output:
+    39→```
+    40→usage: dojo [-h] [--version] {training} ...
+    41→
+    42→Dojo - A Python CLI tool
+    43→
+    44→positional arguments:
+    45→  {training}  Available commands
+    46→    training  Receive guidance on your path to AI mastery
+    47→
+    48→options:
+    49→  -h, --help  show this help message and exit
+    50→  --version   show program's version number and exit
+    51→
+    52→For more information, visit the project repository.
+    53→```
+    54→
+    55→## Testing
+    56→
+    57→Run tests:[0m
+[36m[22mI[0m[36m[22m've updated the README.[0m[36m[22mmd to[0m[36m[22m synchron[0m[36m[22mize the[0m[36m[22m help text with the current[0m[36m[22m CLI output. The changes[0m[36m[22m include[0m[36m[22m:
+
+1. **[0m[36m[22mUpdated usage[0m[36m[22m line**: `[0m[36m[22musage: dojo [-[0m[36m[22mh] [--version[0m[36m[22m][0m[36m[22m` → `usage:[0m[36m[22m dojo [-h][0m[36m[22m [--version] {[0m[36m[22mtraining} ...`[0m[36m[22m
+2. **Adde[0m[36m[22md posit[0m[36m[22mional arguments[0m[36m[22m section**: Docum[0m[36m[22menting the new[0m[36m[22m `training[0m[36m[22m` subcommand with[0m[36m[22m its description[0m[36m[22m "[0m[36m[22mReceive guidance on your[0m[36m[22m path to AI mastery[0m[36m[22m"[0m[36m[22m
+
+The[0m[36m[22m other[0m[36m[22m documente[0m[36m[22md output[0m[36m[22m (`[0m[36m[22mHello from dojo![0m[36m[22m`) is still accurate.[0m
+[33m[1m🔧 mcp__mekara__continue [0m[33m[2m[0m[33m[2m{"outputs": [0m[33m[2m"{}"}[0m
+[32m   ✓ [0m[2m(1 content blocks)[0m
+
+
+[32m✓ [0mScript completed successfully[2m in 1 steps[0m
+

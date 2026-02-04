@@ -1,0 +1,188 @@
+/**
+ * Private font definitions for Good Timing and Nasalization.
+ * This file is conditionally loaded only when the fonts are available.
+ */
+
+/* Good Timing Font */
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_ul.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_ul_it.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_lt.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_lt_it.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_rg.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_rg_it.otf") format("opentype");
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_sb.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_sb_it.otf") format("opentype");
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_bd.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_bd_it.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_hv.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_hv_it.otf") format("opentype");
+  font-weight: 900;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_el.otf") format("opentype");
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Good Timing";
+  src: url("/fonts/private/good_timing_el_it.otf") format("opentype");
+  font-weight: 200;
+  font-style: italic;
+}
+
+/* Nasalization Font */
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-bk.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-bk-it.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-el.otf") format("opentype");
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-el-it.otf") format("opentype");
+  font-weight: 200;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-lt.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-lt-it.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-rg.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-rg-it.otf") format("opentype");
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-bd.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-bd-it.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-hv.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Nasalization";
+  src: url("/fonts/private/nasalization-hv-it.otf") format("opentype");
+  font-weight: 900;
+  font-style: italic;
+}

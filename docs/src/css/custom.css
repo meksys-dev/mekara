@@ -1,0 +1,87 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* Dangrek font from Google Fonts (Khmer script) */
+@import url("https://fonts.googleapis.com/css2?family=Dangrek&display=swap");
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #277148;
+  --ifm-color-primary-darkest: #205d3b;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #bff7f9;
+  --ifm-color-primary-dark: #97f2f5;
+  --ifm-color-primary-darker: #83eff3;
+  --ifm-color-primary-darkest: #46e8ee;
+  --ifm-color-primary-light: #e7fcfd;
+  --ifm-color-primary-lighter: #fbffff;
+  --ifm-color-primary-lightest: #ffffff;
+  --ifm-background-color: #090b0d;
+  --docusaurus-highlighted-code-line-bg: rgba(70, 232, 238, 0.3);
+  --ifm-menu-color-background-hover: rgba(70, 232, 238, 0.15);
+  --ifm-menu-color-background-active: var(--ifm-menu-color-background-hover);
+  --glow-cyan: #4d99b3;
+}
+
+/* Active Navigation and Sidebar Glow */
+.navbar__link--active {
+  text-shadow:
+    0 0 2px var(--glow-cyan),
+    0 0 3px var(--glow-cyan),
+    0 0 5px var(--glow-cyan);
+}
+
+.menu__list-item {
+  font-family: "Good Timing", sans-serif;
+}
+
+.menu__list-item-collapsible--active .menu__link--active,
+.menu__list-item > a.menu__link--active {
+  text-shadow:
+    0 0 2px var(--glow-cyan),
+    0 0 3px var(--glow-cyan),
+    0 0 5px var(--glow-cyan);
+  border-radius: 4px 0 0 4px;
+}
+
+/* Navbar */
+.navbar__title,
+.navbar__link[href="/docs/"] {
+  font-family: "Nasalization", sans-serif;
+  font-weight: 400;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+
+.navbar__link[href="/docs/"] {
+  text-transform: none;
+  font-variant: small-caps;
+}
+
+article h1 {
+  font-family: "Nasalization", sans-serif;
+  font-weight: 300;
+  font-variant: small-caps;
+  text-transform: uppercase;
+}
+
+article h2,
+article h3,
+article h4,
+article h5,
+article h6 {
+  font-family: "Good Timing", sans-serif;
+  font-weight: 400;
+}

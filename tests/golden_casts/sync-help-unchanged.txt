@@ -1,0 +1,201 @@
+[32m[1m❯ [0m/sync-help
+
+[33m[1m🔧 Bash [0m[33m[2m[0m[33m[2m{"comm[0m[33m[2mand": "uv [0m[33m[2mrun dojo[0m[33m[2m --help"[0m[33m[2m, "de[0m[33m[2mscripti[0m[33m[2mon": "Get cu[0m[33m[2mrrent[0m[33m[2m CLI[0m[33m[2m help [0m[33m[2moutp[0m[33m[2mut"}[0m
+
+[33m[1m🔧 Read [0m[33m[2m[0m[33m[2m{"file_pat[0m[33m[2mh": "[0m[33m[2m/Users/am[0m[33m[2mos/D[0m[33m[2mocuments/r[0m[33m[2meal/Project[0m[33m[2ms/Meksy[0m[33m[2ms/do[0m[33m[2mjo/pyth[0m[33m[2mon[0m[33m[2m/README[0m[33m[2m.md"}[0m
+[32m   ✓ [0m[32m[2musage: dojo [-h] [--version] {training} ...
+
+Dojo - A Python CLI tool
+
+positional arguments:
+  {training}  Available commands
+    training  Receive guidance on your path to AI mastery
+
+options:
+  -h, --help  show this help message and exit
+  --version   show program's version number and exit
+
+For more information, visit the project repository.
+warning: `VIRTUAL_ENV=/Users/amos/Library/Caches/pypoetry/virtualenvs/mekara-7i0yWtOA-py3.12` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead[0m
+[32m   ✓ [0m[32m[2m     1→# dojo
+     2→
+     3→Dojo - A Python CLI tool
+     4→
+     5→## Setup
+     6→
+     7→Install dependencies using uv:
+     8→
+     9→```bash
+    10→uv sync
+    11→```
+    12→
+    13→Set up pre-commit hooks (for contributors):
+    14→
+    15→```bash
+    16→uv run pre-commit install
+    17→```
+    18→
+    19→## Usage
+    20→
+    21→Run the CLI tool:
+    22→
+    23→```bash
+    24→uv run dojo
+    25→```
+    26→
+    27→Output:
+    28→```
+    29→Hello from dojo!
+    30→```
+    31→
+    32→View help text:
+    33→
+    34→```bash
+    35→uv run dojo --help
+    36→```
+    37→
+    38→Output:
+    39→```
+    40→usage: dojo [-h] [--version] {training} ...
+    41→
+    42→Dojo - A Python CLI tool
+    43→
+    44→positional arguments:
+    45→  {training}  Available commands
+    46→    training  Receive guidance on your path to AI mastery
+    47→
+    48→options:
+    49→  -h, --help  show this help message and exit
+    50→  --version   show program's version number and exit
+    51→
+    52→For more information, visit the project repository.
+    53→```
+    54→
+    55→## Testing
+    56→
+    57→Run tests:
+    58→
+    59→```bash
+    60→uv run pytest
+    61→```
+    62→
+    63→## Pre-commit Hooks
+    64→
+    65→This project uses pre-commit hooks to ensure code quality. The hooks automatically run on every commit and check:
+    66→
+    67→- **Formatting**: Code is formatted with `ruff format`
+    68→- **Linting**: Code is linted with `ruff` (auto-fixes applied when possible)
+    69→- **Type-checking**: Code is type-checked with `mypy` in strict mode
+    70→
+    71→To manually run all hooks:
+    72→
+    73→```bash
+    74→uv run pre-commit run --all-files
+    75→```
+    76→
+    77→Note: Tests are run in CI, not as pre-commit hooks, to keep commits fast.
+    78→
+    79→## Continuous Integration
+    80→
+    81→This repository uses GitHub Actions for continuous integration. All checks must pass before code can be merged to `main`.
+    82→
+    83→### Workflows
+    84→
+    85→**Pre-commit Checks** (`.github/workflows/pre-commit.yml`)
+    86→- Runs all pre-commit hooks on every push and pull request
+    87→- Ensures code formatting, linting, and type-checking pass
+    88→
+    89→**Tests** (`.github/workflows/tests.yml`)
+    90→- Runs the test suite with `pytest -v` on every push and pull request
+    91→- Validates all tests pass in a clean environment
+    92→
+    93→### Branch Protection
+    94→
+    95→The `main` branch is protected with the following rules:
+    96→
+    97→- ✅ All CI checks must pass before merging
+    98→- ✅ Branches must be up-to-date with `main` before merging
+    99→- ✅ Linear history required (squash or rebase merge only)
+   100→- ✅ No force pushes allowed
+   101→- ✅ No direct commits to `main` (all changes via pull requests)
+   102→- ✅ Rules enforced for all users, including admins
+   103→- ✅ Merged branches are automatically deleted
+   104→
+   105→## Documentation
+   106→
+   107→Project documentation lives in the `docs` branch, an orphan branch with separate history from the main codebase.
+   108→
+   109→### Local Setup for Contributors
+   110→
+   111→AI agent commands and development workflows assume documentation is set up as a sibling worktree:
+   112→
+   113→```bash
+   114→# From the project root, add the docs branch as a sibling worktree
+   115→git worktree add ../docs docs
+   116→```
+   117→
+   118→This creates the following directory structure:
+   119→
+   120→```
+   121→parent-directory/
+   122→├── python/          # main branch (this repo)
+   123→└── docs/            # docs branch worktree
+   124→```
+   125→
+   126→With this setup, documentation can be edited alongside code without branch switching.
+   127→
+
+<system-reminder>
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+</system-reminder>
+[0m
+[36m[22mI[0m[36m[22m compare[0m[36m[22md the current[0m[36m[22m CLI help output with the documentation in[0m[36m[22m README.md. The[0m[36m[22m help[0m[36m[22m text documente[0m[36m[22md in lines[0m[36m[22m 40[0m[36m[22m-52 matches[0m[36m[22m exactly[0m[36m[22m with[0m[36m[22m the current[0m[36m[22m CLI output:[0m[36m[22m
+
+**[0m[36m[22mCurrent CLI output[0m[36m[22m:**
+```
+usage: dojo[0m[36m[22m [-h] [--version] {[0m[36m[22mtraining} ...
+
+Dojo -[0m[36m[22m A Python CLI tool
+
+positional arguments[0m[36m[22m:
+  {training}  Available[0m[36m[22m commands
+    training  Receive guidance[0m[36m[22m on your path to AI mastery[0m[36m[22m
+
+options:
+  -h, --[0m[36m[22mhelp  show this help message and exit[0m[36m[22m
+  --version   show program's[0m[36m[22m version number and exit
+
+For more information[0m[36m[22m, visit the project repository.
+```[0m[36m[22m
+
+**Documentation ([0m[36m[22mREADME.md lines[0m[36m[22m 40-52):**
+```[0m[36m[22m
+usage[0m[36m[22m: dojo [-h] [--[0m[36m[22mversion] {training} ...[0m[36m[22m
+
+Dojo - A Python CLI tool[0m[36m[22m
+
+positional arguments:
+  {training[0m[36m[22m}  Available commands
+    training  [0m[36m[22mReceive guidance on your path to AI[0m[36m[22m mastery
+
+options:
+  -[0m[36m[22mh, --help  show this help[0m[36m[22m message and exit
+  --version   [0m[36m[22mshow program's version number and exit[0m[36m[22m
+
+For more information, visit the project repository[0m[36m[22m.
+```
+
+The documentation is already[0m[36m[22m in sync with the actual CLI output.[0m[36m[22m No[0m[36m[22m updates[0m[36m[22m are needed.
+
+However[0m[36m[22m, I notice[0m[36m[22md there's one potential[0m[36m[22m disc[0m[36m[22mrepancy in[0m[36m[22m the README[0m[36m[22m - line[0m[36m[22m 29[0m[36m[22m shows[0m[36m[22m `Hello[0m[36m[22m from dojo!` as[0m[36m[22m the output of[0m[36m[22m running[0m[36m[22m `u[0m[36m[22mv run dojo`[0m[36m[22m without arguments[0m[36m[22m. Let[0m[36m[22m me verify[0m[36m[22m this:[0m
+[33m[1m🔧 Bash [0m[33m[2m[0m[33m[2m{"com[0m[33m[2mmand":[0m[33m[2m "u[0m[33m[2mv run d[0m[33m[2mojo 2>/[0m[33m[2mdev/n[0m[33m[2mull"[0m[33m[2m, "de[0m[33m[2mscription":[0m[33m[2m "Run dojo [0m[33m[2mwit[0m[33m[2mhout a[0m[33m[2mrgu[0m[33m[2mments"}[0m
+[32m   ✓ [0m[32m[2mHello from dojo![0m
+[36m[22mThis[0m[36m[22m output[0m[36m[22m also[0m[36m[22m matches the documentation[0m[36m[22m. [0m[36m[22m
+
+**[0m[36m[22mSummary:**[0m[36m[22m The documentation is already in sync with the[0m[36m[22m actual CLI behavior[0m[36m[22m. No changes are require[0m[36m[22md.[0m
+[33m[1m🔧 mcp__mekara__continue [0m[33m[2m[0m[33m[2m{"out[0m[33m[2mputs": "{}"}[0m
+[32m   ✓ [0m[2m(1 content blocks)[0m
+
+
+[32m✓ [0mScript completed successfully[2m in 1 steps[0m
+
