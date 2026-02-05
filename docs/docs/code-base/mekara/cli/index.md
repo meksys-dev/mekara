@@ -6,16 +6,28 @@ sidebar_position: 3
 
 The CLI entrypoint (`src/mekara/cli.py`) provides the MCP server and utility commands.
 
+## Implementation
+
+The CLI is built with [Click](https://click.palletsprojects.com/), a Python CLI framework chosen for:
+
+- Plain text output (easy to reproduce in other languages/stacks)
+- Wide adoption (Flask and many major projects use it)
+- Simple, portable conventions
+
+The `\b` marker in the epilog preserves verbatim formatting for the environment variables section, preventing Click from rewrapping the text.
+
 ## Commands
 
 | Command                   | Purpose                                             |
 | ------------------------- | --------------------------------------------------- |
-| `mekara`                  | Start the MCP server (default)                      |
-| `mekara mcp`              | Start the MCP server (explicit)                     |
+| `mekara`                  | Show help text                                      |
+| `mekara mcp`              | Start the MCP server                                |
 | `mekara install`          | Install both hooks and commands                     |
 | `mekara install hooks`    | Set up MCP server and hook integration              |
 | `mekara install commands` | Install bundled commands to `~/.mekara/scripts/nl/` |
 | `mekara hook`             | Hook handlers for Claude Code integration           |
+
+All command groups (`install`, `hook`) use `invoke_without_command=True` to show help when invoked without a subcommand, ensuring users always get helpful output rather than errors.
 
 ## Package Layout
 
@@ -130,5 +142,6 @@ This allows NL sources to use human-readable hyphenated names while compiled scr
 
 ## Dependencies
 
+- `click`: CLI framework
 - `mcp`: MCP server framework
 - `pyyaml`: YAML parsing for VCR cassettes

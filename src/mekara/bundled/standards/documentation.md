@@ -127,29 +127,10 @@ When documenting your own code in `docs/docs/code-base/`:
   - **Don't**: Show entire functions or components - readers can look at the source directly
   - **Do**: Include focused snippets that illustrate specific patterns or gotchas
   - **Use `...` placeholders** to show structure without duplicating entire implementations
-  - **Always pair code with explanations**: A code snippet speaks a thousand words, but still needs context
-    - Provide explanatory text before snippets to explain what parameters mean
-    - Don't assume code is self-explanatory
-    - Example of good balance:
-
-      ````markdown
-      Import from `@site/src/components/Foo` and pass `bar` (description of parameter):
-
-      ```tsx
-      import Foo from "@site/src/components/Foo";
-
-      <Foo bar="value" />;
-      ```
-
-      See `docs/example.md` for a complete working example.
-      ````
-
   - **Common mistakes**:
     - Bad: Showing the entire configuration initialization block
-    - Bad: Just showing code without explaining what parameters mean or why the pattern is used
-    - Bad: Just describing the pattern in words without showing what it looks like in code
     - Good: "The SDK is configured with `allowed_tools` for safe operations and `setting_sources` to load saved rules" (for simple config)
-    - Good: Code snippet + explanation (for patterns that benefit from seeing the code)
+    - Good: Focused code snippet showing a specific pattern (see "Code Snippets and Explanations" in General Guidelines)
 
 - **Use proper heading hierarchy**: Use markdown headings (`####`) instead of bolded text for section titles
 - **Avoid line numbers**: Don't reference specific line numbers (e.g., `cli.py:220-308`) as they change frequently
@@ -208,6 +189,7 @@ When documenting external dependencies in `docs/docs/dependencies/`:
 - **Include examples**: Show real code examples demonstrating our usage patterns
   - **Do not** make up your own code examples. Either use examples verbatim from the official docs, or use examples from a working code-base. Anything else is not guaranteed to work, no matter how much sense it makes. Give sources for your examples so that the reader can look at the code in-context.
 - **Document edge cases**: If behavior is non-obvious (e.g., prefix matching vs regex), document it explicitly with citations
+- For code snippet guidelines, see "Code Snippets and Explanations" in General Guidelines
 
 #### Documenting Dependency Bugs
 
@@ -307,6 +289,39 @@ Design documents for planned features. These may be in-progress features. All do
 - **Link to other docs**: Use markdown links to reference other documentation pages, not plain file paths
   - Good: `See [Feature X](../code-base/feature-x.md) for implementation details`
   - Bad: `See docs/docs/code-base/feature-x.md for details`
+
+### Code Snippets and Explanations
+
+These guidelines apply whenever code appears in documentation, regardless of section (`usage/`, `code-base/`, `dependencies/`, etc.):
+
+- **Pair code with explanations**: Never drop a code snippet into documentation without explanatory text. Provide context that explains what the code does, when to use it, what parameters mean, and why the pattern is used.
+  - Don't assume code is self-explanatory
+  - Bad: A heading followed immediately by code with no explanation
+  - Bad: Just showing code without explaining what parameters mean or why the pattern is used
+  - Bad: Just describing the pattern in words without showing what it looks like in code
+  - Good: A heading, followed by 1-2 sentences of context, then the code example
+  - Good: Code snippet + explanation (for patterns that benefit from seeing the code)
+  - Example of good balance:
+
+    ````markdown
+    Import from `@site/src/components/Foo` and pass `bar` (description of parameter):
+
+    ```tsx
+    import Foo from "@site/src/components/Foo";
+
+    <Foo bar="value" />;
+    ```
+
+    See `docs/example.md` for a complete working example.
+    ````
+
+- **Explain WHY, not just WHAT**: When documenting a pattern or recommendation, explain the reasoning and consequences.
+  - **State the consequences of not following the pattern**: What breaks? What goes wrong? What subtle bugs emerge?
+  - **Don't just assert**: Never write "Use X instead of Y" without explaining why X is better and what happens if you use Y
+  - Examples:
+    - Bad: "Use `sys.exit()` instead of `ctx.exit()`"
+    - Good: "Use `sys.exit()` instead of `ctx.exit()`. When running with `standalone_mode=False` (used in tests), `ctx.exit()` does not raise `SystemExit`, which means tests will incorrectly see exit code 0 even when commands fail. This causes test failures to go undetected."
+  - The reader should understand not just the rule, but the underlying reason and what breaks if they ignore it
 
 ### External Source Code Citations
 

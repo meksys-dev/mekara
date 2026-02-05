@@ -5,13 +5,14 @@ Mekara provides script execution via MCP for Claude Code integration.
 
 from __future__ import annotations
 
-import argparse
 import json
 import logging
 import os
 import re
 import sys
 from pathlib import Path
+
+import click
 
 # Environment variable names
 MEKARA_DEBUG_ENV = "MEKARA_DEBUG"
@@ -24,79 +25,48 @@ def _env_bool(name: str) -> bool:
     return val in ("true", "1", "yes")
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="mekara",
-        description="Your automation Mecha.",
-        epilog=(
-            "Environment variables:\n"
-            f"  {MEKARA_DEBUG_ENV}=true           Enable debug logging\n"
-            f"  {MEKARA_DEV_ENV}=true             Development mode (target mekara source repo)\n"
-            "  MEKARA_VCR_CASSETTE=<path>   VCR cassette path for record/replay\n"
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
+# Create Click group (main CLI)
+@click.group(
+    help="Your automation Mecha.",
+    epilog=(
+        "\b\n"  # \b tells Click to preserve formatting
+        "Environment variables:\n"
+        f"  {MEKARA_DEBUG_ENV}=true           Enable debug logging\n"
+        f"  {MEKARA_DEV_ENV}=true             Development mode (target mekara source repo)\n"
+        "  MEKARA_VCR_CASSETTE=<path>   VCR cassette path for record/replay"
+    ),
+    invoke_without_command=True,
+)
+@click.option(
+    "--debug",
+    is_flag=True,
+    envvar=MEKARA_DEBUG_ENV,
+    help=f"Enable debug logging (env: {MEKARA_DEBUG_ENV}=true)",
+)
+@click.option(
+    "--dev-mode",
+    is_flag=True,
+    envvar=MEKARA_DEV_ENV,
+    help=(
+        f"Development mode: recursive commands target mekara source repo "
+        f"(env: {MEKARA_DEV_ENV}=true)"
+    ),
+)
+@click.pass_context
+def cli(ctx: click.Context, debug: bool, dev_mode: bool) -> None:
+    """Global flags handler and help display when no command."""
+    # If no command is being invoked, show help and exit
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        sys.exit(0)
 
-    # Global flags
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        default=_env_bool(MEKARA_DEBUG_ENV),
-        help=f"Enable debug logging (env: {MEKARA_DEBUG_ENV}=true)",
-    )
-    parser.add_argument(
-        "--dev-mode",
-        action="store_true",
-        default=_env_bool(MEKARA_DEV_ENV),
-        help=(
-            f"Development mode: recursive commands target mekara source repo "
-            f"(env: {MEKARA_DEV_ENV}=true)"
-        ),
-    )
+    # Configure debug logging if enabled
+    if debug:
+        _configure_debug_logging()
+        os.environ[MEKARA_DEBUG_ENV] = "true"
 
-    subparsers = parser.add_subparsers(dest="command")
-
-    # MCP server command
-    subparsers.add_parser(
-        "mcp",
-        help="Run mekara as an MCP server (for Claude Code integration)",
-    )
-
-    # Install command with subcommands
-    install_parser = subparsers.add_parser(
-        "install",
-        help="Install mekara components (hooks, commands, or both)",
-    )
-    install_subparsers = install_parser.add_subparsers(dest="install_command")
-    install_subparsers.add_parser(
-        "hooks",
-        help="Set up mekara MCP integration (~/.claude.json, ~/.claude/settings.json)",
-    )
-    install_subparsers.add_parser(
-        "commands",
-        help="Install bundled commands to ~/.mekara/scripts/nl/",
-    )
-
-    # Hook commands
-    hook_parser = subparsers.add_parser(
-        "hook",
-        help="Hook handlers for Claude Code integration",
-    )
-    hook_subparsers = hook_parser.add_subparsers(dest="hook_command")
-    hook_subparsers.add_parser(
-        "reroute-user-commands",
-        help="Reroute /commands from user prompts to MCP server",
-    )
-    hook_subparsers.add_parser(
-        "reroute-agent-commands",
-        help="Reroute agent Skill tool invocations to MCP server",
-    )
-    hook_subparsers.add_parser(
-        "auto-approve",
-        help="Auto-approve all actions except rm and git commit",
-    )
-
-    return parser
+    if dev_mode:
+        os.environ[MEKARA_DEV_ENV] = "true"
 
 
 def _configure_debug_logging() -> None:
@@ -195,23 +165,6 @@ def _command_affects_mekara_dir(command_name: str, target_path: Path) -> bool:
 
     content_lower = content.lower()
     return any(pattern in content_lower for pattern in content_patterns)
-
-
-def cmd_hook(args: argparse.Namespace) -> int:
-    """Handle Claude Code hooks."""
-    if args.hook_command == "reroute-user-commands":
-        return _hook_user_prompt_submit()
-    elif args.hook_command == "reroute-agent-commands":
-        return _hook_pre_tool_use()
-    elif args.hook_command == "auto-approve":
-        return _hook_auto_approve()
-    else:
-        print("Usage: mekara hook <subcommand>", file=sys.stderr)
-        print(
-            "Available subcommands: reroute-user-commands, reroute-agent-commands, auto-approve",
-            file=sys.stderr,
-        )
-        return 1
 
 
 def _hook_pre_tool_use() -> int:
@@ -395,27 +348,70 @@ After calling start, follow the tool's returned instructions:
     return 0
 
 
-def cmd_install(args: argparse.Namespace) -> int:
-    """Install mekara components.
+@cli.command()
+def mcp() -> None:
+    """Run mekara as an MCP server (for Claude Code integration)."""
+    from mekara.mcp.server import run_server
 
-    With no subcommand: installs both hooks and commands
-    With 'hooks' subcommand: sets up MCP integration only
-    With 'commands' subcommand: installs bundled commands only
-    """
-    install_command = getattr(args, "install_command", None)
+    run_server()
 
-    if install_command is None:
+
+# Install command group
+@cli.group(invoke_without_command=True)
+@click.pass_context
+def install(ctx: click.Context) -> None:
+    """Install mekara components (hooks, commands, or both)."""
+    if ctx.invoked_subcommand is None:
         # No subcommand: install both
         hooks_result = _install_hooks()
         commands_result = _install_commands()
-        return max(hooks_result, commands_result)
-    elif install_command == "hooks":
-        return _install_hooks()
-    elif install_command == "commands":
-        return _install_commands()
-    else:
-        print("Usage: mekara install [hooks|commands]", file=sys.stderr)
-        return 1
+        sys.exit(max(hooks_result, commands_result))
+
+
+@install.command("hooks")
+def install_hooks_cmd() -> None:
+    """Set up mekara MCP integration (~/.claude.json, ~/.claude/settings.json)."""
+    result = _install_hooks()
+    sys.exit(result)
+
+
+@install.command("commands")
+def install_commands_cmd() -> None:
+    """Install bundled commands to ~/.mekara/scripts/nl/."""
+    result = _install_commands()
+    sys.exit(result)
+
+
+# Hook command group
+@cli.group(invoke_without_command=True)
+@click.pass_context
+def hook(ctx: click.Context) -> None:
+    """Hook handlers for Claude Code integration."""
+    if ctx.invoked_subcommand is None:
+        # No subcommand: show help
+        click.echo(ctx.get_help())
+        sys.exit(0)
+
+
+@hook.command("reroute-user-commands")
+def hook_reroute_user() -> None:
+    """Reroute /commands from user prompts to MCP server."""
+    result = _hook_user_prompt_submit()
+    sys.exit(result)
+
+
+@hook.command("reroute-agent-commands")
+def hook_reroute_agent() -> None:
+    """Reroute agent Skill tool invocations to MCP server."""
+    result = _hook_pre_tool_use()
+    sys.exit(result)
+
+
+@hook.command("auto-approve")
+def hook_auto_approve_cmd() -> None:
+    """Auto-approve all actions except rm and git commit."""
+    result = _hook_auto_approve()
+    sys.exit(result)
 
 
 def _install_hooks() -> int:
@@ -614,33 +610,15 @@ def _install_commands() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     """Run the mekara CLI."""
-    parser = _build_parser()
-    args = parser.parse_args(argv)
-
-    # Configure debug logging if enabled
-    if args.debug:
-        _configure_debug_logging()
-
-    # Set environment variables for child processes / MCP server
-    if args.debug:
-        os.environ[MEKARA_DEBUG_ENV] = "true"
-    if args.dev_mode:
-        os.environ[MEKARA_DEV_ENV] = "true"
-
-    if args.command == "mcp" or args.command is None:
-        from mekara.mcp.server import run_server
-
-        run_server()
+    try:
+        cli(argv, standalone_mode=False)
         return 0
-
-    if args.command == "hook":
-        return cmd_hook(args)
-
-    if args.command == "install":
-        return cmd_install(args)
-
-    parser.print_help()
-    return 1
+    except click.exceptions.ClickException as e:
+        # Click exceptions include formatted help/error messages
+        e.show()
+        return e.exit_code
+    except SystemExit as e:
+        return e.code if isinstance(e.code, int) else 1
 
 
 if __name__ == "__main__":
