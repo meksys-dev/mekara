@@ -74,6 +74,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^(\.mekara/scripts/nl/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/)
+      - id: wiki-sidebar-label
+        name: Wiki sidebar label validation
+        entry: poetry run python scripts/hooks/check_wiki_frontmatter.py
+        language: system
+        pass_filenames: true
+        files: ^docs/wiki/.*\.md$
       - id: post-commit-cleanup
         name: Clean up sync markers
         entry: bash scripts/hooks/post_commit_cleanup.sh

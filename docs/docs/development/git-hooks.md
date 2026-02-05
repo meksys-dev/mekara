@@ -27,6 +27,7 @@ Each hook runs only when its files change:
 | Build Documentation     | Any change inside `docs/`                                                           | Builds the Docusaurus site to catch broken links, broken anchors, or other regressions early.                              |
 | Sync Bundled Standards  | Any change to `docs/docs/standards/*.md`                                            | Syncs standards from docs to `src/mekara/bundled/standards/`, stripping Docusaurus frontmatter and imports.                |
 | Check Bundled Scripts   | Any change to `.mekara/scripts/nl/`, `docs/wiki/`, or `src/mekara/bundled/scripts/` | Syncs between `.mekara/scripts/nl/` and `docs/wiki/`. Validates bundled NL/compiled pairs. Alerts on potential sync needs. |
+| Wiki sidebar label      | Any change to `docs/wiki/**/*.md` files                                             | Validates that all non-index wiki files have a `sidebar_label` field in their frontmatter.                                 |
 
 - Each Python hook runs through `poetry run ...`, so make sure `poetry install --with dev` has completed before committing.
 - Each docs hook runs through `pnpm` in the `docs/` directory, so make sure `pnpm install` has completed before committing.
