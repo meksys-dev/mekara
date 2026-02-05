@@ -53,6 +53,31 @@ https://github.com/meksys-dev/mekara/settings/secrets/actions
 - Manually when checking documentation quality
 - Before publishing documentation changes
 
+## hooks/check_wiki_frontmatter.py
+
+Validates that all wiki markdown files have required frontmatter fields.
+
+**Usage:**
+
+This script is automatically invoked by the pre-commit hook. It runs on all `.md` files under `docs/wiki/` during `git commit`.
+
+```bash
+# Manual usage
+python scripts/hooks/check_wiki_frontmatter.py docs/wiki/path/to/file.md
+```
+
+**What it does:**
+
+- Validates all wiki files (except `index.md`) have YAML frontmatter
+- Ensures frontmatter contains a `sidebar_label` field
+- Uses `markdown-it-py` with the `front_matter` plugin to parse frontmatter
+- Exits with status 1 if any validation errors are found
+
+**When it runs:**
+
+- Automatically as a pre-commit hook on all staged wiki markdown files
+- Manually when validating documentation structure
+
 ## record_golden_chats.py
 
 Records Claude chat transcripts for documentation and stores them in docs static assets.
