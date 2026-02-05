@@ -14,7 +14,6 @@ from mekara.cli import (
     _hook_pre_tool_use,
     _hook_user_prompt_submit,
     _install_commands,
-    cmd_install,
 )
 from mekara.scripting.resolution import ResolvedTarget, ScriptInfo
 
@@ -692,67 +691,3 @@ class TestInstallCommands:
 
         # Symlink should still be there
         assert claude_dir.is_symlink()
-
-
-class TestCmdInstall:
-    """Tests for cmd_install dispatcher function."""
-
-    def test_no_subcommand_runs_both(self) -> None:
-        """With no subcommand, should run both hooks and commands install."""
-        from argparse import Namespace
-
-        args = Namespace(install_command=None)
-
-        with patch("mekara.cli._install_hooks", return_value=0) as mock_hooks:
-            with patch("mekara.cli._install_commands", return_value=0) as mock_commands:
-                result = cmd_install(args)
-
-        assert result == 0
-        mock_hooks.assert_called_once()
-        mock_commands.assert_called_once()
-
-    def test_hooks_subcommand_runs_hooks_only(self) -> None:
-        """With 'hooks' subcommand, should only run hooks install."""
-        from argparse import Namespace
-
-        args = Namespace(install_command="hooks")
-
-        with patch("mekara.cli._install_hooks", return_value=0) as mock_hooks:
-            with patch("mekara.cli._install_commands", return_value=0) as mock_commands:
-                result = cmd_install(args)
-
-        assert result == 0
-        mock_hooks.assert_called_once()
-        mock_commands.assert_not_called()
-
-    def test_commands_subcommand_runs_commands_only(self) -> None:
-        """With 'commands' subcommand, should only run commands install."""
-        from argparse import Namespace
-
-        args = Namespace(install_command="commands")
-
-        with patch("mekara.cli._install_hooks", return_value=0) as mock_hooks:
-            with patch("mekara.cli._install_commands", return_value=0) as mock_commands:
-                result = cmd_install(args)
-
-        assert result == 0
-        mock_hooks.assert_not_called()
-        mock_commands.assert_called_once()
-
-    def test_returns_max_error_code(self) -> None:
-        """Should return the maximum error code from both operations."""
-        from argparse import Namespace
-
-        args = Namespace(install_command=None)
-
-        with patch("mekara.cli._install_hooks", return_value=0):
-            with patch("mekara.cli._install_commands", return_value=1):
-                result = cmd_install(args)
-
-        assert result == 1
-
-        with patch("mekara.cli._install_hooks", return_value=2):
-            with patch("mekara.cli._install_commands", return_value=0):
-                result = cmd_install(args)
-
-        assert result == 2

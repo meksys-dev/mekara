@@ -12,8 +12,8 @@ mekara provides these CLI commands:
 
 | Command                   | Purpose                                             |
 | ------------------------- | --------------------------------------------------- |
-| `mekara`                  | Start the MCP server (default)                      |
-| `mekara mcp`              | Start the MCP server (explicit)                     |
+| `mekara`                  | Show help text                                      |
+| `mekara mcp`              | Start the MCP server                                |
 | `mekara install`          | Install both hooks and commands                     |
 | `mekara install hooks`    | Set up MCP server and hook integration              |
 | `mekara install commands` | Install bundled commands to `~/.mekara/scripts/nl/` |
