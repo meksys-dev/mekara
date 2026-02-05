@@ -57,7 +57,7 @@ When upgrading any of these locally, update the workflow file to match.
 
 ## Branch Protection
 
-A [GitHub ruleset](https://github.com/meksys-dev/mekara/rules/10492367) enforces the following on the default branch (`main`):
+Branch protection rules enforce the following on the default branch (`main`):
 
 - **Pull request required**: All changes must go through a PR (no direct pushes)
 - **No force push**: History rewrites are blocked to preserve commit history

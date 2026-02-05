@@ -119,6 +119,14 @@ python scripts/record_golden_chats.py /path/to/dojo sync-help-manual
 
 The transcripts are rendered in documentation using the `ClaudeChat` component.
 
+### Checking External Links
+
+```bash
+python3 scripts/check-external-links.py
+```
+
+Validates all external HTTP/HTTPS links in the documentation. Run this before publishing documentation changes or as part of the release process. See [Scripts](../code-base/mekara/scripts.md#check-external-linkspy) for details.
+
 ## Docs Site Commands
 
 All docs live under `docs/`. When you edit anything there:

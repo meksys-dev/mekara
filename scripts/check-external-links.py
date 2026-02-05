@@ -9,6 +9,20 @@ from urllib.request import Request, urlopen
 from markdown_it import MarkdownIt
 
 
+def load_ignore_list() -> set[str]:
+    """Load URLs to ignore from .linkcheck-ignore file."""
+    ignore_file = Path(".linkcheck-ignore")
+    if not ignore_file.exists():
+        return set()
+
+    ignored = set()
+    for line in ignore_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            ignored.add(line)
+    return ignored
+
+
 def extract_urls(content: str) -> list[str]:
     """Extract HTTP/HTTPS URLs from markdown using markdown-it-py parser."""
     md = MarkdownIt()
@@ -67,11 +81,17 @@ def main() -> int:
             return 1
         md_files = sorted(docs_dir.rglob("*.md"))
 
+    ignored_urls = load_ignore_list()
+    if ignored_urls:
+        print(f"Ignoring {len(ignored_urls)} URL(s) from .linkcheck-ignore")
+
     url_to_files = {}
     for md_file in md_files:
         content = md_file.read_text(encoding="utf-8")
         urls = extract_urls(content)
         for url in urls:
+            if url in ignored_urls:
+                continue
             if url not in url_to_files:
                 url_to_files[url] = []
             url_to_files[url].append(md_file)

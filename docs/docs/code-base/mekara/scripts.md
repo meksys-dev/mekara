@@ -24,9 +24,28 @@ python scripts/check-external-links.py docs/docs/index.md
 
 - Walks through all `.md` files in `docs/docs/` (or checks a specific file if provided)
 - Extracts HTTP/HTTPS URLs using `markdown-it-py` parser
-- Makes HTTP HEAD requests to validate each unique URL
+- Makes HTTP HEAD requests to validate each unique URL (10-second timeout)
+- Skips URLs listed in `.linkcheck-ignore`
 - Reports broken links with status codes and file locations
 - Exits with status 1 if any broken links are found
+
+**Ignoring URLs:**
+
+The `.linkcheck-ignore` file (at repository root) lists URLs to skip during checking:
+
+```text
+# One URL per line, lines starting with # are comments
+
+# VS Code marketplace consistently returns false positives
+https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+
+# GitHub repository admin pages (404 for non-owners)
+https://github.com/meksys-dev/mekara/settings/secrets/actions
+```
+
+**Alternative tools:**
+
+[markdown-link-check](https://github.com/tcort/markdown-link-check) is a more feature-rich Node.js tool with better retry logic, GitHub Action support, and HTML comment-based ignore syntax. We use the custom Python script to avoid adding Node.js dependencies to the project.
 
 **When it runs:**
 
