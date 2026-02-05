@@ -27,7 +27,7 @@ import ClaudeChat from '@site/src/components/ClaudeChat';
 
 <ClaudeChat src="/chats/sync-help-manual-part1.jsonl" />
 
-From there, you realize this is an action that you're going to be doing over and over again. As such, you run the `/systematize` command to produce [a new command](https://github.com/meksys-dev/ai-dojo/blob/training/intro/systematized/.claude/commands/sync-help.md) that formally records the steps you took to complete this process:
+From there, you realize this is an action that you're going to be doing over and over again. As such, you run the `/systematize` command to produce [a new command](https://github.com/meksys-dev/ai-dojo/blob/training/intro/systematized/.mekara/scripts/nl/sync-help.md) that formally records the steps you took to complete this process:
 
 <ClaudeChat src="/chats/sync-help-manual-part2.jsonl" />
 
@@ -53,7 +53,7 @@ That is a _lot_ of time and tokens spent on something that could have gone a lot
 
 Note the amount of back-and-forth we have with the LLM over the compilation process: given the potential time savings involved, it is highly recommended to spend some time optimizing this process.
 
-The resulting Python script can be found [here](https://github.com/meksys-dev/ai-dojo/blob/training/intro/mechanized/.mekara/scripts/sync_help.py) -- note the interleaving between fully automated steps and steps that require LLM judgment.
+The resulting Python script can be found [here](https://github.com/meksys-dev/ai-dojo/blob/training/intro/mechanized/.mekara/scripts/compiled/sync_help.py) -- note the interleaving between fully automated steps and steps that require LLM judgment.
 
 :::info[Try it yourself!]
 You can try mechanizing the worfklow yourself on the `training/intro/unchanged` commit on our [AI Dojo](https://github.com/meksys-dev/ai-dojo/).
@@ -88,7 +88,7 @@ While the particular scenario presented here is rather contrived, we hope it's s
 
 No workflow is perfect on the first try. When you run a command and find yourself correcting the AI—explaining edge cases, clarifying ambiguous steps, or handling unexpected situations—that feedback is valuable. `/recursive-self-improvement` captures your corrections and integrates them directly into the command, so future runs benefit from what you learned.
 
-The [self-improvement command](https://github.com/meksys-dev/mekara/blob/main/.claude/commands/recursive-self-improvement.md) completes the core trio. Every time you have to talk with the AI to fix problems following a process you'd previously systematized, you can run `/recursive-self-improvement` afterwards to get the AI to look at the history of your interaction in the session and incorporate your feedback into the process to help all future agents with the task.
+The [self-improvement command](https://github.com/meksys-dev/mekara/tree/main/.mekara/scripts/nl/recursive-self-improvement.md) completes the core trio. Every time you have to talk with the AI to fix problems following a process you'd previously systematized, you can run `/recursive-self-improvement` afterwards to get the AI to look at the history of your interaction in the session and incorporate your feedback into the process to help all future agents with the task.
 
 ## Repeat
 

@@ -1,0 +1,9 @@
+# Links to ignore during link checking
+# Format: One URL per line, lines starting with # are comments
+# Used by scripts/check-external-links.py
+
+# VS Code marketplace consistently returns false positives
+https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+
+# GitHub repository admin pages (404 for non-owners)
+https://github.com/meksys-dev/mekara/settings/secrets/actions

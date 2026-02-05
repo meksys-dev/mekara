@@ -1,3 +1,8 @@
+---
+sidebar_label: Release
+sidebar_position: 10
+---
+
 Prepare a Python package for PyPI release by updating the version, building, and verifying the distribution.
 
 <UserContext>$ARGUMENTS</UserContext>
