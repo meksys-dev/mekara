@@ -24,7 +24,7 @@ Mekara separates these two types. Deterministic steps (`auto`) run **imperativel
 
 Beyond just speed optimization, Mekara is a proof-of-concept for three ideas:
 
-1. **Natural language as a programming language.** Mekara scripts start as plain English instructions (`.md` files), get compiled into Python generators that interleave `auto` and `llm` steps, and execute via MCP. The natural language source remains the canonical version -- the compiled code is derived from it.
+1. **Natural language is the programming language.** Mekara scripts start as plain English instructions (`.md` files), get compiled into Python generators that interleave `auto` and `llm` steps, and execute via MCP. The natural language source remains the canonical version -- the compiled code is derived from it.
 
 2. **Automating the processes that produce code, not the code itself.** Rather than generating application code, Mekara automates the *development workflow* -- branching, merging, documenting, testing, PR creation -- the stuff that surrounds the code.
 
