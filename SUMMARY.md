@@ -49,17 +49,6 @@ This means projects can override bundled commands, and users can have personal c
 ### VCR Testing
 Mekara includes a "Video Cassette Recorder" system that records script execution (MCP calls, shell commands, outputs) to YAML files. These cassettes can be replayed for deterministic testing -- the real application code runs, but shell commands return recorded results. This enables testing complex multi-step workflows without actually running them.
 
-### The Philosophy
-From the our own documentation:
-
-> The bottlenecks in software development are changing. It used to be bits... then code... Now language has become the final bottleneck for transmuting ideas into execution.
-
-> The runtime artifacts are morphing... Now prompts are becoming the runtime artifact -- what is a program after all, but a collection of rules and instructions on how to manipulate data?
-
-> What is good for the human is good for the AI. How long does it take before a human dropped into the middle of your codebase can make a meaningful contribution? If good documentation and tests shorten that time for a human, the same is doubly true for LLMs.
-
-Mekara endorses **fork-first development** -- it encourages users to customize and fork rather than conforming to a single upstream. The tool succeeds if it bootstraps your own personal AI-assisted development factory, whatever form that takes.
-
 ## High-Level Architecture
 
 ### How It Works
