@@ -60,31 +60,6 @@ From the our own documentation:
 
 Mekara endorses **fork-first development** -- it encourages users to customize and fork rather than conforming to a single upstream. The tool succeeds if it bootstraps your own personal AI-assisted development factory, whatever form that takes.
 
-The foundational commands were used to build a complete development pipeline:
-
-**Get In:**
-- `/project:new` -- Set up a complete project from scratch (repo, CI, docs, quality gates)
-
-**Drive (the core development loop):**
-- `/start` -- Create a new feature branch in a git worktree
-- `/change` -- End-to-end orchestrator for the entire feature lifecycle
-- `/plan-design-doc` or `/plan-refactor` -- Plan before implementing
-- `/implement-next-commit` -- Execute one phase at a time from a plan
-- `/document` -- Sync documentation to code changes
-- `/finish` -- Merge main, create PR, merge when checks pass
-
-**Recovery:**
-- `/stop-fucking-up` -- Force the AI to stop and understand what it's doing wrong
-- `/salvage` -- Hand off to a fresh agent with lessons learned
-
-**Mechanize (create new workflows):**
-- `/systematize` -- Capture a successful approach as a command
-- `/compile` -- Make it fast
-- `/standardize` -- Keep things consistent
-
-**Accelerate (improve existing workflows):**
-- `/recursive-self-improvement` -- Improve commands from experience
-
 ## High-Level Architecture
 
 ### How It Works
