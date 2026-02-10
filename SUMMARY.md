@@ -30,30 +30,35 @@ Beyond just speed optimization, Mekara is a proof-of-concept for three ideas:
 
 3. **Recursive self-improvement of workflows.** After using a workflow and finding it lacking, you can run `/recursive-self-improvement` to have the AI update the workflow script based on what went wrong. The workflows literally get better each time you use them.
 
-## What Does It Do?
+## Key Technical Concepts
 
-### The Four Foundational Commands
+### Script Lifecycle
+1. **Write** a natural language script (`.md` file) describing the workflow in plain English
+2. **Compile** it to a Python generator that separates deterministic (`auto`) and judgment (`llm`) steps
+3. **Execute** via MCP -- auto steps run instantly, llm steps pause for Claude
+4. **Improve** via `/recursive-self-improvement` when the workflow needs refinement
 
-Everything in Mekara grew from four core commands:
+### Script Resolution Precedence
+When you invoke a command, mekara looks for it in this order:
+1. Local project (`.mekara/scripts/`)
+2. User home (`~/.mekara/scripts/`)
+3. Bundled with mekara (shipped in the package)
 
-| Command | Purpose |
-|---------|---------|
-| `/systematize` | After solving a problem interactively with AI, capture that approach as a reusable command |
-| `/compile` | Convert a natural language script into a Python generator that runs deterministic steps instantly and only pauses for AI on judgment steps |
-| `/recursive-self-improvement` | After a command runs poorly, update it with lessons learned from the session |
-| `/standardize` | When two commands handle similar things differently, extract a shared standard and make both conform |
+This means projects can override bundled commands, and users can have personal customizations.
 
-These four form a feedback loop: create workflows, make them fast, refine them from experience, keep them consistent.
+### VCR Testing
+Mekara includes a "Video Cassette Recorder" system that records script execution (MCP calls, shell commands, outputs) to YAML files. These cassettes can be replayed for deterministic testing -- the real application code runs, but shell commands return recorded results. This enables testing complex multi-step workflows without actually running them.
 
-### The Three Execution Primitives
+### The Philosophy
+From the our own documentation:
 
-Every compiled script is a Python generator that yields one of three step types:
+> The bottlenecks in software development are changing. It used to be bits... then code... Now language has become the final bottleneck for transmuting ideas into execution.
 
-- **`auto(action, context)`** -- Run a shell command or Python function deterministically. No AI involved. Executes instantly.
-- **`llm(prompt, expects={})`** -- Pause execution and hand control to Claude for a judgment call. Claude sees the prompt, interacts with the user if needed, and returns outputs.
-- **`call_script(name, request)`** -- Invoke another script (compiled or natural language), supporting nested workflows.
+> The runtime artifacts are morphing... Now prompts are becoming the runtime artifact -- what is a program after all, but a collection of rules and instructions on how to manipulate data?
 
-### The Standard Mekara Workflow
+> What is good for the human is good for the AI. How long does it take before a human dropped into the middle of your codebase can make a meaningful contribution? If good documentation and tests shorten that time for a human, the same is doubly true for LLMs.
+
+Mekara endorses **fork-first development** -- it encourages users to customize and fork rather than conforming to a single upstream. The tool succeeds if it bootstraps your own personal AI-assisted development factory, whatever form that takes.
 
 The foundational commands were used to build a complete development pipeline:
 
@@ -110,39 +115,6 @@ Server resumes, runs more auto steps instantly
     |
     v
 Repeat until script completes
-```
-
-### Codebase Structure
-
-```
-src/mekara/
-  cli.py              # CLI entrypoint and Claude Code hook handlers
-  mcp/
-    server.py          # MCP server (4 tools: start, continue, finish_nl, status)
-    executor.py        # Core execution engine (stack-based, pull-based)
-  scripting/
-    runtime.py         # The three primitives (Auto, Llm, CallScript)
-    resolution.py      # Find scripts by name (local > user > bundled)
-    loading.py         # Load and instantiate scripts
-    auto.py            # Execute auto steps (shell/Python)
-    nl.py              # Natural language script processing
-    standards.py       # Reusable standards injection
-  vcr/                 # Record/replay system for testing
-  utils/
-    project.py         # Project root detection and path utilities
-  bundled/
-    scripts/
-      nl/              # Bundled natural language scripts (ship with mekara)
-      compiled/        # Bundled compiled scripts
-
-.mekara/
-  scripts/
-    nl/                # Project-specific natural language scripts (canonical source)
-    compiled/          # Project-specific compiled scripts (auto-generated)
-  standards/           # Project-specific standards
-
-docs/docs/             # Docusaurus documentation site (single source of truth)
-tests/                 # Test suite with VCR cassette recordings
 ```
 
 ## Categories of Commands
@@ -203,32 +175,36 @@ These commands are written in natural language (as `.md` files) and can be compi
 ### Test/Demo
 - `/test:random`, `/test:nested`, `/test:double-or-nothing`, `/test:imagine-object` -- Demo and test commands
 
-## Key Technical Concepts
+### Codebase Structure
 
-### Script Lifecycle
-1. **Write** a natural language script (`.md` file) describing the workflow in plain English
-2. **Compile** it to a Python generator that separates deterministic (`auto`) and judgment (`llm`) steps
-3. **Execute** via MCP -- auto steps run instantly, llm steps pause for Claude
-4. **Improve** via `/recursive-self-improvement` when the workflow needs refinement
+```
+src/mekara/
+  cli.py              # CLI entrypoint and Claude Code hook handlers
+  mcp/
+    server.py          # MCP server (4 tools: start, continue, finish_nl, status)
+    executor.py        # Core execution engine (stack-based, pull-based)
+  scripting/
+    runtime.py         # The three primitives (Auto, Llm, CallScript)
+    resolution.py      # Find scripts by name (local > user > bundled)
+    loading.py         # Load and instantiate scripts
+    auto.py            # Execute auto steps (shell/Python)
+    nl.py              # Natural language script processing
+    standards.py       # Reusable standards injection
+  vcr/                 # Record/replay system for testing
+  utils/
+    project.py         # Project root detection and path utilities
+  bundled/
+    scripts/
+      nl/              # Bundled natural language scripts (ship with mekara)
+      compiled/        # Bundled compiled scripts
 
-### Script Resolution Precedence
-When you invoke a command, mekara looks for it in this order:
-1. Local project (`.mekara/scripts/`)
-2. User home (`~/.mekara/scripts/`)
-3. Bundled with mekara (shipped in the package)
+.mekara/
+  scripts/
+    nl/                # Project-specific natural language scripts (canonical source)
+    compiled/          # Project-specific compiled scripts (auto-generated)
+  standards/           # Project-specific standards
 
-This means projects can override bundled commands, and users can have personal customizations.
+docs/docs/             # Docusaurus documentation site (single source of truth)
+tests/                 # Test suite with VCR cassette recordings
+```
 
-### VCR Testing
-Mekara includes a "Video Cassette Recorder" system that records script execution (MCP calls, shell commands, outputs) to YAML files. These cassettes can be replayed for deterministic testing -- the real application code runs, but shell commands return recorded results. This enables testing complex multi-step workflows without actually running them.
-
-### The Philosophy
-From the project's own documentation:
-
-> The bottlenecks in software development are changing. It used to be bits... then code... Now language has become the final bottleneck for transmuting ideas into execution.
-
-> The runtime artifacts are morphing... Now prompts are becoming the runtime artifact -- what is a program after all, but a collection of rules and instructions on how to manipulate data?
-
-> What is good for the human is good for the AI. How long does it take before a human dropped into the middle of your codebase can make a meaningful contribution? If good documentation and tests shorten that time for a human, the same is doubly true for LLMs.
-
-Mekara endorses **fork-first development** -- it encourages users to customize and fork rather than conforming to a single upstream. The tool succeeds if it bootstraps your own personal AI-assisted development factory, whatever form that takes.
