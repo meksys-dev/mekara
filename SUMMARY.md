@@ -146,6 +146,7 @@ tests/                 # Test suite with VCR cassette recordings
 ```
 
 ## Categories of Commands
+These commands are written in natural language (as `.md` files) and can be compiled by the AI into Python scripts that run deterministic steps instantly while still delegating judgment calls to the LLM.
 
 ### Core Workflow (the daily loop)
 - `/start` -- Begin work on a new feature branch
