@@ -59,7 +59,7 @@ The hook detects conflicts if both `.mekara/scripts/nl/` and `docs/wiki/` are mo
 
 Bundled scripts in `src/mekara/bundled/scripts/` are edited independently (no automatic sync). The hook:
 
-1. **Validates NL/compiled pairs** — if `src/mekara/bundled/scripts/nl/` changes, the corresponding `src/mekara/bundled/scripts/compiled/` files must also change
+1. **Validates NL/compiled pairs** — if `src/mekara/bundled/scripts/nl/` changes and a corresponding `src/mekara/bundled/scripts/compiled/` file exists, that compiled file must also change
 2. **Alerts on potential sync needs** — warns when `.mekara/scripts/nl/` or bundled scripts change without corresponding changes in the other location, prompting you to check if synced updates are needed
 
 :::info[Bypassing Sync Conflict Check]

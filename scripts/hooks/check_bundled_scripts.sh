@@ -70,7 +70,7 @@ if [ "$bundled_nl_changed" = true ]; then
 
     missing_compiled=()
     for compiled_path in $bundled_nl_files; do
-        if ! echo "$changed_files" | grep -q "^${compiled_path}$"; then
+        if [ -f "$compiled_path" ] && ! echo "$changed_files" | grep -q "^${compiled_path}$"; then
             missing_compiled+=("$compiled_path")
         fi
     done
