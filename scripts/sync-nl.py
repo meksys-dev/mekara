@@ -7,6 +7,31 @@ import argparse
 import sys
 from pathlib import Path
 
+from markdown_it import MarkdownIt
+
+
+def load_generalized_scripts(repo_root: Path) -> set[str]:
+    """Load the set of scripts that have been intentionally generalized.
+
+    Reads docs/docs/code-base/mekara/bundled-script-generalization.md and
+    returns paths like {"project/release.md", "project/systematize.md"} for
+    any ### heading of the form "category:script.md".
+
+    These scripts have diverged intentionally between .mekara/scripts/nl/
+    (project-specific) and bundled/wiki (generic) and must not be synced.
+    """
+    doc = repo_root / "docs" / "docs" / "code-base" / "mekara" / "bundled-script-generalization.md"
+    if not doc.exists():
+        return set()
+    tokens = MarkdownIt().parse(doc.read_text())
+    generalized: set[str] = set()
+    for i, token in enumerate(tokens):
+        if token.type == "heading_open" and token.tag == "h3":
+            heading = tokens[i + 1].content  # inline token follows
+            if heading.endswith(".md"):
+                generalized.add(heading.replace(":", "/", 1))
+    return generalized
+
 
 def extract_frontmatter(content: str) -> tuple[str, str]:
     """Extract YAML frontmatter from content.
@@ -31,11 +56,14 @@ def extract_frontmatter(content: str) -> tuple[str, str]:
     return frontmatter, body
 
 
-def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path) -> int:
-    """Sync from .mekara/scripts/nl/ to docs/wiki/ and bundled/scripts/."""
-    categories = ["project", "ai-tooling", "target-platform"]
-    exclude = {"project/systematize.md"}
+def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]) -> int:
+    """Sync from .mekara/scripts/nl/ to docs/wiki/ and bundled/scripts/.
 
+    Skips scripts that have been intentionally generalized (listed in
+    bundled-script-generalization.md). Those scripts are maintained
+    independently in .mekara vs wiki/bundled.
+    """
+    categories = ["project", "ai-tooling", "target-platform"]
     for category in categories:
         mekara_dir = mekara_root / category
         wiki_dir = wiki_root / category
@@ -46,7 +74,7 @@ def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path) -> int:
 
         for mekara_file in mekara_dir.glob("*.md"):
             relative_path = f"{category}/{mekara_file.name}"
-            if relative_path in exclude:
+            if relative_path in generalized:
                 continue
 
             wiki_file = wiki_dir / mekara_file.name
@@ -74,11 +102,14 @@ def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path) -> int:
     return 0
 
 
-def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path) -> int:
-    """Sync from docs/wiki/ to .mekara/scripts/nl/ and bundled/scripts/."""
-    categories = ["project", "ai-tooling", "target-platform"]
-    exclude = {"project/systematize.md"}
+def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]) -> int:
+    """Sync from docs/wiki/ to .mekara/scripts/nl/ and bundled/scripts/.
 
+    The wiki holds the generic version of scripts. Always syncs to bundled.
+    Skips syncing to .mekara/scripts/nl/ for generalized scripts (listed in
+    bundled-script-generalization.md) since those have intentional overrides.
+    """
+    categories = ["project", "ai-tooling", "target-platform"]
     for category in categories:
         wiki_dir = wiki_root / category
         mekara_dir = mekara_root / category
@@ -93,9 +124,6 @@ def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path) -> in
                 continue
 
             relative_path = f"{category}/{wiki_file.name}"
-            if relative_path in exclude:
-                continue
-
             mekara_file = mekara_dir / wiki_file.name
             bundled_file = bundled_dir / wiki_file.name
 
@@ -103,12 +131,16 @@ def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path) -> in
             wiki_content = wiki_file.read_text()
             _, body = extract_frontmatter(wiki_content)
 
-            # Write body (without frontmatter) to both destinations
-            mekara_file.parent.mkdir(parents=True, exist_ok=True)
-            mekara_file.write_text(body)
-
+            # Always update bundled (wiki is the source of truth for generic scripts)
             bundled_file.parent.mkdir(parents=True, exist_ok=True)
             bundled_file.write_text(body)
+
+            # Skip .mekara for generalized scripts (intentional project override)
+            if relative_path in generalized:
+                continue
+
+            mekara_file.parent.mkdir(parents=True, exist_ok=True)
+            mekara_file.write_text(body)
 
     return 0
 
@@ -129,10 +161,12 @@ def main() -> int:
     wiki_root = repo_root / "docs" / "wiki"
     bundled_root = repo_root / "src" / "mekara" / "bundled" / "scripts" / "nl"
 
+    generalized = load_generalized_scripts(repo_root)
+
     if args.direction == "to-docs":
-        return sync_to_docs(mekara_root, wiki_root, bundled_root)
+        return sync_to_docs(mekara_root, wiki_root, bundled_root, generalized)
     else:
-        return sync_to_mekara(mekara_root, wiki_root, bundled_root)
+        return sync_to_mekara(mekara_root, wiki_root, bundled_root, generalized)
 
 
 if __name__ == "__main__":

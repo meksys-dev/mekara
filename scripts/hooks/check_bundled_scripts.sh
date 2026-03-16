@@ -4,11 +4,6 @@
 # Alerts when .mekara or bundled scripts change without corresponding changes in the other location.
 set -euo pipefail
 
-# If we just synced on a previous hook run, skip conflict check
-if [ -f .mekara/.sync-in-progress ]; then
-    exit 0
-fi
-
 # Detect which sources have changed in this commit
 changed_files=$(git diff --cached --name-only)
 
@@ -45,21 +40,24 @@ synced=false
 
 if [ "$nl_changed" = true ]; then
     echo "Natural language scripts changed. Syncing to docs/wiki/ and bundled scripts..."
+    before=$(git diff --cached --name-only)
     python3 scripts/sync-nl.py --direction=to-docs
     git add docs/wiki/ src/mekara/bundled/scripts/nl/
-    synced=true
+    after=$(git diff --cached --name-only)
+    [ "$before" != "$after" ] && synced=true
 fi
 
 if [ "$wiki_changed" = true ]; then
     echo "Wiki changed. Syncing to .mekara/scripts/nl/ and bundled scripts..."
+    before=$(git diff --cached --name-only)
     python3 scripts/sync-nl.py --direction=to-mekara
     git add .mekara/scripts/nl/ src/mekara/bundled/scripts/nl/
-    synced=true
+    after=$(git diff --cached --name-only)
+    [ "$before" != "$after" ] && synced=true
 fi
 
-# If we synced, create marker and exit 1 to re-run hooks
+# If we synced, exit 1 to re-run hooks with the newly staged files
 if [ "$synced" = true ]; then
-    touch .mekara/.sync-in-progress
     exit 1
 fi
 

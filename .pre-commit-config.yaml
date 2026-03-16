@@ -80,9 +80,3 @@ repos:
         language: system
         pass_filenames: true
         files: ^docs/wiki/.*\.md$
-      - id: post-commit-cleanup
-        name: Clean up sync markers
-        entry: bash scripts/hooks/post_commit_cleanup.sh
-        language: system
-        stages: [post-commit]
-        always_run: true
