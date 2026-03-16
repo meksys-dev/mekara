@@ -14,6 +14,12 @@ from pathlib import Path
 from markdown_it import MarkdownIt
 
 
+# Categories excluded from wiki (project-specific, not generic)
+WIKI_EXCLUDED_CATEGORIES = {"mekara", "test"}
+# Categories excluded from bundled (project-specific, not useful for other projects)
+BUNDLED_EXCLUDED_CATEGORIES = {"mekara"}
+
+
 class SyncDirection(Enum):
     TO_DOCS = auto()
     TO_MEKARA = auto()
@@ -88,24 +94,22 @@ def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path, general
             if relative_path in generalized:
                 continue
 
-            wiki_file = wiki_dir / mekara_file.name
-            bundled_file = bundled_dir / mekara_file.name
-
             mekara_content = mekara_file.read_text()
 
-            # For wiki: preserve frontmatter, replace body
-            if wiki_file.exists():
-                wiki_content = wiki_file.read_text()
-                frontmatter, _ = extract_frontmatter(wiki_content)
-                wiki_file.write_text(frontmatter + "\n" + mekara_content)
-            else:
-                # No existing frontmatter, just copy content
-                wiki_file.parent.mkdir(parents=True, exist_ok=True)
-                wiki_file.write_text(mekara_content)
+            if category not in WIKI_EXCLUDED_CATEGORIES:
+                wiki_file = wiki_dir / mekara_file.name
+                if wiki_file.exists():
+                    wiki_content = wiki_file.read_text()
+                    frontmatter, _ = extract_frontmatter(wiki_content)
+                    wiki_file.write_text(frontmatter + "\n" + mekara_content)
+                else:
+                    wiki_file.parent.mkdir(parents=True, exist_ok=True)
+                    wiki_file.write_text(mekara_content)
 
-            # For bundled: copy verbatim
-            bundled_file.parent.mkdir(parents=True, exist_ok=True)
-            bundled_file.write_text(mekara_content)
+            if category not in BUNDLED_EXCLUDED_CATEGORIES:
+                bundled_file = bundled_dir / mekara_file.name
+                bundled_file.parent.mkdir(parents=True, exist_ok=True)
+                bundled_file.write_text(mekara_content)
 
     return 0
 
@@ -153,7 +157,6 @@ def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path, gener
 def sync_from_bundled(mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]) -> int:
     """Sync from src/mekara/bundled/scripts/nl/ to docs/wiki/ and .mekara/scripts/nl/.
 
-    Always syncs to wiki (bundled and wiki should stay in sync).
     Skips syncing to .mekara/scripts/nl/ for generalized scripts (intentional overrides).
     """
     for bundled_dir in sorted(bundled_root.iterdir()):
@@ -167,12 +170,12 @@ def sync_from_bundled(mekara_root: Path, wiki_root: Path, bundled_root: Path, ge
             relative_path = f"{category}/{bundled_file.name}"
             bundled_content = bundled_file.read_text()
 
-            # Always update wiki (preserve frontmatter, replace body)
-            wiki_file = wiki_dir / bundled_file.name
-            if wiki_file.exists():
-                wiki_content = wiki_file.read_text()
-                frontmatter, _ = extract_frontmatter(wiki_content)
-                wiki_file.write_text(frontmatter + "\n" + bundled_content)
+            if category not in WIKI_EXCLUDED_CATEGORIES:
+                wiki_file = wiki_dir / bundled_file.name
+                if wiki_file.exists():
+                    wiki_content = wiki_file.read_text()
+                    frontmatter, _ = extract_frontmatter(wiki_content)
+                    wiki_file.write_text(frontmatter + "\n" + bundled_content)
 
             # Skip .mekara for generalized scripts (intentional project override)
             if relative_path in generalized:

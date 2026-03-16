@@ -38,9 +38,9 @@ The "Check Bundled Scripts" hook manages script syncing and validation:
 
 Syncs between three locations:
 
-- `docs/wiki/` — Generic scripts for any mekara project (Prettier-formatted, with frontmatter)
-- `src/mekara/bundled/scripts/nl/` — Bundled scripts installed into user projects (copied verbatim from wiki body)
-- `.mekara/scripts/nl/` — This repo's scripts, which may be customized beyond the generic version
+- `docs/wiki/` — Generic scripts for any mekara project (Prettier-formatted, with frontmatter). Only scripts that apply to all projects belong here — do not add project-specific scripts (e.g., mekara-internal development scripts).
+- `src/mekara/bundled/scripts/nl/` — Bundled generic scripts (including test scripts)
+- `.mekara/scripts/nl/` — This repo's scripts, which may include project-specific scripts that don't exist in wiki/bundled, as well as customized overrides of generic scripts
 
 In general, the hook will sync changes from any one of the three sources to the other two sources, unless the sources are already verbatim copies of each other apart from the edge cases noted below. If there are conflicting staged changes, the hook will exit with an error asking for manual adjustments.
 
@@ -53,6 +53,8 @@ The only exception to the above are the scripts in `.mekara/scripts/nl/` that ar
 2. **Prettier formatting**: The `.mekara/scripts/nl/` and `src/mekara/bundled/scripts/nl/` files contain Prettier-formatted Markdown (blank lines before lists, consistent emphasis markers, etc.). This formatting is inherited from `docs/wiki/` during sync. Do not "simplify" these files by removing blank lines—they must match the wiki formatting to avoid sync conflicts.
 
 3. **Atomic sync**: When syncing in one direction, the hook stages all three locations (wiki, mekara, and bundled) in a single pass. This prevents needing multiple commit attempts to propagate changes through all three locations.
+
+4. **Category exclusions**: Some categories are excluded from sync to specific destinations. `mekara/` (mekara development tools) is excluded from both wiki and bundled. `test/` (test fixtures) is excluded from wiki but stays in bundled so users can verify their mekara installation works. These exclusions are hardcoded in `sync_nl.py`.
 
 ### Bundled Script Validation
 
