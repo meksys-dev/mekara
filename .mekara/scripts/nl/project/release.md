@@ -45,7 +45,26 @@ Every release should be entirely clean and involve only the version number as a 
 
 Update `pyproject.toml` to set the target version in the `[tool.poetry]` section, then use the committer agent to commit the change.
 
-### Step 4: Build and verify
+### Step 4: Snapshot documentation version
+
+Create a versioned docs snapshot for this release:
+
+```bash
+cd docs && pnpm docusaurus docs:version <target-version>
+```
+
+Then update `docusaurus.config.ts`:
+- Set `lastVersion` to `"<target-version>"` in the preset's `docs` options
+- Add the new version to the `versions` config object:
+  ```ts
+  "<target-version>": {
+    label: "v<target-version>",
+  },
+  ```
+
+Use the committer agent to commit the snapshot.
+
+### Step 5: Build and verify
 
 Clean previous builds, build fresh distributions, and verify:
 
