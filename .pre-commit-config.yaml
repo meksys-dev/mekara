@@ -70,10 +70,10 @@ repos:
         files: ^docs/docs/standards/.*\.md$
       - id: check-bundled-scripts
         name: Check Bundled Scripts Match Live
-        entry: bash scripts/hooks/check_bundled_scripts.sh
+        entry: python3 scripts/sync_nl.py
         language: system
         pass_filenames: false
-        files: ^(\.mekara/scripts/nl/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/)
+        files: ^(\.mekara/scripts/nl/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/|docs/wiki/)
       - id: wiki-sidebar-label
         name: Wiki sidebar label validation
         entry: poetry run python scripts/hooks/check_wiki_frontmatter.py

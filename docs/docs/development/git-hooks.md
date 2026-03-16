@@ -8,10 +8,7 @@ sidebar_position: 4
 
 ```bash
 pre-commit install
-pre-commit install --hook-type post-commit
 ```
-
-The post-commit hook cleans up temporary markers created during the sync process.
 
 Each hook runs only when its files change:
 
@@ -45,9 +42,9 @@ Syncs between three locations:
 - `src/mekara/bundled/scripts/nl/` — Bundled scripts installed into user projects (copied verbatim from wiki body)
 - `.mekara/scripts/nl/` — This repo's scripts, which may be customized beyond the generic version
 
-The hook detects conflicts if both `.mekara/scripts/nl/` and `docs/wiki/` are modified in the same commit, and syncs automatically based on which source changed.
+In general, the hook will sync changes from any one of the three sources to the other two sources, unless the sources are already verbatim copies of each other apart from the edge cases noted below. If there are conflicting staged changes, the hook will exit with an error asking for manual adjustments.
 
-**Customized scripts**: Some scripts in `.mekara/scripts/nl/` are intentionally more specific than the generic bundled/wiki version (e.g., `project/release.md` has mekara-specific PyPI steps). The sync script detects this automatically: if `.mekara` content differs from bundled, that script is treated as customized and is excluded from sync in both directions. Wiki/bundled remain the generic version; `.mekara` keeps its custom version independently.
+The only exception to the above are the scripts in `.mekara/scripts/nl/` that are intentionally more specific than the generic bundled/wiki version (e.g., `project/release.md` has mekara-specific PyPI steps). These are also the individual scripts that are mentioned in [Bundled Script Generalization](../code-base/mekara/bundled-script-generalization.md). If a script is mentioned in that file, that script is treated as customized and is excluded from bidirectional sync between the bundled and project-specific scripts. However, a sync between wiki and bundled versions remain.
 
 **Important edge cases:**
 

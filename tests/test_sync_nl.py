@@ -1,14 +1,13 @@
-"""Tests for sync-nl.py generalized-script exclusion logic."""
+"""Tests for sync_nl.py generalized-script exclusion logic."""
 
 from __future__ import annotations
 
-import importlib
-import sys
 from pathlib import Path
 
+import sync_nl
+
 REPO_ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
-sync_nl = importlib.import_module("sync-nl")
+
 load_generalized_scripts = sync_nl.load_generalized_scripts
 
 

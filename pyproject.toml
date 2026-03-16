@@ -48,6 +48,7 @@ skip-magic-trailing-comma = false
 pythonVersion = "3.12"
 include = [".mekara", "src", "tests"]
 exclude = ["src/mekara/bundled/scripts"]  # Auto-generated scripts (both compiled and nl)
+extraPaths = ["scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
