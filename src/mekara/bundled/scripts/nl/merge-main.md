@@ -146,17 +146,12 @@ Once all tests pass:
 # Verify no conflict markers remain
 git diff --check
 
-# Bypass bundled scripts sync conflict check (merges legitimately change both sources)
-touch .mekara/.sync-in-progress
-
 # Stage all resolved files at once
 git add -u
 
 # Commit the merge
 git commit
 ```
-
-The `.mekara/.sync-in-progress` marker file tells the pre-commit hook to skip the conflict check that normally blocks commits modifying both `.mekara/scripts/nl/` and `docs/wiki/`. The post-commit hook automatically removes this file after the commit completes.
 
 ## Key Principles
 

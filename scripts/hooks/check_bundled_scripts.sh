@@ -29,7 +29,8 @@ if echo "$changed_files" | grep -q "^src/mekara/bundled/scripts/compiled/"; then
 fi
 
 # Check for conflicts: both .mekara/scripts/nl/ and docs/wiki/ changed
-if [ "$nl_changed" = true ] && [ "$wiki_changed" = true ]; then
+# Skip during merge commits (MERGE_HEAD exists) — merges legitimately change both sources
+if [ "$nl_changed" = true ] && [ "$wiki_changed" = true ] && ! git rev-parse --verify MERGE_HEAD >/dev/null 2>&1; then
     echo "Error: Both .mekara/scripts/nl/ and docs/wiki/ were modified in this commit."
     echo "This creates a sync conflict. Please commit changes to only one source at a time."
     exit 1
