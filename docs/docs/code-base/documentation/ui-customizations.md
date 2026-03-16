@@ -139,6 +139,54 @@ The glow color is defined as a CSS variable `--glow-cyan: #4d99b3` in the dark t
 - Active navigation links
 - Active sidebar links
 
+## Docs Versioning
+
+The site uses Docusaurus's built-in versioning to serve multiple doc versions simultaneously.
+
+### URL structure
+
+- `/docs/` — latest stable release (e.g. `v0.1.0`), controlled by `lastVersion` in `docusaurus.config.ts`
+- `/docs/next/` — unreleased docs tracking `main`, labeled `Dev`
+
+### Configuration
+
+`docusaurus.config.ts` preset `docs` options:
+
+```ts
+lastVersion: "0.1.0",   // stable version served at /docs/
+versions: {
+  current: { label: "Dev" },    // /docs/next/
+  "0.1.0": { label: "v0.1.0" }, // /docs/
+},
+```
+
+The label for `current` is `"Dev"` rather than `"Latest"` because Docusaurus shows a banner on the `current` version reading "For up-to-date documentation, see the **latest version** (v0.1.0)." Using `"Latest"` as the label would make this text self-contradictory.
+
+### Creating a new version snapshot
+
+At release time, run:
+
+```bash
+cd docs && pnpm docusaurus docs:version <version>
+```
+
+Then update `lastVersion` and add the new version to the `versions` map in `docusaurus.config.ts`. The `/project:release` script (Step 4) automates this.
+
+### Version Badge
+
+By default, Docusaurus renders a "Version: vX.Y.Z" badge immediately before the H1 on every page. This looked jarring. The badge is instead rendered at the right end of the breadcrumb row via swizzling.
+
+**Swizzled components** (under `src/theme/`):
+
+- `DocVersionBadge/index.tsx` — returns `null` to suppress the default badge location
+- `DocBreadcrumbs/index.tsx` — wraps `@theme-original/DocBreadcrumbs` and appends `@theme-original/DocVersionBadge` in a flex row
+
+:::note
+Swizzled components must import via `@theme-original/` (not `@theme/` or direct package paths). Direct imports of `@docusaurus/theme-common` etc. fail module resolution inside swizzled components.
+
+The breadcrumbs `<nav>` has a `margin-bottom` that inflates its flex item height, misaligning the badge. The CSS rule `.breadcrumbs-version-row > nav { margin-bottom: 0; }` in `custom.css` corrects this.
+:::
+
 ## Configuration
 
 ### Docusaurus Settings (`docusaurus.config.ts`)

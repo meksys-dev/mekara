@@ -4,6 +4,8 @@ sidebar_position: 7
 
 # Releasing to PyPI
 
+This page covers one-time setup and version management commands. Follow the [release process](/wiki/project/release) for routine releases after setup.
+
 ## Setup PyPI Tokens
 
 ### Configure Real PyPI
@@ -20,42 +22,6 @@ poetry config pypi-token.pypi pypi-<your-token-here>
 poetry config repositories.testpypi https://test.pypi.org/legacy/
 poetry config pypi-token.testpypi pypi-<test-token-here>
 ```
-
-## Publish to TestPyPI
-
-```bash
-# Build
-rm -rf dist/
-poetry build
-
-# Publish
-poetry publish -r testpypi
-
-# Test
-python -m venv /tmp/test-mekara
-source /tmp/test-mekara/bin/activate
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mekara==0.1.0a1
-mekara --version
-deactivate
-rm -rf /tmp/test-mekara
-```
-
-## Publish to Real PyPI
-
-:::warning
-Only run after merging to main.
-:::
-
-```bash
-# Build
-rm -rf dist/
-poetry build
-
-# Publish
-poetry publish
-```
-
-Verify at https://pypi.org/project/mekara/
 
 ## Version Management
 
