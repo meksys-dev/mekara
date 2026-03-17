@@ -49,6 +49,8 @@ Write a design document following the structure and requirements in @docs/docs/s
 
 Include any `docs/docs/` pages that describe the affected behavior and will need updating. Make sure that you do not present all this inline in your regular chat output — all non-trivial output must be diffable.
 
+**Capture the full richness of Steps 1–3.** The design document is the handoff artifact that future agents will implement from. If the waterfall session produced rationale, section descriptions, specific examples, or guidelines through the clarification process, embed that content directly in the design document — either in the Design Details section or as inline notes on tasks. A task like "Document the rationale: friction points for scope creep" is ambiguous and leaves the implementing agent guessing as to what that rationale was. "Document the rationale: explicit NOT-responsibilities create friction points that provide human legibility for scope creep" is clear and unambiguous. Every detail that emerged from assumption resolution and high-level design confirmation belongs in the document, not just in the chat history.
+
 **STOP. Ask the user: "Are these the right changes?" Do NOT proceed until the user confirms.**
 
 After confirmation, commit the design document.
