@@ -145,19 +145,19 @@ Written in 4 places in `executor.py` but never read anywhere. The field is const
 
 ## Implementation Plan
 
-### Phase 1: Module Spec Standard
+### Phase 1: Module Spec Standard ✅
 
 **Goal:** Define the reusable module spec format as a standard.
 
-**File:** `docs/docs/standards/module-specs.md`
+**File:** `docs/docs/standards/specs.md`
 
 **Tasks:**
 
-- [ ] Write the module spec standard with hierarchy: Purpose, Scope, Requirements, Architecture, Data Structures, Interfaces & Algorithms
-- [ ] Document the precedence/constraint rule (lower sections must be consistent with higher ones)
-- [ ] Document the rationale: friction points for scope creep, spec vs design doc distinction
-- [ ] Update `docs/docs/standards/index.md` to include the new standard
-- [ ] Add a short blurb to `docs/docs/standards/design-documents.md` noting that design docs describe transitions while module specs describe steady state
+- [x] Write the module spec standard with hierarchy: Purpose, Scope, Requirements, Architecture, Data Structures, Interfaces & Algorithms
+- [x] Document the precedence/constraint rule (lower sections must be consistent with higher ones)
+- [x] Document the rationale: friction points for scope creep, spec vs design doc distinction
+- [x] Update `docs/docs/standards/index.md` to include the new standard
+- [x] Add a short blurb to `docs/docs/standards/design-documents.md` noting that design docs describe transitions while module specs describe steady state
 
 ### Phase 2: Scripting Module Spec
 
