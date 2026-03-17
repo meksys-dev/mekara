@@ -51,7 +51,8 @@ Important: choose explicitly whether scripts should **embody** the standard, **l
 
 If the new/changed behavior impacts user-facing understanding of commands, update:
 
-- `docs/docs/usage/index.md` workflow diagrams/text, if this changes how users should navigate the workflow
+- `docs/docs/standards/workflow.md` if the standardized commands are standard workflow commands (used by all mekara projects)
+- `docs/docs/development/workflows.md` if the standardized commands are mekara-specific
 
 ### Step 5: Commit (only with user confirmation)
 
