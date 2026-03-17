@@ -121,6 +121,15 @@ const config: Config = {
           // Remove this to remove the "edit this page" links.
           editUrl: "https://github.com/meksys-dev/mekara/tree/main/docs",
           sidebarCollapsed: false,
+          lastVersion: "0.1.0",
+          versions: {
+            current: {
+              label: "Dev",
+            },
+            "0.1.0": {
+              label: "v0.1.0",
+            },
+          },
         },
         blog: false,
         theme: {
@@ -158,6 +167,10 @@ const config: Config = {
           docsPluginId: "wiki",
           position: "left",
           label: "Wiki",
+        },
+        {
+          type: "docsVersionDropdown",
+          position: "right",
         },
         {
           href: "https://github.com/meksys-dev/mekara",
