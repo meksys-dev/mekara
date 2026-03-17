@@ -55,4 +55,3 @@ Confirm the generalized script would work for:
 - **Read the standards** - The standards tell you what ALL mekara projects have; anything beyond that is mekara-repo-specific
 - **Only reference standard paths** - Only reference file paths that are explicitly documented in the mekara standards (@docs/docs/standards/). Never reference mekara-specific paths like `docs/docs/` (Docusaurus structure) - use generic paths from the standards like `docs/development/workflows.md`
 - **Only generalize what was requested** - If asked to generalize `systematize.md`, don't also modify `project/systematize.md` or other scripts. Special-case scripts (like those under `project/`) may be intentionally mekara-specific
-- **Use .sync-in-progress for bundled-only changes** - When updating bundled scripts without changing their source equivalents in `.mekara/scripts/nl/`, create `.mekara/.sync-in-progress` before committing to signal intentional asymmetry to the pre-commit hook

@@ -123,30 +123,22 @@ parts = split_transcript(transcript_path, marker="Step 2")
 - Imported as a library by other scripts
 - Not typically run directly
 
-## sync-nl.py
+## sync_nl.py
 
-Syncs natural language scripts between `.mekara/scripts/nl/` and `docs/wiki/`, maintaining YAML frontmatter.
-
-**Usage:**
-
-```bash
-# Sync from .mekara to docs
-python scripts/sync-nl.py to-docs
-
-# Sync from docs to .mekara
-python scripts/sync-nl.py from-docs
-```
+Syncs natural language scripts between `.mekara/scripts/nl/`, `docs/wiki/`, and `src/mekara/bundled/scripts/nl/`. Also serves as the `check-bundled-scripts` pre-commit hook entry point.
 
 **What it does:**
 
-- Copies natural language scripts between the canonical location (`.mekara/scripts/nl/`) and documentation (`docs/wiki/`)
-- Preserves YAML frontmatter in both directions
-- Syncs to bundled scripts location (`src/mekara/bundled/scripts/nl/`)
-- Excludes specific files that shouldn't be synced (like `project/systematize.md`)
+- Detects which of the three script locations changed and syncs to the other two
+- Flags conflicts when the same script is staged in two sources with differing content
+- Validates that bundled NL/compiled pairs are updated together
+- Excludes generalized scripts (listed in `bundled-script-generalization.md`) from `.mekara` ↔ wiki sync
+- Top-level scripts (no category subdirectory) are excluded from wiki but synced to bundled
 
 **When it runs:**
 
-- Manually as part of every commit that updates scripts
+- Automatically as a pre-commit hook on every commit that updates scripts
+- Manually via `python scripts/sync_nl.py --all` to sync all scripts regardless of staged state
 
 ## sync-standards.py
 

@@ -172,12 +172,6 @@ flowchart TB
 - `/rsi-documentation` may be run when you provide feedback about documentation organization or formatting during a session. It captures the latest guidance into [documentation conventions](../code-base/documentation/conventions.md) so future work follows the same patterns.
 - `/rsi-scripting` may be run when you establish new conventions or patterns for natural language scripts during a session. It updates `/systematize` to teach future agents these conventions.
 
-## Extras
-
-Additional standalone commands that don't fit into the core workflow but are useful for specific scenarios:
-
-- `/mobile-app` converts a React/Vite web app built with Google AI Studio to a native iOS/Android mobile app using Capacitor, wrapping your existing code with minimal changes
-
 :::info
 
 Any part of the Mekara workflow can be used in isolation. Although the default `mekara` workflows do form a cohesive whole, `mekara` does not force a particular development paradigm on you.

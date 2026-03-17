@@ -8,10 +8,7 @@ sidebar_position: 4
 
 ```bash
 pre-commit install
-pre-commit install --hook-type post-commit
 ```
-
-The post-commit hook cleans up temporary markers created during the sync process.
 
 Each hook runs only when its files change:
 
@@ -41,11 +38,15 @@ The "Check Bundled Scripts" hook manages script syncing and validation:
 
 Syncs between three locations:
 
-- `.mekara/scripts/nl/` — Source of truth for this repo's scripts
-- `docs/wiki/` — Documentation copy with frontmatter (Prettier-formatted)
-- `src/mekara/bundled/scripts/nl/` — Bundled scripts (copied verbatim from `.mekara/scripts/nl/`)
+- `docs/wiki/` — Generic scripts for any mekara project (Prettier-formatted, with frontmatter). Only scripts that apply to all projects belong here — do not add project-specific scripts (e.g., mekara-internal development scripts).
+- `src/mekara/bundled/scripts/nl/` — Bundled generic scripts (including test scripts)
+- `.mekara/scripts/nl/` — This repo's scripts, which may include project-specific scripts that don't exist in wiki/bundled, as well as customized overrides of generic scripts
 
-The hook detects conflicts if both `.mekara/scripts/nl/` and `docs/wiki/` are modified in the same commit, and syncs automatically based on which source changed.
+In general, the hook will sync changes from any one of the three sources to the other two sources, unless the sources are already verbatim copies of each other apart from the edge cases noted below. If there are conflicting staged changes, the hook will exit with an error asking for manual adjustments.
+
+The only exception to the above are the scripts in `.mekara/scripts/nl/` that are intentionally more specific than the generic bundled/wiki version (e.g., `project/release.md` has mekara-specific PyPI steps). These are also the individual scripts that are mentioned in [Bundled Script Generalization](../code-base/mekara/bundled-script-generalization.md). If a script is mentioned in that file, that script is treated as customized and is excluded from bidirectional sync between the bundled and project-specific scripts. However, a sync between wiki and bundled versions remain.
+
+Normally this script acts only on changed files, but the `--all` option als exists to sync all scripts regardless of what's staged, allowing drift to be fixed.
 
 **Important edge cases:**
 
@@ -55,21 +56,17 @@ The hook detects conflicts if both `.mekara/scripts/nl/` and `docs/wiki/` are mo
 
 3. **Atomic sync**: When syncing in one direction, the hook stages all three locations (wiki, mekara, and bundled) in a single pass. This prevents needing multiple commit attempts to propagate changes through all three locations.
 
+4. **Category exclusions**: Some categories are excluded from sync to specific destinations. `mekara/` (mekara development tools) is excluded from both wiki and bundled. `test/` (test fixtures) is excluded from wiki but stays in bundled so users can verify their mekara installation works. Top-level scripts (no category subdirectory, e.g., `waterfall.md`, `change.md`) are excluded from wiki but synced to bundled. These exclusions are hardcoded in `sync_nl.py`.
+
 ### Bundled Script Validation
 
 Bundled scripts in `src/mekara/bundled/scripts/` are edited independently (no automatic sync). The hook:
 
-1. **Validates NL/compiled pairs** — if `src/mekara/bundled/scripts/nl/` changes, the corresponding `src/mekara/bundled/scripts/compiled/` files must also change
+1. **Validates NL/compiled pairs** — if `src/mekara/bundled/scripts/nl/` changes and a corresponding `src/mekara/bundled/scripts/compiled/` file exists, that compiled file must also change
 2. **Alerts on potential sync needs** — warns when `.mekara/scripts/nl/` or bundled scripts change without corresponding changes in the other location, prompting you to check if synced updates are needed
 
-:::info[Bypassing Sync Conflict Check]
-During merges, both `.mekara/scripts/nl/` and `docs/wiki/` may legitimately change together. To allow this, create a marker file:
-
-```bash
-touch .mekara/.sync-in-progress
-```
-
-The hook will skip the conflict check when this file exists. The post-commit hook automatically removes it after the commit completes.
+:::info[Generalized scripts are excluded from sync]
+Scripts listed in `docs/docs/code-base/mekara/bundled-script-generalization.md` (e.g., `project:release.md`) have intentional divergence between `.mekara/scripts/nl/` (project-specific) and wiki/bundled (generic). The sync script reads that doc at runtime and excludes those scripts in both directions.
 :::
 
 ## Writing custom hook scripts
