@@ -128,17 +128,15 @@ For each extraction candidate, provide:
 ```
 The format must be `/extract-pr <descr>\n...` so users can copy the entire block directly.
 
-### Step 8: Recommend Extraction Order
+### Step 8: Recommend Extraction Order (only if dependencies exist)
 
-If multiple extractions are possible, suggest an order:
-1. Prerequisite refactorings first (enable the feature)
-2. Independent tooling/process improvements next
-3. Main feature last (after dependencies are merged)
+If one extraction is a prerequisite for another (e.g., Extraction A is a refactor that Extraction B's code depends on), recommend landing A before B and explain the dependency. In general, B is dependent on A if and only if it simplifies things greatly to extract B after A.
 
-This allows:
-- Smaller, focused PRs that are easier to review
-- Prerequisite changes to be available for other work
-- Main feature PR to be cleaner and more focused
+If the extractions are independent, do NOT recommend an order — they can be run in parallel. Never create artificial sequencing for changes that don't actually depend on each other.
+
+For each extraction, verify:
+- If it has no dependencies on other extractions, its prompt must make no reference to ordering ("after Extraction N lands", "if Extraction N has already merged", etc.)
+- If two extractions touch the same file or commit, mark both as "Surgical extraction needed" — each must independently take only its own slice of the shared file
 
 ## Key Principles
 
