@@ -86,6 +86,34 @@ When `mekara install commands` copies bundled scripts to `~/.mekara/scripts/nl/`
 - Stack-agnostic requirements
 - Documentation update references
 
+### project:release.md
+
+**Removed:**
+
+- "Python package for PyPI release" intro → replaced with generic "prepare a release"
+- `python scripts/check-external-links.py` (mekara-specific script) → replaced with generic "if the project has a link checker, run it"
+- `pyproject.toml` / `[tool.poetry]` references → generalized to "version file (e.g., pyproject.toml, Cargo.toml, package.json)"
+- `poetry build` + `tar` checks for mekara's bundled scripts → replaced with generic build tool examples
+- TestPyPI publish commands, `pip install --index-url ...`, `mekara --version` verification → replaced with generic "publish to appropriate registry" instructions
+- Duplicate "Step 5" numbering bug fixed (publish step renumbered to Step 6)
+
+**Kept:**
+
+- Step 0 clean main branch check (generic)
+- Step 1 version gathering (generic)
+- Step 4 Docusaurus snapshot (made conditional — "if the project uses Docusaurus versioning")
+- Key Principles (removed TestPyPI-specific principle, kept verify-before-publish and user-publishes-manually)
+
+### standardize.md
+
+**Changed:**
+
+- Step 4 documentation targets: `.mekara` version points to both `docs/docs/standards/workflow.md` (for standard workflow commands) and `docs/docs/development/workflows.md` (for mekara-specific commands). Bundled version points only to `docs/docs/development/workflows.md` (the generic per-project workflows doc).
+
+**Kept:**
+
+- All workflow structure and standardization principles
+
 ### recursive-self-improvement.md
 
 **Removed:**
