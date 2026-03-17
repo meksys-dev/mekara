@@ -47,6 +47,7 @@ Create a pull request with a proper title and body:
    - The body should describe what's actually changing (based on the diff, not the commit history)
    - Use: `gh pr create --base main --title "<descriptive title>" --body "<summary of actual changes>"`
    - Do NOT use `--fill` as it concatenates all commit messages, including those for changes already on main
+   - **Do NOT add a "Test plan" section** — this is a PR message that is going to be part of the Git commit history when merged. Test plans do not make any sense for a Git commit message.
 
 ### Step 9: Enable auto-merge
 
