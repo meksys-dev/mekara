@@ -104,6 +104,16 @@ When `mekara install commands` copies bundled scripts to `~/.mekara/scripts/nl/`
 - Step 4 Docusaurus snapshot (made conditional — "if the project uses Docusaurus versioning")
 - Key Principles (removed TestPyPI-specific principle, kept verify-before-publish and user-publishes-manually)
 
+### standardize.md
+
+**Changed:**
+
+- Step 4 documentation targets: `.mekara` version points to both `docs/docs/standards/workflow.md` (for standard workflow commands) and `docs/docs/development/workflows.md` (for mekara-specific commands). Bundled version points only to `docs/docs/development/workflows.md` (the generic per-project workflows doc).
+
+**Kept:**
+
+- All workflow structure and standardization principles
+
 ### recursive-self-improvement.md
 
 **Removed:**

@@ -27,8 +27,6 @@ See [bundled-script-generalization.md](../code-base/mekara/bundled-script-genera
 - **`src/mekara/bundled/scripts/nl/`** - Generic versions shipped with mekara (edited independently)
 - **`src/mekara/bundled/scripts/compiled/`** - Compiled Python versions (must be updated alongside NL)
 
-The pre-commit hook syncs between `.mekara/scripts/nl/` and `docs/wiki/`, validates bundled NL/compiled pairs are updated together, and alerts when changes in one location might need corresponding changes in another.
-
 ## PyPI Releases
 
 Use `/project:release` to prepare a release for PyPI:

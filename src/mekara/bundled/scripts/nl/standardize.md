@@ -47,9 +47,11 @@ Important: choose explicitly whether scripts should **embody** the standard, **l
 - **Link**: scripts include a short “see also” pointer to the canonical standard so the standard is discoverable at point-of-use.
 - **Mix**: embody the structural rules and add a brief link for discoverability.
 
-### Step 4: Update workflow documentation
+### Step 4: Update documentation about the scripts (if applicable)
 
-Update `docs/docs/development/workflows.md` to document the standardized commands, explaining when to use them and what they do.
+If the new/changed behavior impacts user-facing understanding of commands, update:
+
+- `docs/docs/development/workflows.md` to document the standardized commands, explaining when to use them and what they do
 
 ### Step 5: Commit (only with user confirmation)
 

@@ -133,10 +133,12 @@ Syncs natural language scripts between `.mekara/scripts/nl/`, `docs/wiki/`, and 
 - Flags conflicts when the same script is staged in two sources with differing content
 - Validates that bundled NL/compiled pairs are updated together
 - Excludes generalized scripts (listed in `bundled-script-generalization.md`) from `.mekara` ↔ wiki sync
+- Top-level scripts (no category subdirectory) are excluded from wiki but synced to bundled
 
 **When it runs:**
 
-- Manually as part of every commit that updates scripts
+- Automatically as a pre-commit hook on every commit that updates scripts
+- Manually via `python scripts/sync_nl.py --all` to sync all scripts regardless of staged state
 
 ## sync-standards.py
 

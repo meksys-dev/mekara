@@ -15,7 +15,7 @@ from markdown_it import MarkdownIt
 
 
 # Categories excluded from wiki (project-specific, not generic)
-WIKI_EXCLUDED_CATEGORIES = {"mekara", "test"}
+WIKI_EXCLUDED_CATEGORIES = {"", "mekara", "test"}
 # Categories excluded from bundled (project-specific, not useful for other projects)
 BUNDLED_EXCLUDED_CATEGORIES = {"mekara"}
 
@@ -82,15 +82,22 @@ def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path, general
     bundled-script-generalization.md). Those scripts are maintained
     independently in .mekara vs wiki/bundled.
     """
-    for mekara_dir in sorted(mekara_root.iterdir()):
-        if not mekara_dir.is_dir():
+    for item in sorted(mekara_root.iterdir()):
+        if item.is_file() and item.suffix == ".md":
+            files = [item]
+            category = ""
+            wiki_dir = wiki_root
+            bundled_dir = bundled_root
+        elif item.is_dir():
+            files = sorted(item.glob("*.md"))
+            category = item.name
+            wiki_dir = wiki_root / category
+            bundled_dir = bundled_root / category
+        else:
             continue
-        category = mekara_dir.name
-        wiki_dir = wiki_root / category
-        bundled_dir = bundled_root / category
 
-        for mekara_file in mekara_dir.glob("*.md"):
-            relative_path = f"{category}/{mekara_file.name}"
+        for mekara_file in files:
+            relative_path = f"{category}/{mekara_file.name}" if category else mekara_file.name
             if relative_path in generalized:
                 continue
 
@@ -121,19 +128,25 @@ def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path, gener
     Skips syncing to .mekara/scripts/nl/ for generalized scripts (listed in
     bundled-script-generalization.md) since those have intentional overrides.
     """
-    for wiki_dir in sorted(wiki_root.iterdir()):
-        if not wiki_dir.is_dir():
+    for item in sorted(wiki_root.iterdir()):
+        if item.is_file() and item.suffix == ".md":
+            files = [item]
+            category = ""
+            mekara_dir = mekara_root
+            bundled_dir = bundled_root
+        elif item.is_dir():
+            files = sorted(item.glob("*.md"))
+            category = item.name
+            mekara_dir = mekara_root / category
+            bundled_dir = bundled_root / category
+        else:
             continue
-        category = wiki_dir.name
-        mekara_dir = mekara_root / category
-        bundled_dir = bundled_root / category
 
-        for wiki_file in wiki_dir.glob("*.md"):
-            # Skip index files
+        for wiki_file in files:
             if wiki_file.name == "index.md":
                 continue
 
-            relative_path = f"{category}/{wiki_file.name}"
+            relative_path = f"{category}/{wiki_file.name}" if category else wiki_file.name
             mekara_file = mekara_dir / wiki_file.name
             bundled_file = bundled_dir / wiki_file.name
 
@@ -159,15 +172,22 @@ def sync_from_bundled(mekara_root: Path, wiki_root: Path, bundled_root: Path, ge
 
     Skips syncing to .mekara/scripts/nl/ for generalized scripts (intentional overrides).
     """
-    for bundled_dir in sorted(bundled_root.iterdir()):
-        if not bundled_dir.is_dir():
+    for item in sorted(bundled_root.iterdir()):
+        if item.is_file() and item.suffix == ".md":
+            files = [item]
+            category = ""
+            wiki_dir = wiki_root
+            mekara_dir = mekara_root
+        elif item.is_dir():
+            files = sorted(item.glob("*.md"))
+            category = item.name
+            wiki_dir = wiki_root / category
+            mekara_dir = mekara_root / category
+        else:
             continue
-        category = bundled_dir.name
-        wiki_dir = wiki_root / category
-        mekara_dir = mekara_root / category
 
-        for bundled_file in bundled_dir.glob("*.md"):
-            relative_path = f"{category}/{bundled_file.name}"
+        for bundled_file in files:
+            relative_path = f"{category}/{bundled_file.name}" if category else bundled_file.name
             bundled_content = bundled_file.read_text()
 
             if category not in WIKI_EXCLUDED_CATEGORIES:
@@ -198,17 +218,6 @@ def _git(*args: str) -> str:
 def _staged_files() -> set[str]:
     return set(_git("diff", "--cached", "--name-only").splitlines())
 
-
-def _is_merge_commit() -> bool:
-    try:
-        subprocess.check_call(
-            ["git", "rev-parse", "--verify", "MERGE_HEAD"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        return True
-    except subprocess.CalledProcessError:
-        return False
 
 
 def _check_sync_conflict(changed: set[str], repo_root: Path, generalized: set[str]) -> int:
@@ -317,16 +326,21 @@ def _warn_sync_mismatch(changed: set[str], repo_root: Path) -> None:
 
 def main() -> int:
     repo_root = Path(__file__).parent.parent
-    changed = _staged_files()
     generalized = load_generalized_scripts(repo_root)
+
+    if "--all" in sys.argv:
+        print("Syncing all .mekara/scripts/nl/ to docs/wiki/ and bundled scripts...")
+        _run_sync(SyncDirection.TO_DOCS, repo_root, generalized)
+        return 0
+
+    changed = _staged_files()
 
     nl_changed = any(f.startswith(".mekara/scripts/nl/") for f in changed)
     wiki_changed = any(f.startswith("docs/wiki/") for f in changed)
     bundled_nl_changed = any(f.startswith("src/mekara/bundled/scripts/nl/") for f in changed)
 
-    if not _is_merge_commit():
-        if _check_sync_conflict(changed, repo_root, generalized) != 0:
-            return 1
+    if _check_sync_conflict(changed, repo_root, generalized) != 0:
+        return 1
 
     synced = False
     if nl_changed:

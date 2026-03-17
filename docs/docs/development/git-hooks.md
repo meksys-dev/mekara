@@ -46,6 +46,8 @@ In general, the hook will sync changes from any one of the three sources to the 
 
 The only exception to the above are the scripts in `.mekara/scripts/nl/` that are intentionally more specific than the generic bundled/wiki version (e.g., `project/release.md` has mekara-specific PyPI steps). These are also the individual scripts that are mentioned in [Bundled Script Generalization](../code-base/mekara/bundled-script-generalization.md). If a script is mentioned in that file, that script is treated as customized and is excluded from bidirectional sync between the bundled and project-specific scripts. However, a sync between wiki and bundled versions remain.
 
+Normally this script acts only on changed files, but the `--all` option als exists to sync all scripts regardless of what's staged, allowing drift to be fixed.
+
 **Important edge cases:**
 
 1. **Frontmatter blank line handling**: Wiki files require a blank line after frontmatter (Prettier requirement). When syncing from wiki to `.mekara/scripts/nl/`, the sync script strips this blank line so `.mekara` files don't have a leading blank line. When syncing from `.mekara` to wiki, it adds the blank line back.
@@ -54,7 +56,7 @@ The only exception to the above are the scripts in `.mekara/scripts/nl/` that ar
 
 3. **Atomic sync**: When syncing in one direction, the hook stages all three locations (wiki, mekara, and bundled) in a single pass. This prevents needing multiple commit attempts to propagate changes through all three locations.
 
-4. **Category exclusions**: Some categories are excluded from sync to specific destinations. `mekara/` (mekara development tools) is excluded from both wiki and bundled. `test/` (test fixtures) is excluded from wiki but stays in bundled so users can verify their mekara installation works. These exclusions are hardcoded in `sync_nl.py`.
+4. **Category exclusions**: Some categories are excluded from sync to specific destinations. `mekara/` (mekara development tools) is excluded from both wiki and bundled. `test/` (test fixtures) is excluded from wiki but stays in bundled so users can verify their mekara installation works. Top-level scripts (no category subdirectory, e.g., `waterfall.md`, `change.md`) are excluded from wiki but synced to bundled. These exclusions are hardcoded in `sync_nl.py`.
 
 ### Bundled Script Validation
 
