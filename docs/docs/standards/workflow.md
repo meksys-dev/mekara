@@ -42,7 +42,7 @@ flowchart TB
 
     subgraph manual_flow["Manual Flow"]
       direction TB
-      start --> change_project["Change Project"]  --> docs["Sync docs to project"] -.-> extract_flow[Extract PRs] --> finish_flow
+      start --> waterfall["/waterfall"] -.-> extract_flow[Extract PRs] --> finish_flow
       docs --> finish_flow
     end
 
@@ -62,6 +62,7 @@ flowchart TB
 The bread and butter of the mekara workflow is a standard pipeline through which new feature branches are opened and closed:
 
 - `/change` provides a complete end-to-end workflow that combines all the steps below into a single command with explicit feedback loops. Use this when you want the agent to handle the entire process while ensuring you maintain control through iterative feedback before finalization.
+- `/waterfall` enforces a gated implementation process: restate understanding → surface assumptions → high-level design → low-level design → update docs → implement → reconcile docs. Each step requires explicit user confirmation before proceeding. Called automatically by `/change`, or invoke directly for ad-hoc work.
 - Alternatively, manage the workflow manually:
   - `/start` work on a new feature in a fresh Git worktree branch
     - Make your updates to the project. (See below for details)
