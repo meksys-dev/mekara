@@ -70,7 +70,7 @@ repos:
         files: ^docs/docs/standards/.*\.md$
       - id: check-bundled-scripts
         name: Check Bundled Scripts Match Live
-        entry: python3 scripts/sync_nl.py
+        entry: poetry run python3 scripts/sync_nl.py
         language: system
         pass_filenames: false
         files: ^(\.mekara/scripts/nl/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/|docs/wiki/)
