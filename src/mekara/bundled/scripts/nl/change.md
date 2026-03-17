@@ -31,51 +31,16 @@ Proceed to step 2 immediately after this step is finished; do not wait for user 
 
 **IMPORTANT: All file edits must happen in the worktree directory** (e.g., `../finish-use-merge-main/`), NOT in `main/`. The `/start` command created a worktree for this work—use absolute paths to the worktree when reading and editing files. If you accidentally edit files in `main/`, revert them immediately with `git checkout -- <file>` and redo the edit in the worktree. This applies to process improvement workflows as well -- commands such as `/recursive-self-improvement` are to be run **in the worktree**.
 
-Implement the change described in the user request. Follow best practices from AGENTS.md:
-- Read relevant code to understand existing patterns
-- Write tests for new functionality
-- Run tests to verify correctness
-- Make atomic, logical commits as you go
+Run `/waterfall` with the user's request from Step 0. This enforces a gated process: restate understanding, surface assumptions, design, update docs, then implement — with user confirmation at each gate.
 
-### Step 3: Iterate on feedback
-
-Present your implementation to the user and wait for feedback.
-
-**Critical**: This is a feedback loop. Continue iterating until the user explicitly indicates approval:
-- If the user provides feedback, questions, or requests changes: address them completely, then present again and return to the start of Step 3
-- If the user asks clarifying questions: answer them, then ask if there are any other concerns before moving forward
-- If the user says "looks good", "approve", "ready to document", or gives other similar approvals: proceed to Step 4
-- If uncertain whether the user is approving or just acknowledging: explicitly ask "Are you ready for me to proceed to documentation, or are there other changes you'd like?"
-
-**Do NOT proceed to Step 4 until you have explicit user approval.** Acknowledgments like "ok", "thanks", or "I see" are NOT approval—they may just be the user processing information before providing more feedback.
-
-### Step 4: Update documentation
-
-Call the `/document` command to update documentation based on the changes made. This will:
-- Review the changes made during this session
-- Update corresponding documentation in `docs/docs/`
-- Present the documentation updates for review
-
-### Step 5: Iterate on documentation feedback
-
-Present the documentation updates to the user and wait for feedback.
-
-**Critical**: This is a feedback loop. Continue iterating until the user explicitly indicates approval:
-- If the user provides feedback, questions, or requests changes to the documentation: address them completely, then present again and return to the start of Step 5
-- If the user asks clarifying questions: answer them, then ask if there are any other concerns before moving forward
-- If the user says "looks good", "approve", "ready to finish", "call /finish", or similar approval: proceed to Step 6
-- If uncertain whether the user is approving or just acknowledging: explicitly ask "Are you ready for me to call /finish, or are there other changes you'd like?"
-
-**Do NOT proceed to Step 6 until you have explicit user approval.** Acknowledgments like "ok", "thanks", or "I see" are NOT approval—they may just be the user processing information before providing more feedback.
-
-### Step 6: Commit all changes
+### Step 3: Commit all changes
 
 Before calling `/finish`, commit all uncommitted changes in the worktree:
 1. Run `git status` to see what's uncommitted
 2. Use the committer agent to stage and commit all changes with a descriptive message
 3. Verify the working tree is clean before proceeding
 
-### Step 7: Finalize and merge
+### Step 4: Finalize and merge
 
 Only after committing all changes, use the Task tool to spawn a subagent that will execute the `/finish` script via the mcp mekara start tool:
 - Use `subagent_type: "general-purpose"`

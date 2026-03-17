@@ -35,7 +35,7 @@ flowchart TB
 
     subgraph manual_flow["Manual Flow"]
       direction TB
-      start --> change_project["Change Project"]  --> docs["Sync docs to project"] -.-> extract_flow[Extract PRs] --> finish_flow
+      start --> waterfall["/waterfall"] -.-> extract_flow[Extract PRs] --> finish_flow
       docs --> finish_flow
     end
 
@@ -55,6 +55,7 @@ flowchart TB
 The bread and butter of the mekara workflow is a standard pipeline through which new feature branches are opened and closed:
 
 - `/change` provides a complete end-to-end workflow that combines all the steps below into a single command with explicit feedback loops. Use this when you want the agent to handle the entire process while ensuring you maintain control through iterative feedback before finalization.
+- `/waterfall` enforces a gated implementation process: restate understanding → surface assumptions → high-level design → low-level design → update docs → implement → reconcile docs. Each step requires explicit user confirmation before proceeding. Called automatically by `/change`, or invoke directly for ad-hoc work.
 - Alternatively, manage the workflow manually:
   - `/start` work on a new feature in a fresh Git worktree branch
     - Make your updates to the project. (See below for details)
@@ -163,12 +164,6 @@ flowchart TB
 - `/recursive-self-improvement` may be run at any time to get the agent to improve its own workings based on the mistakes encountered and user guidance you gave it during your interactive session invoking a previous command. This command may even be run on itself, if mekara is not recursively improving itself correctly.
 - `/rsi-documentation` may be run when you provide feedback about documentation organization or formatting during a session. It captures the latest guidance into [documentation conventions](../code-base/documentation/conventions.md) so future work follows the same patterns.
 - `/rsi-scripting` may be run when you establish new conventions or patterns for natural language scripts during a session. It updates `/systematize` to teach future agents these conventions.
-
-## Extras
-
-Additional standalone commands that don't fit into the core workflow but are useful for specific scenarios:
-
-- `/mobile-app` converts a React/Vite web app built with Google AI Studio to a native iOS/Android mobile app using Capacitor, wrapping your existing code with minimal changes
 
 :::info
 

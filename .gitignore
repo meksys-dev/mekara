@@ -22,4 +22,3 @@ dist/
 
 # mekara script execution state (resumable but session-specific)
 .mekara/cassettes/
-.mekara/.sync-in-progress
