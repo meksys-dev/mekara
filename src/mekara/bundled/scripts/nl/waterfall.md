@@ -53,7 +53,7 @@ Include any `docs/docs/` pages that describe the affected behavior and will need
 
 **STOP. Ask the user: "Are these the right changes?" Do NOT proceed until the user confirms.**
 
-After confirmation, commit the design document.
+After confirmation, commit the design document. Then wait for user confirmation again before continuing onto step 5.
 
 ### Step 5: Update documentation first
 
@@ -79,7 +79,7 @@ If there were no deviations, say so and skip the edits.
 
 **STOP. Ask the user: "Are the docs accurate?" Do NOT proceed until the user confirms.**
 
-After confirmation, commit the code and doc changes for this phase.
+After confirmation, commit the code and doc changes for this phase. Then wait for user confirmation again unless this is already the last piece of work you believe you need to do.
 
 #### Step 8: Check completion
 
@@ -93,9 +93,11 @@ If there are remaining phases in the design document, go back to step 6 for the 
   - "Looks good", "approve", "yes", "correct" are approval.
   - "Ok", "thanks", "I see" are NOT approval — they may be the user processing information before giving feedback.
   If uncertain, ask: "Is this correct, or are there changes you'd like?" This is the single most important rule of this command.
+- **A commit is not a green light to proceed.** After committing at the end of a step (e.g., committing the design doc at the end of steps 4 and 7), STOP and wait for the user to confirm before continuing onto implementation. Do NOT immediately start the next implementation step. The user may want to hand off work to an agent with a fresh context window. The step boundary is a gate even when the commit succeeds cleanly.
 - **Examples of what goes wrong without this process**:
   - Removing a documentation section without checking if other things still reference it (e.g., deleting bash hook guidance because the main hook moved to Python, when other bash hooks still exist)
   - Overcomplicating with unnecessary abstractions (e.g., adding subprocess calls, wrapper functions, CLI interfaces that nothing uses)
   - Stating wrong assumptions as fact (e.g., "bundled is not a source" when it is)
   - Writing misleading descriptions because you didn't fully understand the semantics (e.g., describing conflict detection incorrectly)
+  - Automatically jumping into the next step immediately after committing without waiting for the user (e.g., committing the design doc and then immediately writing the scripting module spec without being asked)
 - **Living document**: Anytime `/recursive-self-improvement` is called, the examples above should be updated with whatever the user was frustrated about during that session. Note in particular any user profanity or insults.
