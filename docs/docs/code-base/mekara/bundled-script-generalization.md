@@ -104,6 +104,19 @@ When `mekara install commands` copies bundled scripts to `~/.mekara/scripts/nl/`
 - Step 4 Docusaurus snapshot (made conditional — "if the project uses Docusaurus versioning")
 - Key Principles (removed TestPyPI-specific principle, kept verify-before-publish and user-publishes-manually)
 
+### setup-worktree.md
+
+**Removed:**
+
+- `poetry install --with dev` → replaced with generic dependency examples (Poetry, pip, npm, pnpm, Rust, Go)
+- `pnpm --dir docs/ i --frozen-lockfile` (docs dependency install) → removed entirely
+
+**Kept:**
+
+- `mekara/` branch prefix and worktree creation
+- `.claude/settings.local.json` copy to new worktree
+- Key Principles (updated to reference Step 2 only)
+
 ### standardize.md
 
 **Changed:**
