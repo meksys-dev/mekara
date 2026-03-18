@@ -41,6 +41,8 @@ If a compiled version exists at `src/mekara/bundled/scripts/compiled/<name>.py`,
 
 Add an entry to `docs/docs/code-base/mekara/bundled-script-generalization.md` documenting what was stripped from this script.
 
+**Important:** This file tracks the *persistent differences* between the project version and the bundled version — i.e., what the bundled version has removed or generalized *compared to the project version right now*. Do NOT document changes you just made that were applied equally to both versions (e.g., if you updated both `.mekara/scripts/nl/finish.md` and `src/mekara/bundled/scripts/nl/finish.md` to call `/teardown-worktree`, that is NOT a difference to record). Only record things where the bundled version intentionally diverges from the project version (e.g., generic package manager examples instead of `poetry install --with dev`).
+
 ### Step 6: Verify generalizability
 
 Confirm the generalized script would work for:
