@@ -1,6 +1,30 @@
-"""Auto-generated script. Source: .mekara/scripts/nl/teardown-worktree.md"""
+"""Auto-generated script. Source: src/mekara/bundled/scripts/nl/teardown-worktree.md"""
 
-from mekara.scripting.runtime import auto
+from typing import Generator
+
+from mekara.scripting.runtime import Auto, ShellResult, auto, llm
+
+
+def _delete_remote_branch_if_exists(branch: str) -> Generator[Auto, ShellResult, None]:
+    """Delete the remote branch if it exists on origin.
+
+    Uses git ls-remote (without --exit-code) which always exits 0.
+    Checks stdout to determine whether the branch exists before deleting.
+    """
+    result = yield auto(
+        f"git ls-remote origin {branch}",
+        context=(
+            "Check whether the branch exists on origin with "
+            "`git ls-remote origin <branch>`. If the output is non-empty, the branch "
+            "exists — delete it with `git push origin --delete <branch>`. "
+            "If the output is empty, the branch is already gone — skip deletion."
+        ),
+    )
+    if result.output.strip():
+        yield auto(
+            f"git push origin --delete {branch}",
+            context="Delete the remote branch with `git push origin --delete <branch>`.",
+        )
 
 
 def execute(request: str):
@@ -33,38 +57,22 @@ def execute(request: str):
     worktree_path = pwd_result.output.strip()
 
     # Step 2: Remove virtual environment
-    yield auto(
-        "poetry env remove --all",
-        context=(
-            "Clean up the poetry virtual environment for this worktree by running "
-            "`poetry env remove --all` from the worktree directory. This removes the "
-            "isolated virtual environment that was created for this worktree, preventing "
-            "stale environments from accumulating."
-        ),
+    yield llm(
+        "If the project uses a tool that stores environments **outside** the worktree "
+        "directory, remove them explicitly to prevent stale environments from "
+        "accumulating. (Environments stored inside the worktree — `.venv`, "
+        "`node_modules`, `target/`, etc. — are automatically wiped in step 4.)\n\n"
+        "Examples of tools that require explicit cleanup:\n"
+        "- Python/Poetry: `poetry env remove --all`\n"
+        "- Python/Pipenv: `pipenv --rm`"
     )
 
     # Step 3: Delete remote branch if it exists
-    # git ls-remote (without --exit-code) always exits 0; non-empty output means branch exists
-    check_result = yield auto(
-        f"git ls-remote origin {branch}",
-        context=(
-            "Check whether the branch exists on origin with "
-            "`git ls-remote origin <branch>`. If the output is non-empty, the branch "
-            "exists — delete it with `git push origin --delete <branch>`. "
-            "If the output is empty, the branch is already gone — skip deletion."
-        ),
-    )
-    if check_result.output.strip():
-        yield auto(
-            f"git push origin --delete {branch}",
-            context="Delete the remote branch with `git push origin --delete <branch>`.",
-        )
+    yield from _delete_remote_branch_if_exists(branch)
 
     # Step 4: Remove worktree and local branch
     # Original instruction includes: "If this command succeeds, you will start getting errors
-    # such as `Error: Path "/path/to/old/branch" does not exist`. This means that the worktree
-    # directory you started in no longer exists, and all commands you continue to run will fail.
-    # This is a sign for you to stop. The script is complete."
+    # such as `Error: Path "..." does not exist`. This is a sign for you to stop."
     # This is handled naturally by the script ending after this step.
     cleanup_cmd = (
         f"cd ../main && git worktree remove -f {worktree_path} && "

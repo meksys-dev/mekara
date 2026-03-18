@@ -14,7 +14,7 @@ Clean up the poetry virtual environment for this worktree by running `poetry env
 
 ### Step 3: Delete remote branch if it exists
 
-Check whether the branch exists on origin with `git ls-remote --exit-code origin <branch>`. If it does, delete it with `git push origin --delete <branch>`.
+Check whether the branch exists on origin with `git ls-remote origin <branch>`. If the output is non-empty, the branch exists — delete it with `git push origin --delete <branch>`. If the output is empty, the branch is already gone — skip deletion.
 
 ### Step 4: Remove worktree and local branch
 
