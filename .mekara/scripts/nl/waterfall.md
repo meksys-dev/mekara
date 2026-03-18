@@ -55,7 +55,7 @@ After confirmation, commit the design document.
 
 ### Step 5: Update documentation first
 
-Edit `docs/docs/` pages to reflect the desired end state of the repository *after* implementation. These docs will be temporarily ahead of the code — that's intentional. The docs represent the spec you're implementing against.
+Run `/document` with the planned changes (from the design document) as context to update `docs/docs/` pages to reflect the desired end state of the repository *after* implementation. These docs will be temporarily ahead of the code — that's intentional. The docs represent the spec you're implementing against.
 
 **STOP. Present the doc changes and ask: "Do these docs correctly describe what the repo should look like when we're done?" Do NOT proceed until the user confirms.**
 
