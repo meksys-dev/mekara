@@ -191,7 +191,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 **File:** `docs/docs/code-base/mekara/capabilities/scripting.md`
 
-**Note:** The module spec is the authoritative description of the end state. Human feedback during this phase may change specifics (field names, type structures, algorithm details) described in the Design Details above. When the spec and this design doc disagree, the spec wins — implementation phases follow the spec, not this document.
+**Note:** The module spec is the authoritative description of the end state. It covers `src/mekara/scripting/` only — not `mcp/executor.py` or any other module, even though Phase 3 changes executor.py. Human feedback during this phase may change specifics (field names, type structures, algorithm details) described in the Design Details above. When the spec and this design doc disagree, the spec wins — implementation phases follow the spec, not this document.
 
 **Tasks:**
 

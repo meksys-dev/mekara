@@ -114,6 +114,7 @@ must exist at the same or higher precedence level as their NL source.
 
 ## Guidelines
 
+- **A spec covers exactly one module — nothing more.** Do not spec out types, functions, or behaviors from other modules, even if those modules interact closely with the one being specced. If a neighboring module's interface matters, reference it by name in the Architecture or Implementation sections; don't reproduce its contents here.
 - **Update the spec when the code changes.** The spec is the source of truth. If you change the code without updating the spec, the spec becomes a lie and loses its value. Treat spec-code divergence as a bug.
 
 ### Precedence Rule
