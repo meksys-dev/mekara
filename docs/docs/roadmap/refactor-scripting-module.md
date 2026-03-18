@@ -42,8 +42,8 @@ When refactoring: write the design doc first (transition plan), then write or up
 
 1. Define a reusable **module spec standard** for documenting modules precisely enough to reconstruct them from spec alone — precise enough that two independent implementations satisfying the spec differ only in trivial ways
 2. Write the scripting module spec in this format, describing the post-refactor state
-3. Fix 8 concrete interface issues in the scripting module (loading, resolution, execution, runtime)
-4. Remove dead code and unused fields
+3. Fix 10 concrete interface issues in the scripting module (loading, resolution, execution, runtime)
+4. Remove dead code, unused fields, and misplaced types
 
 ## Architecture
 
@@ -151,6 +151,20 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 ### Issue 8: Duplicated resolution precedence
 
+### Issue 9: Unused `ScriptCallResult` fields
+
+`aborted` and `steps_executed` are written in constructor calls in `executor.py` but never read anywhere in the codebase. Same pattern as `summary` (Issue 7).
+
+**Fix:** Remove both fields from `ScriptCallResult` and all constructor calls.
+
+### Issue 10: Misplaced types
+
+`ActionType` enum and `action_type` property on `Auto` exist only for VCR serialization — no consumer within the scripting module or executor uses them. VCR can use `isinstance(action, ShellAction)` directly.
+
+`ScriptExecutionError` is defined in `auto.py` but never raised by the scripting module — only by VCR code. It belongs in the VCR module.
+
+**Fix:** Remove `ActionType` and `Auto.action_type` from runtime. Remove `ScriptExecutionError` from auto.py. Update VCR code to use `isinstance` checks and define its own error type.
+
 `resolve_standard()` in `standards.py` reimplements the same 3-level precedence pattern (local > user > bundled) as `resolve_target()` in `resolution.py`. Both walk the same directory structure in the same order.
 
 **Fix:** Extract `_resolve_file_at_precedence_levels()` helper in `resolution.py` with a `max_level` parameter to cap the search. This parameter is what allows both functions to share the same helper despite their different constraints:
@@ -185,7 +199,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 - [x] Update `docs/docs/standards/index.md` to include the new standard
 - [x] Add `:::note[Design Docs vs. Specs]` admonition to `docs/docs/standards/design-documents.md` cross-referencing specs.md
 
-### Phase 2: Scripting Module Spec
+### Phase 2: Scripting Module Spec ✅
 
 **Goal:** Write the scripting module spec describing the post-refactor end state.
 
@@ -195,10 +209,10 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 **Tasks:**
 
-- [ ] Rewrite scripting.md in module spec format per `docs/docs/standards/specs.md`: Purpose, Scope, Requirements, Architecture, Implementation (Data Structures + Interfaces + Algorithms)
-- [ ] Scope section must include explicit NOT-responsibilities (e.g., "executor does not build prompts", "resolution does not read file content") — these are the boundaries that make violations visible
-- [ ] Requirements section must document all edge cases including: underscore fallback (try exact name, then underscore variant at each precedence level), `$ARGUMENTS` first-occurrence-only substitution (subsequent occurrences preserved verbatim), exception fallback to NL when auto step fails
-- [ ] Data Structures section must include every field of every major type with its name, type, and description — precise enough to reimplement without reading source code
+- [x] Rewrite scripting.md in module spec format per `docs/docs/standards/specs.md`: Purpose, Scope, Requirements, Architecture, Implementation (Data Structures + Interfaces + Algorithms)
+- [x] Scope section must include explicit NOT-responsibilities (e.g., "executor does not build prompts", "resolution does not read file content") — these are the boundaries that make violations visible
+- [x] Requirements section must document all edge cases including: underscore fallback (try exact name, then underscore variant at each precedence level), `$ARGUMENTS` first-occurrence-only substitution (subsequent occurrences preserved verbatim), exception fallback to NL when auto step fails
+- [x] Data Structures section must include every field of every major type with its name, type, and description — precise enough to reimplement without reading source code
 
 ### Phase 3: Script Loading Interface (Issues 1, 2, 3)
 
@@ -240,17 +254,20 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 - [ ] Delete `list_all_commands()` function (dead code — never called anywhere in the codebase)
 - [ ] Run tests, type check
 
-### Phase 5: Runtime Cleanup (Issue 7)
+### Phase 5: Runtime Cleanup (Issues 7, 9, 10)
 
-**Goal:** Remove unused `summary` field.
+**Goal:** Remove unused fields and types from runtime.
 
-**Files:** `src/mekara/scripting/runtime.py`, `src/mekara/mcp/executor.py`
+**Files:** `src/mekara/scripting/runtime.py`, `src/mekara/scripting/auto.py`, `src/mekara/mcp/executor.py`
 
 **Tasks:**
 
-- [ ] Remove `summary: str` from `ScriptCallResult` dataclass
-- [ ] Remove `summary=...` from all 4 constructor calls in `executor.py` (the field was only ever written, never read — no code accesses `result.summary`)
-- [ ] Update `scripting.md` call_script example (currently shows `result.summary` which will no longer exist)
+- [ ] Remove `summary: str` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
+- [ ] Remove `aborted: bool` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
+- [ ] Remove `steps_executed: int` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
+- [ ] Remove `ActionType` enum from `runtime.py` and `action_type` property from `Auto` (only used by VCR for serialization — VCR can check `isinstance(action, ShellAction)` directly)
+- [ ] Update VCR code (`src/mekara/vcr/events.py`) to stop importing `ActionType` and use `isinstance` checks instead
+- [ ] Remove `ScriptExecutionError` from `auto.py` (defined in scripting module but only raised by VCR — move to VCR or replace with VCR-local error)
 - [ ] Run tests, type check
 
 ### Phase 6: Standards Resolution (Issue 8)

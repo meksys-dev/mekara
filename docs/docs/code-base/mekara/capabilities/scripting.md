@@ -2,182 +2,322 @@
 sidebar_position: 3
 ---
 
-# Natural Language Scripting
+# Scripting Module
 
-Natural language scripts with transparent automation. Users control how much is automated vs. requires LLM judgment, with seamless interleaving between deterministic shell execution and LLM decision-making.
+## Purpose
 
-**Core principle:** The LLM is the interface to the human; the script is the interface to the machine.
+The scripting module provides everything needed to go from a script name to a ready-to-execute script object. This includes runtime primitives (`auto`, `llm`, `call_script`), name-to-path resolution, NL prompt construction, standards injection, and auto step execution.
 
-## Three Primitives
+## Scope
 
-Scripts use three yield types defined in `src/mekara/scripting/runtime.py`:
+**In scope:**
 
-- **`auto`** – Deterministic automation. Shell commands, Python functions—anything that doesn't need LLM judgment. Fast, predictable.
-- **`llm`** – Everything else: thinking, user interaction, decisions, error handling.
-- **`call_script`** – Invoke another mekara script (compiled or natural-language).
+- Runtime primitives (`auto`, `llm`, `call_script`) and their result types
+- Script name resolution with precedence (local > user > bundled)
+- Script loading: reading files, building prompts, returning fully-processed loaded script objects
+- NL prompt construction: `$ARGUMENTS` substitution, standards injection
+- Standards resolution and loading with `{{VERSION}}` substitution
+- Auto step execution (shell commands, Python function calls)
 
-## Execution Model
+**Out of scope:**
 
-Scripts are Python generators that yield control:
+- Orchestrating script execution across multiple steps or managing execution frame stacks (the module loads scripts but does not run them)
+- Deciding when or how auto steps and LLM steps are dispatched (the module defines and executes individual auto steps but does not sequence them)
+- Compiling NL scripts into Python generators (the module consumes compiled scripts but does not produce them)
 
-```python
-def execute(request: str):
-    """Script entry point.
+## Requirements
 
-    Context: Starting from the main worktree, create a new feature branch.
-    """
-    result = yield llm(
-        "parse request, generate branch name",
-        expects={"branch": "short kebab-case branch name"}
-    )
-    branch = result.outputs["branch"]
+### Models runtime primitives
 
-    yield auto(f"git worktree add -b mekara/{branch} ../{branch}", context="Create worktree")
-    yield auto("poetry install --with dev", context="Install Python dev dependencies")
+The module defines the step types (`Auto`, `Llm`, `CallScript`) and their corresponding result types that scripts are built from. These are the building blocks that compiled scripts yield to express their execution flow.
 
-    yield llm("tell user the final instructions")
+### Loads scripts into ready-to-use objects
+
+The module takes a script name and returns a fully-processed object that consumers can use directly without additional loading or content processing. This is the module's main action, encompassing several sub-actions:
+
+**Resolution:** The module resolves script names to file paths by searching:
+
+- project (`.mekara/scripts/`)
+- user (`~/.mekara/scripts/`)
+- bundled (package `bundled/scripts/`)
+
+in that order, taking the first match. At each precedence level, resolution tries the exact name first (e.g., `merge-main.md`), then the underscore variant (e.g., `merge_main.md`), allowing Python-style filenames for compiled scripts while preserving hyphenated names for NL scripts.
+
+Name resolution details:
+
+- Canonical script names use colons as path separators and preserve hyphens (e.g., `test:nested`, `merge-main`)
+- Slashes in input are normalized to colons
+- Underscore conversion is only for filesystem lookup, not canonical naming
+
+**NL prompt construction:** The module reads raw NL content and processes it into a ready-to-use prompt through two transformations applied in order:
+
+1. `$ARGUMENTS` substitution — only the first `$ARGUMENTS` occurrence is replaced with the actual request. Subsequent occurrences are preserved verbatim, allowing scripts to reference `$ARGUMENTS` in documentation without those references being substituted.
+2. Standards injection — `@standard:name` references are resolved (using the same project > user > bundled precedence) and appended as a "Referenced Standards" section. Standard content has `{{VERSION}}` (and `<Version />` for Docusaurus compatibility) replaced with the actual mekara version.
+
+**Constraints:**
+
+- Every resolved script has an NL source. Compiled scripts are optional additions that override NL-only execution.
+- A compiled script must exist at the same or higher precedence level as its NL source. A bundled compiled script cannot override a local NL script.
+- All compiled scripts must define an `execute(request: str)` function that returns a generator.
+
+### Provides auto step execution harness
+
+The module provides the machinery for consumers to execute individual auto steps (shell commands and Python function calls). The module does not decide when to execute these steps — that decision belongs to the consumer.
+
+**Constraints:**
+
+- Shell commands run in a clean environment with virtualenv contamination removed (`VIRTUAL_ENV`, `PYTHONHOME`, `CONDA_PREFIX`, `CONDA_DEFAULT_ENV`, and virtualenv PATH entries).
+
+## Architecture
+
+### Runtime Primitives
+
+Compiled scripts express their execution flow by yielding step objects. The module defines three step types and their corresponding results.
+
+**`Auto`** — a deterministic automation step (shell command or Python function call):
+
+| Field     | Type         | Description                                       |
+| --------- | ------------ | ------------------------------------------------- |
+| `action`  | `AutoAction` | The action to execute (shell command or callable) |
+| `context` | `str`        | Context explaining WHY this step runs (verbatim)  |
+
+`AutoAction` is either a `ShellAction` (with `cmd: str`) or a `CallAction` (with `func: Callable` and `kwargs: dict`). `Auto` also exposes a `description` property (human-readable: the command string for shell, `func_name(kwargs)` for call).
+
+**`Llm`** — pauses execution for human/LLM interaction:
+
+| Field     | Type             | Description                                   |
+| --------- | ---------------- | --------------------------------------------- |
+| `prompt`  | `str`            | Natural language instruction for the LLM      |
+| `expects` | `dict[str, str]` | Expected outputs as `{key: description}` dict |
+
+**`CallScript`** — invokes another script within the shared runtime:
+
+| Field         | Type           | Description                         |
+| ------------- | -------------- | ----------------------------------- |
+| `name`        | `str`          | Name of the script to invoke        |
+| `request`     | `str`          | Request text to pass to the script  |
+| `working_dir` | `Path \| None` | Optional working directory override |
+
+Scripts construct these via factory functions rather than directly:
+
+- `auto(action, kwargs=None, *, context) -> Auto`
+- `llm(prompt, expects=None) -> Llm`
+- `call_script(name, request="", working_dir=None) -> CallScript`
+
+Each step type has a corresponding result type that the consumer sends back into the generator:
+
+| Result type        | Returned from     | Key fields                                      |
+| ------------------ | ----------------- | ----------------------------------------------- |
+| `ShellResult`      | Shell auto steps  | `success`, `exit_code`, `output`                |
+| `CallResult`       | Python auto steps | `success`, `value`, `error`, `output`           |
+| `AutoException`    | Failed auto steps | `success` (always false), `exception`, `output` |
+| `LlmResult`        | LLM steps         | `success`, `outputs`                            |
+| `ScriptCallResult` | Nested scripts    | `success`, `exception`                          |
+
+`AutoResult` = `ShellResult | CallResult | AutoException`.
+
+### Script Loading
+
+A consumer loads a script by calling `load_script(name, request, base_dir)`. This is the unified entrypoint that orchestrates resolution, content reading, and prompt construction. It returns either a `LoadedNLScript` or a `LoadedCompiledScript`, both of which are fully processed and ready to use.
+
+If the script cannot be found or loaded (missing NL source, missing `execute` function in compiled module, etc.), `load_script` raises `ScriptLoadError`.
+
+The returned object carries a `target` field of type `ResolvedTarget`, which provides metadata about where the script was found:
+
+**`ScriptInfo`** — information about a single script file:
+
+| Field        | Type   | Description                           |
+| ------------ | ------ | ------------------------------------- |
+| `path`       | `Path` | Absolute path to the script file      |
+| `is_bundled` | `bool` | Whether the script is package-bundled |
+
+**`ResolvedTarget`** — the full resolution result:
+
+| Field      | Type                 | Description                                      |
+| ---------- | -------------------- | ------------------------------------------------ |
+| `compiled` | `ScriptInfo \| None` | Compiled script info, or None if NL-only         |
+| `nl`       | `ScriptInfo`         | NL source info (always present)                  |
+| `name`     | `str`                | Canonical name with colons and hyphens preserved |
+
+Derived properties: `target_type` (returns `Script.COMPILED` or `Script.NATURAL_LANGUAGE`), `is_bundled` (bundled status of the effective script), `is_nl` (true if NL-only), `is_compiled` (true if compiled exists).
+
+Consumers can also call `resolve_target(name, base_dir)` directly to get a `ResolvedTarget` without loading content — this is pure path resolution with no file I/O on content.
+
+The loaded script types share content fields but are distinct types (not subtypes of each other) — consumers must be able to distinguish them by type narrowing. Both carry:
+
+| Field       | Type             | Description                                                    |
+| ----------- | ---------------- | -------------------------------------------------------------- |
+| `target`    | `ResolvedTarget` | Resolution result with file paths                              |
+| `nl_source` | `str`            | Raw NL file content (before processing)                        |
+| `prompt`    | `str`            | Processed content ($ARGUMENTS substituted, standards injected) |
+
+`LoadedCompiledScript` adds one field:
+
+| Field       | Type              | Description                                              |
+| ----------- | ----------------- | -------------------------------------------------------- |
+| `generator` | `ScriptGenerator` | The script's generator (from calling `execute(request)`) |
+
+`LoadedScript` = `LoadedCompiledScript | LoadedNLScript`.
+
+Internally, `load_script` performs these steps:
+
+```mermaid
+flowchart TD
+    LoadScript["load_script()"] --> Resolve["resolve_target()"]
+    Resolve --> ResolvedTarget["ResolvedTarget<br/>(nl path + optional compiled path)"]
+    ResolvedTarget --> BuildPrompt["build_nl_command_prompt()"]
+    BuildPrompt --> LoadedNL["LoadedNLScript<br/>(target + nl_source + prompt)"]
+    BuildPrompt --> LoadedCompiled["LoadedCompiledScript<br/>(target + nl_source + prompt + generator)"]
+    LoadedNL --> Consumer["Consumer"]
+    LoadedCompiled --> Consumer
+
+    style LoadedNL fill:#bff7f9,color:#000
+    style LoadedCompiled fill:#bff7f9,color:#000
 ```
 
-All compiled scripts use the standard entry point name `execute(request: str)`. Each `yield` is a suspension point where the MCP server takes control.
+NL prompt construction is also available directly via `build_nl_command_prompt(command_content, request, base_dir)` for consumers that already have raw content and need to process it independently of the loading pipeline.
 
-## MCP Execution Flow
+### Standards
 
-Scripts execute via the MCP server (`src/mekara/mcp/server.py`):
+Standards are reusable documentation fragments that scripts reference via `@standard:name` syntax. The module provides two functions for working with them:
 
-1. **User types `/command`** in Claude Code
-2. **Hook detects command** and injects MCP instructions
-3. **Claude calls `mcp__mekara__start`** with the script name
-4. **MCP server loads script** and runs auto steps until an llm step or NL script
-5. **Server returns pending step prompt** to Claude
-6. **Claude handles the pending step** (user interaction)
-7. **Claude calls `mcp__mekara__continue_compiled_script`** with an outputs dict (use `{}` when none) or **`mcp__mekara__finish_nl_script`** (for NL scripts)
-8. **Server resumes script** and runs more auto steps
-9. **Repeat** until script completes
+- `resolve_standard(name, base_dir) -> Path | None` — resolve a standard name to its file path using the same project > user > bundled precedence as scripts
+- `load_standard(name, base_dir) -> str | None` — load a standard's content with `{{VERSION}}` and `<Version />` substitution
 
-### MCP Tools
+`get_mekara_version()` reads the version from `pyproject.toml` (returns `"unknown"` if not found) and is used by `load_standard` for version substitution.
 
-| Tool                       | Purpose                                                    |
-| -------------------------- | ---------------------------------------------------------- |
-| `start`                    | Start a script, run auto steps until llm step or NL script |
-| `continue_compiled_script` | Continue after llm step with outputs (use `{}` when none)  |
-| `finish_nl_script`         | Signal completion of an NL script                          |
-| `status`                   | Get current execution state                                |
+### Auto Step Execution
 
-### Subagent Invocation
+A consumer executes an individual auto step by passing it to an `AutoExecutor`:
 
-Scripts can delegate to other scripts by spawning subagents that use the MCP tools. This allows a parent script to orchestrate complex workflows while keeping the logic clean:
+`AutoExecutor.execute(step, *, working_dir) -> AsyncIterator[AutoExecutionResult]`
 
-```markdown
-Use the Task tool to spawn a subagent that will execute the `/foo` script via the mcp mekara start tool:
+The executor is stateless — all context (including working directory) is passed per call. It yields a single `AutoExecutionResult` (a wrapper containing the step's `AutoResult`). The consumer decides when and whether to call this; the module just provides the execution harness.
 
-- Use `subagent_type: "general-purpose"`
-- Use `model: "haiku"` for efficiency
-- The subagent should use `mcp__mekara__start` with `name: "foo"`, the user request in `arguments`, and `working_dir` to execute `/foo` in the `bar/` subdirectory of the current project
-- The subagent should then use `mcp__mekara__continue_compiled_script` with outputs (use `{}` when none) to continue execution through all LLM steps until the script completes
+On failure, the executor raises `AutoExecutionError`:
+
+| Field                | Type        | Description                |
+| -------------------- | ----------- | -------------------------- |
+| `original_exception` | `Exception` | The original exception     |
+| `output`             | `str`       | Captured output at failure |
+
+## Implementation
+
+### File Layout
+
+```
+src/mekara/scripting/
+├── __init__.py       # Package exports (runtime primitives only)
+├── runtime.py        # Step types (Auto, Llm, CallScript) and result types
+├── resolution.py     # Name → path resolution with precedence
+├── loading.py        # Script loading: resolution + content processing
+├── auto.py           # Auto step execution (shell commands, Python calls)
+├── nl.py             # NL prompt construction ($ARGUMENTS, standards)
+└── standards.py      # Standards resolution and loading
 ```
 
-This pattern is used by `/change` to invoke `/start` and `/finish` as subagents, allowing the parent workflow to focus on coordination while delegating detailed execution to specialized scripts. Note that the `model` and `working_dir` parameters are optional.
+### Design Choices
 
-## The `auto` Primitive
+- `ResolvedTarget` and `ScriptInfo` are frozen dataclasses (immutable after construction)
+- `ScriptGenerator` is typed as `Generator[Auto | Llm | CallScript, StepResult | None, Any]`
+- Compiled modules are loaded via `importlib.util.spec_from_file_location`
 
-`auto` requires a `context` parameter explaining WHY the step runs:
+### Internal Types
 
-**Shell commands:**
+#### Precedence Level Constants
 
-```python
-yield auto("git status", context="Check working tree status")
-yield auto(f"git worktree add -b mekara/{branch} ../{branch}", context="Create worktree")
-```
+| Constant                  | Value | Description      |
+| ------------------------- | ----- | ---------------- |
+| `_LOCAL_COMPILED_LEVEL`   | 1     | Local compiled   |
+| `_LOCAL_NL_LEVEL`         | 2     | Local NL         |
+| `_USER_COMPILED_LEVEL`    | 3     | User compiled    |
+| `_USER_NL_LEVEL`          | 4     | User NL          |
+| `_BUNDLED_COMPILED_LEVEL` | 5     | Bundled compiled |
+| `_BUNDLED_NL_LEVEL`       | 6     | Bundled NL       |
 
-**Python functions:**
+### Algorithms
 
-```python
-yield auto(my_function, {"arg1": value1}, context="Process the data")
-```
+#### Precedence Resolution
 
-### Output Streaming
+`resolve_target(name, base_dir)`:
 
-Shell commands stream output in real-time. `RealAutoExecutor` reads from stdout and stderr concurrently, capturing output as chunks with timestamps.
+1. Compute `name_underscored = name.replace("-", "_")`
+2. Find NL source at highest precedence:
+   - Check local NL (level 2): `base_dir/.mekara/scripts/nl/` (skip if `base_dir` is None)
+   - Check user NL (level 4): `~/.mekara/scripts/nl/`
+   - Check bundled NL (level 6): package `bundled/scripts/nl/`
+   - At each level, try exact name then underscore variant
+   - Record the level of the first match as `nl_level`
+3. If no NL found, return `None`
+4. Find compiled at same or higher precedence than NL:
+   - Check local compiled (level 1): only if `nl_level >= 1`
+   - Check user compiled (level 3): only if `nl_level >= 3`
+   - Check bundled compiled (level 5): only if `nl_level >= 5`
+   - At each level, try exact name then underscore variant
+5. Build canonical name: `name.replace("/", ":")`
+6. Return `ResolvedTarget(compiled=compiled_info, nl=nl_info, name=canonical_name)`
 
-### Error Handling
+#### `_find_script_at(base_path, name, name_underscored, suffix, *, is_bundled) -> ScriptInfo | None`
 
-All errors fall back to the LLM:
+Shared helper for finding scripts at a single precedence level:
 
-```python
-yield auto("poetry install", context="Install dependencies")  # if fails, LLM takes over
-```
+1. Try exact: `base_path / f"{name}{suffix}"`
+2. Try underscore: `base_path / f"{name_underscored}{suffix}"`
+3. Return `ScriptInfo(path, is_bundled)` for first match, or `None`
 
-### Environment Isolation
+#### $ARGUMENTS Substitution
 
-Shell commands run in a clean environment that removes virtualenv contamination:
+In `build_nl_command_prompt()`:
 
-- `VIRTUAL_ENV`, `PYTHONHOME` removed
-- `CONDA_PREFIX`, `CONDA_DEFAULT_ENV` removed
-- PATH entries pointing to mekara's virtualenv removed
+1. If `$ARGUMENTS` appears in content, replace only the first occurrence with the request string (using `str.replace(old, new, 1)`)
+2. Subsequent `$ARGUMENTS` occurrences are preserved verbatim
 
-## The `llm` Primitive
+#### Standards Injection
 
-`llm` steps pause execution and return to Claude for user interaction:
+In `build_nl_command_prompt()`, after $ARGUMENTS substitution:
 
-```python
-result = yield llm(
-    "Generate a branch name based on the request",
-    expects={"branch": "short kebab-case branch name"}
-)
-branch = result.outputs["branch"]
-```
+1. Find all `@standard:name` references via regex `r"@standard:(\w+)"`
+2. Deduplicate while preserving order
+3. Load each standard via `load_standard(name, base_dir)`
+4. If any standards were loaded, append a `## Referenced Standards` section with each standard under an `### @standard:name` heading
 
-### Expected Outputs
+#### Standards Resolution
 
-The `expects` parameter defines outputs the LLM must provide before continuing.
+`resolve_standard(name, base_dir)`:
 
-## The `call_script` Primitive
+1. Check local: `base_dir/.mekara/standards/{name}.md` (skip if `base_dir` is None)
+2. Check user: `~/.mekara/standards/{name}.md`
+3. Check bundled: package `bundled/standards/{name}.md`
+4. Return path of first match, or `None`
 
-`call_script` invokes another script:
+#### Compiled Module Loading
 
-```python
-from mekara.scripting.runtime import call_script
+`_load_compiled_module(script_file, script_name)`:
 
-result = yield call_script(
-    "finish",
-    request="Summarize the changes",
-)
-summary = result.summary
-```
+1. Load Python module from file path using `importlib.util`
+2. Extract `execute` attribute from module
+3. Raise `ScriptLoadError` if module spec is None, loader is None, or `execute` not found
+4. Return the `execute` function
 
-### Working Directory
+#### Auto Step Execution
 
-By default, nested scripts inherit the parent's working directory. Use `working_dir` to override:
+`AutoExecutor.execute(step, working_dir)`:
 
-```python
-from pathlib import Path
+For shell commands:
 
-# Run nested script in a different directory
-yield call_script(
-    "build",
-    working_dir=Path("/other/project"),
-)
-```
+1. Create subprocess via async shell execution
+2. Capture stdout and stderr
+3. Return `ShellResult` with combined output and exit code
 
-Each frame in the execution stack maintains its own working directory context.
+For Python calls:
 
-## Compilation
+1. Run function in a background thread
+2. Change working directory for duration of call
+3. Capture stdout/stderr
+4. On exception, raise `AutoExecutionError` with captured output
+5. Return `CallResult` with return value and captured output
 
-Users write natural language scripts in `.mekara/scripts/nl/` like `.mekara/scripts/nl/start.md`. These are compiled to Python generators in `.mekara/scripts/compiled/`.
+Environment isolation for shell commands:
 
-**Source of truth:** The `.md` file remains the source of truth. Generated Python should be committed.
-
-### Workflow
-
-1. User writes/edits `.mekara/scripts/nl/foo-bar.md`
-2. Compilation generates `.mekara/scripts/compiled/foo_bar.py`
-3. User invokes `/foo-bar` in Claude Code
-
-## VCR Recording
-
-Auto step results can be recorded for deterministic replay:
-
-- `VcrAutoExecutor` wraps `RealAutoExecutor`
-- Records shell command results with streaming output
-- Replays from cassette without re-executing commands
-- Input matching is exact (command, context, error handling)
+- Remove `VIRTUAL_ENV`, `PYTHONHOME`, `CONDA_PREFIX`, `CONDA_DEFAULT_ENV`
+- Remove PATH entries pointing to mekara's virtualenv
