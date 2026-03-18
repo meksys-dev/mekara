@@ -1,6 +1,6 @@
-"""Auto-generated script. Source: .claude/commands/start.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/start.md"""
 
-from mekara.scripting.runtime import auto, llm
+from mekara.scripting.runtime import auto, call_script, llm
 
 
 def _print_instructions(branch: str, user_request: str) -> None:
@@ -64,48 +64,10 @@ def execute(request: str):
     )
     branch = result.outputs["branch"]
 
-    # Step 3: Create worktree
-    yield auto(
-        f"git worktree add -b mekara/{branch} ../{branch}",
-        context=(
-            "Create a new worktree using the command `git worktree add -b mekara/<branch-name> "
-            '../<branch-name>`. If the branch already exists (error: "a branch named '
-            "'mekara/<branch-name>' already exists\"), choose a different branch name."
-        ),
-    )
+    # Step 3: Set up worktree
+    yield call_script("setup-worktree", request=branch)
 
-    # Step 4: Change to the new directory
-    yield llm(
-        "Change to the new directory. "
-        "(Note: due to limitations with your command tool, you will need to keep changing "
-        "to this directory again and again for subsequent commands.)",
-        expects={},
-    )
-
-    # Step 5: Install project dependencies
-    yield llm(
-        "Install project dependencies by running the appropriate commands for the project. "
-        "For example:\n"
-        "- Python (Poetry): `poetry install --with dev`\n"
-        "- Python (pip): `pip install -r requirements.txt`\n"
-        "- Node.js (npm): `npm install`\n"
-        "- Node.js (pnpm): `pnpm install`\n"
-        "- Rust: `cargo build`\n"
-        "- Go: `go mod download`\n\n"
-        "Check the project's README or build configuration to determine the correct command.",
-        expects={},
-    )
-
-    # Step 6: Copy settings
-    yield auto(
-        f"cp .claude/settings.local.json ../{branch}/.claude/settings.local.json",
-        context=(
-            "Copy settings with `cp .claude/settings.local.json "
-            "../<branch-name>/.claude/settings.local.json`."
-        ),
-    )
-
-    # Step 7: Print final instructions
+    # Step 4: Print final instructions
     yield auto(
         _print_instructions,
         {"branch": branch, "user_request": user_request},
