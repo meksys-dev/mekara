@@ -312,7 +312,7 @@ def _hook_user_prompt_submit() -> int:
 
     # For bundled natural-language commands (not available as Claude commands),
     # output the entire command content with $ARGUMENTS replaced and standards injected
-    if target.is_bundled_command:
+    if target.is_bundled and target.is_nl:
         loaded = load_script(command_name_normalized, arguments, base_dir=base_dir)
         print(f"<command-name>/{command_name_normalized}</command-name>")
         print(loaded.prompt)

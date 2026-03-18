@@ -235,7 +235,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 - [x] Update `ScriptLoaderStub` / `LoadScriptStub` in `tests/utils.py` to populate `nl_source` and `prompt` fields
 - [x] Run tests, type check
 
-### Phase 4: Resolution Cleanup (Issues 4, 5, 6)
+### Phase 4: Resolution Cleanup (Issues 4, 5, 6) ✅
 
 **Goal:** Consolidate duplicate functions, add composable properties, remove dead code.
 
@@ -243,16 +243,16 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 **Tasks:**
 
-- [ ] Create `_find_script_at(base_path, name, name_underscored, suffix, *, is_bundled)` helper to replace both `_find_compiled_at()` and `_find_nl_at()`, which are identical except for suffix
-- [ ] Replace all `_find_compiled_at()` and `_find_nl_at()` calls with `_find_script_at()`
-- [ ] Delete old `_find_compiled_at()` and `_find_nl_at()` functions
-- [ ] Add `is_nl` property to `ResolvedTarget`: `return self.compiled is None`
-- [ ] Add `is_compiled` property to `ResolvedTarget`: `return self.compiled is not None`
-- [ ] Delete `is_bundled_command` property (replaced by `target.is_bundled and target.is_nl` at call sites — composable, clearer intent)
-- [ ] Update CLI usage from `target.is_bundled_command` to `target.is_bundled and target.is_nl`
-- [ ] Update `test_is_bundled_command_property` test to test `is_nl`/`is_compiled` instead
-- [ ] Delete `list_all_commands()` function (dead code — never called anywhere in the codebase)
-- [ ] Run tests, type check
+- [x] Create `_find_script_at(base_path, name, name_underscored, suffix, *, is_bundled)` helper to replace both `_find_compiled_at()` and `_find_nl_at()`, which are identical except for suffix
+- [x] Replace all `_find_compiled_at()` and `_find_nl_at()` calls with `_find_script_at()`
+- [x] Delete old `_find_compiled_at()` and `_find_nl_at()` functions
+- [x] Add `is_nl` property to `ResolvedTarget`: `return self.compiled is None`
+- [x] Add `is_compiled` property to `ResolvedTarget`: `return self.compiled is not None`
+- [x] Delete `is_bundled_command` property (replaced by `target.is_bundled and target.is_nl` at call sites — composable, clearer intent)
+- [x] Update CLI usage from `target.is_bundled_command` to `target.is_bundled and target.is_nl`
+- [x] Update `test_is_bundled_command_property` test to test `is_nl`/`is_compiled` instead
+- [x] Delete `list_all_commands()` function (dead code — never called anywhere in the codebase)
+- [x] Run tests, type check
 
 ### Phase 5: Runtime Cleanup (Issues 7, 9, 10)
 

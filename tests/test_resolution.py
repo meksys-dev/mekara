@@ -67,22 +67,21 @@ class TestResolvedTarget:
 
         assert target.is_bundled is True
 
-    def test_is_bundled_command_property(self) -> None:
-        """is_bundled_command should be True only for bundled NL-only commands."""
-        # Bundled NL-only command
-        nl_bundled = ScriptInfo(path=Path("/pkg/nl/cmd.md"), is_bundled=True)
-        target_bundled = ResolvedTarget(compiled=None, nl=nl_bundled, name="cmd")
-        assert target_bundled.is_bundled_command is True
+    def test_is_nl_property(self) -> None:
+        """is_nl should be True only for NL-only scripts (no compiled counterpart)."""
+        nl = ScriptInfo(path=Path("/pkg/nl/cmd.md"), is_bundled=True)
+        compiled = ScriptInfo(path=Path("/pkg/compiled/cmd.py"), is_bundled=True)
 
-        # Non-bundled NL-only command
-        nl_local = ScriptInfo(path=Path("/project/.mekara/scripts/nl/cmd.md"), is_bundled=False)
-        target_local = ResolvedTarget(compiled=None, nl=nl_local, name="cmd")
-        assert target_local.is_bundled_command is False
+        assert ResolvedTarget(compiled=None, nl=nl, name="cmd").is_nl is True
+        assert ResolvedTarget(compiled=compiled, nl=nl, name="cmd").is_nl is False
 
-        # Bundled compiled command (has compiled, so not NL-only)
-        compiled_bundled = ScriptInfo(path=Path("/pkg/compiled/cmd.py"), is_bundled=True)
-        target_compiled = ResolvedTarget(compiled=compiled_bundled, nl=nl_bundled, name="cmd")
-        assert target_compiled.is_bundled_command is False
+    def test_is_compiled_property(self) -> None:
+        """is_compiled should be True only for scripts with a compiled counterpart."""
+        nl = ScriptInfo(path=Path("/pkg/nl/cmd.md"), is_bundled=True)
+        compiled = ScriptInfo(path=Path("/pkg/compiled/cmd.py"), is_bundled=True)
+
+        assert ResolvedTarget(compiled=None, nl=nl, name="cmd").is_compiled is False
+        assert ResolvedTarget(compiled=compiled, nl=nl, name="cmd").is_compiled is True
 
     def test_frozen_immutability(self) -> None:
         """ResolvedTarget should be immutable (frozen dataclass)."""
@@ -343,7 +342,7 @@ class TestNewPrecedenceAlgorithm:
         assert result.compiled is None
         assert result.nl.path == locs["bundled_commands"] / "test.md"
         assert result.is_bundled is True
-        assert result.is_bundled_command is True
+        assert result.is_nl is True
 
     def test_bundled_nl_with_bundled_compiled(
         self, project_with_all_locations: dict[str, Path]
