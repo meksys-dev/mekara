@@ -137,7 +137,7 @@ yield auto(_verify_and_merge, {"pr_number": pr_number}, context="...")
 - `LlmResult`: `success`, `outputs` (dict of named values)
 
 **`call_script` returns:**
-- `ScriptCallResult`: `success`, `summary`, `aborted`, `steps_executed`
+- `ScriptCallResult`: `success`, `exception`
 
 When an `llm` step needs to produce a value for later steps, specify expected outputs:
 

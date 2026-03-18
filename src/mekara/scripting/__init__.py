@@ -1,7 +1,6 @@
 """Scripting system for natural language commands and execution."""
 
 from mekara.scripting.runtime import (
-    ActionType,
     Auto,
     AutoException,
     AutoResult,
@@ -16,7 +15,6 @@ from mekara.scripting.runtime import (
 )
 
 __all__ = [
-    "ActionType",
     "Auto",
     "AutoException",
     "AutoResult",

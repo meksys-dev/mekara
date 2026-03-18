@@ -454,14 +454,10 @@ class McpScriptExecutor:
                 # Load nested script (compiled or NL) using unified loader
                 try:
                     loaded = load_script(step.name, step.request)
-                except ScriptLoadError as e:
+                except ScriptLoadError:
                     # Script not found or failed to load
                     result = ScriptCallResult(
                         success=False,
-                        summary=str(e),
-                        aborted=True,
-                        steps_executed=0,
-                        exception=None,
                     )
                     self.recently_executed_steps.append(
                         ExecutedStep(
@@ -593,7 +589,6 @@ class McpScriptExecutor:
         """Pop a completed frame and resume parent with ScriptCallResult."""
         completed_frame = self.stack.pop()
         assert isinstance(completed_frame, CompiledScriptFrame)
-        steps_executed = completed_frame.step_index
 
         if self.stack:
             parent = self.stack[-1]
@@ -605,10 +600,6 @@ class McpScriptExecutor:
             ):
                 result = ScriptCallResult(
                     success=True,
-                    summary=f"Completed {completed_frame.script_name} in {steps_executed} steps",
-                    aborted=False,
-                    steps_executed=steps_executed,
-                    exception=None,
                 )
                 self.recently_executed_steps.append(
                     ExecutedStep(
@@ -801,10 +792,6 @@ class McpScriptExecutor:
                     # Create result for the call_script step
                     call_result = ScriptCallResult(
                         success=True,
-                        summary=f"Completed: {nl_frame.script_name}",
-                        aborted=False,
-                        steps_executed=1,
-                        exception=None,
                     )
                     # Record exit from NL script
                     self.recently_executed_steps.append(
@@ -835,9 +822,6 @@ class McpScriptExecutor:
                 ):
                     call_result = ScriptCallResult(
                         success=False,
-                        summary=f"Completed with fallback: {failed_frame.script_name}",
-                        aborted=False,
-                        steps_executed=failed_frame.step_index + 1,
                         exception=auto_exception.exception,
                     )
                     self.recently_executed_steps.append(

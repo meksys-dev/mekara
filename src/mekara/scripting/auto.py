@@ -30,21 +30,6 @@ StepResult = AutoResult | LlmResult | ScriptCallResult
 ScriptGenerator = Generator[Auto | Llm | CallScript, StepResult | None, Any]
 
 
-class ScriptExecutionError(Exception):
-    """Raised when script execution fails."""
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        show_traceback: bool = True,
-        display_error: bool = True,
-    ) -> None:
-        super().__init__(message)
-        self.show_traceback = show_traceback
-        self.display_error = display_error
-
-
 @dataclass
 class AutoExecutionResult:
     """Final result of executing an auto step."""

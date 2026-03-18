@@ -254,7 +254,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 - [x] Delete `list_all_commands()` function (dead code — never called anywhere in the codebase)
 - [x] Run tests, type check
 
-### Phase 5: Runtime Cleanup (Issues 7, 9, 10)
+### Phase 5: Runtime Cleanup (Issues 7, 9, 10) ✅
 
 **Goal:** Remove unused fields and types from runtime.
 
@@ -262,14 +262,14 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 **Tasks:**
 
-- [ ] Remove `summary: str` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
-- [ ] Remove `aborted: bool` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
-- [ ] Remove `steps_executed: int` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
-- [ ] Remove `ActionType` enum from `runtime.py` and `action_type` property from `Auto` (only used by VCR for serialization — VCR can check `isinstance(action, ShellAction)` directly)
-- [ ] Update VCR code (`src/mekara/vcr/events.py`) to stop importing `ActionType` and use `isinstance` checks instead
-- [ ] Remove `ScriptExecutionError` from `auto.py` (defined in scripting module but only raised by VCR — move to VCR or replace with VCR-local error)
-- [ ] Fix `LoadedCompiledScript.generator` annotation in `loading.py`: change `Generator[Auto | Llm | CallScript, Any, Any]` to `ScriptGenerator` (the import already exists but wasn't used in the annotation — pre-existing inconsistency, not introduced in Phase 3)
-- [ ] Run tests, type check
+- [x] Remove `summary: str` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
+- [x] Remove `aborted: bool` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
+- [x] Remove `steps_executed: int` from `ScriptCallResult` dataclass and all constructor calls in `executor.py` (written but never read)
+- [x] Remove `ActionType` enum from `runtime.py` and `action_type` property from `Auto` (only used by VCR for serialization — VCR can check `isinstance(action, ShellAction)` directly)
+- [x] Update VCR code (`src/mekara/vcr/events.py`) to stop importing `ActionType` and use `isinstance` checks instead
+- [x] Remove `ScriptExecutionError` from `auto.py` (defined in scripting module but only raised by VCR — move to VCR or replace with VCR-local error)
+- [x] Fix `LoadedCompiledScript.generator` annotation in `loading.py`: change `Generator[Auto | Llm | CallScript, Any, Any]` to `ScriptGenerator` (the import already exists but wasn't used in the annotation — pre-existing inconsistency, not introduced in Phase 3)
+- [x] Run tests, type check
 
 ### Phase 6: Standards Resolution (Issue 8)
 

@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import importlib.util
-from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
 from mekara.scripting.auto import ScriptGenerator
 from mekara.scripting.nl import build_nl_command_prompt
 from mekara.scripting.resolution import ResolvedTarget, Script, resolve_target
-from mekara.scripting.runtime import Auto, CallScript, Llm
 from mekara.utils.project import find_project_root
 
 
@@ -64,7 +62,7 @@ class LoadedCompiledScript:
     target: ResolvedTarget
     nl_source: str  # Raw NL file content (before processing)
     prompt: str  # Processed content ($ARGUMENTS substituted, standards injected)
-    generator: Generator[Auto | Llm | CallScript, Any, Any]
+    generator: ScriptGenerator
 
 
 LoadedScript = LoadedCompiledScript | LoadedNLScript

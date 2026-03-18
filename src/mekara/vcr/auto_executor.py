@@ -12,10 +12,24 @@ from mekara.scripting.auto import (
     AutoExecutionError,
     AutoExecutionResult,
     RealAutoExecutor,
-    ScriptExecutionError,
 )
 from mekara.scripting.runtime import Auto, AutoResult
 from mekara.vcr.events import AutoStepEvent
+
+
+class VcrReplayMismatchError(Exception):
+    """Raised when VCR replay detects a mismatch between recorded and actual inputs."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        show_traceback: bool = True,
+        display_error: bool = True,
+    ) -> None:
+        super().__init__(message)
+        self.show_traceback = show_traceback
+        self.display_error = display_error
 
 
 class VcrAutoExecutor:
@@ -58,7 +72,7 @@ class VcrAutoExecutor:
 
             # Verify inputs match
             if recorded_event.inputs != expected_inputs:
-                raise ScriptExecutionError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: auto_step inputs mismatch.\n"
                     f"Expected: {expected_inputs!r}\n"
                     f"Got: {recorded_event.inputs!r}\n"
@@ -68,7 +82,7 @@ class VcrAutoExecutor:
             # Assert working_dir matches
             current_working_dir = str(working_dir)
             if current_working_dir != recorded_event.working_dir:
-                raise ScriptExecutionError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: working_dir mismatch.\n"
                     f"Expected: {recorded_event.working_dir!r}\n"
                     f"Got: {current_working_dir!r}\n"
@@ -98,7 +112,7 @@ class VcrAutoExecutor:
             )
             final_result = auto_exception
             yield AutoExecutionResult(result=auto_exception)
-        except ScriptExecutionError:
+        except VcrReplayMismatchError:
             raise
         except Exception as exc:
             from mekara.scripting.runtime import AutoException
