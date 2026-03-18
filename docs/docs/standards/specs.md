@@ -32,13 +32,26 @@ In case the spec is for a top-level system, simply ignore all references to "sys
 
 ### Purpose
 
-One to three sentences describing what the module does and why it exists.
+One to three sentences describing what the module does and why it exists. Lead with the high-level role the module plays, then mention specifics only as examples of that role.
 
 It should be clear from reading this what role the module plays in the system. Any potential consumers of this module should be able to discern whether it would be useful for them or not.
+
+**Example:**
+
+```markdown
+## Purpose
+
+The scripting module provides everything needed to go from a script
+name to a ready-to-execute script object. This includes runtime
+primitives, name-to-path resolution, NL prompt construction,
+standards injection, and auto step execution.
+```
 
 ### Scope
 
 What the module is responsible for and, critically, what it is NOT responsible for. Explicit scope boundaries keep abstractions clean and easy to reason about. They also make scope creep highly visible and legible to humans, creating friction to discourage LLM agents from shoehorning unrelated changes onto existing modules when entirely new modules would make much more sense.
+
+**Out-of-scope items should define boundaries relative to what's in scope** — not list unrelated things from around the project. Each out-of-scope item should reference an in-scope capability and clarify where the module's responsibility ends. For example, "orchestrating the execution of loaded scripts" as an out-of-scope item draws a boundary relative to the in-scope capability of "loading scripts," while "CLI command registration" is just a random other module and doesn't help a reader understand this module's boundaries.
 
 **Example:**
 
@@ -52,39 +65,116 @@ What the module is responsible for and, critically, what it is NOT responsible f
 
 **Out of scope:**
 
-- Executing scripts (handled by `mcp/executor.py`)
-- Building CLI commands (handled by `cli.py`)
+- Orchestrating script execution across multiple steps
+  (the module loads scripts but does not run them)
+- Deciding when to execute steps
+  (the module provides execution harness but does not sequence steps)
 ```
 
 ### Requirements
 
-Behavioral guarantees the module provides, including documented edge cases.
+Requirements describe the **actions** the module performs, organized as prose subsections. Each requirement names an action ("resolves names", "loads scripts", "models primitives") with constraints and details hanging off it. Even pure data modeling is an action ("models the step types that scripts are built from").
 
-Each requirement should be specific enough that two independent implementations satisfying the same requirements would produce observably equivalent behavior. Edge cases that are currently handled but not obvious should be explicitly documented here — if a behavior isn't in the requirements, it's not guaranteed.
+Use prose for the main description of each requirement. Use bullet points only for lists of constraints or enumerated items within a requirement — not as the primary format for requirements themselves.
 
 **Example:**
 
 ```markdown
 ## Requirements
 
-- Loaded scripts always contain fully-processed content (NL source with arguments substituted and standards injected)
-- Resolution searches local, user, then bundled directories in that order
-- Compiled scripts must exist at the same or higher precedence level as their NL source
+### Loads scripts into ready-to-use objects
+
+The module takes a script name and returns a fully-processed object
+that consumers can use directly without additional loading.
+
+**Resolution:** The module resolves script names to file paths by searching:
+
+- project
+- user
+- bundled
+
+in that order, taking the first match.
+
+**Constraints:**
+
+- Every resolved script has an NL source.
+- Compiled scripts must exist at the same or higher precedence level
+  as their NL source.
 ```
 
 ### Architecture
 
-A description of module structure, including file organization, data flow between components, and key invariants the code must obey. Invariants are architectural rules that constrain implementation. They should be phrased as assertions that can be verified by inspection — "Clean architecture" is not an invariant, but "The executor must remain stateless" is.
+The architecture section describes the module's **public contract** — everything a consumer needs to know to use the module correctly. It should be organized around how consumers interact with each capability, not as a flat reference dump.
 
-Use directory trees and Mermaid diagrams when possible to illustrate the high-level design.
+**Tell a story.** Each subsection should correspond to a capability from Requirements. Within each subsection, introduce the types, functions, and data flow that a consumer encounters when using that capability. Types appear in context — "you call this function, you get back this type, here's what's on it" — not in alphabetical order or grouped by source file.
+
+**What belongs in Architecture:**
+
+- Public types with their fields, relationships, and derived properties — if a type is returned by a public function, carried on a public object, or raised as an error consumers catch, it belongs here
+- Public functions with their signatures and behavior
+- Data flow showing how pieces connect (Mermaid diagrams are encouraged)
+- Invariants that constrain the public contract (e.g., "these are distinct types, not subtypes" or "this field is always present")
+
+**What does NOT belong in Architecture:**
+
+- File layout (language-specific)
+- Private helpers and internal types
+- Algorithm pseudocode
+- Language-specific design choices that don't affect the public contract
+
+**Invariants** are architectural rules that constrain the public contract. They should be phrased as assertions that can be verified by inspection. Only include invariants about _this_ module — not about other modules' behavior. Don't restate requirements as invariants; if a requirement already says "NL source is always present," an invariant saying the same thing is redundant.
+
+**Example:**
+
+```markdown
+## Architecture
+
+### Script Loading
+
+A consumer loads a script by calling `load_script(name, request, base_dir)`.
+It returns either a `LoadedNLScript` or a `LoadedCompiledScript`, both
+fully processed and ready to use.
+
+If the script cannot be found or loaded, `load_script` raises `ScriptLoadError`.
+
+The returned object carries a `target` field of type `ResolvedTarget`,
+which provides metadata about where the script was found:
+
+**`ResolvedTarget`:**
+
+| Field      | Type                 | Description                              |
+| ---------- | -------------------- | ---------------------------------------- |
+| `compiled` | `ScriptInfo \| None` | Compiled script info, or None if NL-only |
+| `nl`       | `ScriptInfo`         | NL source info (always present)          |
+| `name`     | `str`                | Canonical name with colons preserved     |
+
+The loaded script types share content fields but are distinct types
+(not subtypes of each other) — consumers must be able to distinguish
+them by type narrowing. Both carry:
+
+| Field       | Type             | Description                      |
+| ----------- | ---------------- | -------------------------------- |
+| `target`    | `ResolvedTarget` | Resolution result                |
+| `nl_source` | `str`            | Raw NL content before processing |
+| `prompt`    | `str`            | Processed content ready to use   |
+
+`LoadedCompiledScript` adds one field:
+
+| Field       | Type              | Description                                              |
+| ----------- | ----------------- | -------------------------------------------------------- |
+| `generator` | `ScriptGenerator` | The script's generator (from calling `execute(request)`) |
+```
 
 ### Implementation
 
-The concrete details of the module, consisting of:
+How the module fulfills the public contract internally. This section is language- and stack-specific — a reimplementation in another language would replace this section while keeping Purpose through Architecture intact.
 
-- **Data Structures** — Every enum, class, type alias, or other prominent data structure the module defines or exports. Include all fields with types and descriptions.
-- **Interface** — Public functions and methods with signatures, parameters, and return types.
-- **Algorithms** — Algorithmic details for non-trivial logic. Include edge cases and fallback behavior.
+Contents:
+
+- **File layout** — how the module is organized on disk
+- **Design choices** — language-specific decisions (e.g., "frozen dataclasses for immutability", "importlib for module loading")
+- **Internal types** — types that consumers never see (constants, private helpers, internal enums)
+- **Algorithms** — step-by-step logic for non-trivial operations, including edge cases and fallback behavior
 
 This is the most detailed section. The "reconstruct from spec" test applies here: given only this section and the sections above, an implementer should be able to produce code that passes all tests and satisfies all requirements, with differences limited to local variable names, formatting, and other trivial choices.
 
@@ -93,33 +183,54 @@ This is the most detailed section. The "reconstruct from spec" test applies here
 ```markdown
 ## Implementation
 
-### Data Structures
+### File Layout
 
-#### `LoadedNLScript`
+src/mekara/scripting/
+├── **init**.py # Package exports (runtime primitives only)
+├── runtime.py # Step types and result types
+├── resolution.py # Name → path resolution
+├── loading.py # Script loading entrypoint
+├── auto.py # Auto step execution
+├── nl.py # NL prompt construction
+└── standards.py # Standards resolution and loading
 
-| Field       | Type             | Description                                 |
-| ----------- | ---------------- | ------------------------------------------- |
-| `target`    | `ResolvedTarget` | Resolution result with file paths           |
-| `nl_source` | `str`            | Raw NL file content before processing       |
-| `prompt`    | `str`            | Processed content ready for LLM consumption |
+### Design Choices
 
-### Interfaces
+- `ResolvedTarget` and `ScriptInfo` are frozen dataclasses
+  (immutable after construction)
+- Compiled modules are loaded via `importlib.util`
 
-#### `load_script(name, arguments, project_root) -> LoadedNLScript | LoadedCompiledScript`
+### Internal Types
 
-Resolves and loads a script by name, returning fully-processed content.
+#### Precedence Level Constants
+
+| Constant                | Value | Description    |
+| ----------------------- | ----- | -------------- |
+| `_LOCAL_COMPILED_LEVEL` | 1     | Local compiled |
+| `_LOCAL_NL_LEVEL`       | 2     | Local NL       |
+| ...                     | ...   | ...            |
 
 ### Algorithms
 
-#### Precedence resolution
+#### Precedence Resolution
 
-Searches local, user, then bundled directories in order. Compiled scripts
-must exist at the same or higher precedence level as their NL source.
+`resolve_target(name, base_dir)`:
+
+1. Compute underscore variant of name
+2. Find NL source at highest precedence (local, user, bundled)
+3. If no NL found, return None
+4. Find compiled at same or higher precedence than NL
+5. Build canonical name and return ResolvedTarget
 ```
 
 ## Guidelines
 
-- **A spec covers exactly one module — nothing more.** Do not spec out types, functions, or behaviors from other modules, even if those modules interact closely with the one being specced. If a neighboring module's interface matters, reference it by name in the Architecture or Implementation sections; don't reproduce its contents here.
+### Writing Guidelines
+
+- **A spec covers exactly one module — nothing more.** Do not spec out types, functions, or behaviors from other modules, even if those modules interact closely with the one being specced. If a neighboring module's interface matters, reference it by name; don't reproduce its contents.
+- **Don't spec types this module doesn't use.** If a type is defined in this module but only raised or used by another module (never by this module itself), it's misplaced code — flag it for relocation, don't include it in the spec.
+- **Every piece of data must have a clear job.** For every type, field, and function in Architecture, you should be able to articulate when a consumer encounters it and why they need it. If you can't, it probably doesn't belong. Writing the spec is an opportunity to identify dead code, redundant fields, and misplaced types.
+- **No redundancy between sections.** Each piece of information should live in exactly one place in the hierarchy. If a requirement is restated as an invariant, one of them is wrong — either the requirement is incomplete (add the detail there) or the invariant is redundant (remove it).
 - **Update the spec when the code changes.** The spec is the source of truth. If you change the code without updating the spec, the spec becomes a lie and loses its value. Treat spec-code divergence as a bug.
 
 ### Precedence Rule
