@@ -104,6 +104,17 @@ When `mekara install commands` copies bundled scripts to `~/.mekara/scripts/nl/`
 - Step 4 Docusaurus snapshot (made conditional — "if the project uses Docusaurus versioning")
 - Key Principles (removed TestPyPI-specific principle, kept verify-before-publish and user-publishes-manually)
 
+### teardown-worktree.md
+
+**Changed:**
+
+- `poetry env remove --all` → made conditional: only needed for tools that store environments outside the worktree (Poetry, Pipenv). Tools that store inside the worktree (`.venv`, `node_modules`, `target/`) are already cleaned up by the `rm -rf` in step 4.
+
+**Kept:**
+
+- All git worktree removal steps (universal)
+- Remote branch deletion (universal)
+
 ### setup-worktree.md
 
 **Removed:**

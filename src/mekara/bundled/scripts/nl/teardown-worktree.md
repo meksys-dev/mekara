@@ -10,7 +10,11 @@ Detect the current branch name by running `git branch --show-current`. Remember 
 
 ### Step 2: Remove virtual environment
 
-Clean up the poetry virtual environment for this worktree by running `poetry env remove --all` from the worktree directory. This removes the isolated virtual environment that was created for this worktree, preventing stale environments from accumulating.
+If the project uses a tool that stores environments **outside** the worktree directory, remove them explicitly to prevent stale environments from accumulating. (Environments stored inside the worktree — `.venv`, `node_modules`, `target/`, etc. — are automatically wiped in step 4.)
+
+Examples of tools that require explicit cleanup:
+- Python/Poetry: `poetry env remove --all`
+- Python/Pipenv: `pipenv --rm`
 
 ### Step 3: Delete remote branch if it exists
 
