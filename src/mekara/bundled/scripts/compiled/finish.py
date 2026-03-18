@@ -37,9 +37,8 @@ def execute(request: str):
     # Step 0: Fetch and merge from main
     yield call_script("merge-main")
 
-    # Step 1: Install dependencies
-    # If the project uses a package manager with a lockfile, install any new dependencies.
-    # Main is guaranteed to be in a good state, so if checks fail due to missing
+    # Step 1: Install any new dependencies from the merge
+    # Note: Main is guaranteed to be in a good state, so if checks fail due to missing
     # dependencies after the merge, it's because you need to install from the lockfile -
     # NOT because dependencies need to be added.
     yield llm(
@@ -85,23 +84,13 @@ def execute(request: str):
     )
     completed_branch = result.output.strip()
 
-    # Step 5: Save the current worktree directory path
-    pwd_result = yield auto(
-        "pwd",
-        context=(
-            "Save the current worktree directory path by running `pwd` and remember "
-            "it as `<worktree-path>` (this will be used for cleanup later)."
-        ),
-    )
-    worktree_path = pwd_result.output.strip()
-
-    # Step 6: Push the branch to origin
+    # Step 5: Push the branch to origin
     yield auto(
         f"git push -u origin {completed_branch}",
         context="Push the branch to origin: `git push -u origin <completed-branch>`.",
     )
 
-    # Step 7: Examine what's actually being merged
+    # Step 6: Examine what's actually being merged
     yield auto(
         "git diff main..HEAD --stat",
         context=(
@@ -127,7 +116,7 @@ def execute(request: str):
         ),
     )
 
-    # Step 8: Create a pull request with proper title and body
+    # Step 7: Create a pull request with proper title and body
     # LLM crafts the title and body based on the diff, then we run the commands
     pr_meta = yield llm(
         "Create a pull request title and body:\n"
@@ -135,7 +124,10 @@ def execute(request: str):
         "- The body should describe what's actually changing (based on the diff, not the "
         "commit history)\n"
         "- Do NOT use `--fill` as it concatenates all commit messages, including those "
-        "for changes already on main",
+        "for changes already on main\n"
+        "- **Do NOT add a \"Test plan\" section** — this is a PR message that is going "
+        "to be part of the Git commit history when merged. Test plans do not make any "
+        "sense for a Git commit message.",
         expects={
             "pr_title": "concise PR title summarizing the feature/fix",
             "pr_body": "PR body describing what's actually changing",
@@ -160,7 +152,7 @@ def execute(request: str):
     pr_url = pr_result.output.strip()
     pr_number = pr_url.rstrip("/").split("/")[-1]
 
-    # Step 9: Enable auto-merge on the PR with explicit commit message control
+    # Step 8: Enable auto-merge on the PR with explicit commit message control
     # We must pass --subject and --body to override GitHub's default behavior of
     # concatenating ALL commit messages from the branch - including commits that are
     # already on main (e.g., from cherry-picks or shared history). Without these flags,
@@ -176,7 +168,7 @@ def execute(request: str):
             "```bash\n"
             'gh pr merge <pr-number> --auto --squash --subject "<PR title>" --body "<PR body>"\n'
             "```\n"
-            "Use the same title and body from step 9. This is critical because GitHub's "
+            "Use the same title and body from step 7. This is critical because GitHub's "
             "default squash behavior concatenates ALL commit messages from the branch - "
             "including commits that are already on main (e.g., from cherry-picks or shared "
             "history). Without `--subject` and `--body`, the squash commit message will "
@@ -192,7 +184,7 @@ def execute(request: str):
         ),
     )
 
-    # Step 10: Wait for CI checks to pass
+    # Step 9: Wait for CI checks to pass
     ci_check_context = (
         "Wait 10 seconds for CI checks to kick off, then wait for them to pass: "
         "`sleep 10 && gh pr checks <pr-number> --watch`."
@@ -200,7 +192,7 @@ def execute(request: str):
     yield auto("sleep 10", context=ci_check_context)
     yield auto(f"gh pr checks {pr_number} --watch", context=ci_check_context)
 
-    # Step 11: Verify PR merged successfully
+    # Step 10: Verify PR merged successfully
     # gh pr view outputs JSON like: {"state":"MERGED"}
     # This will raise an error if the state is not MERGED
     yield auto(
@@ -214,13 +206,13 @@ def execute(request: str):
         ),
     )
 
-    # Step 12: Update main with the merged changes
+    # Step 11: Update main with the merged changes
     yield auto(
         "cd ../main && git pull",
         context="Run `cd ../main && git pull` to update our local version of main",
     )
 
-    # Step 13: Update dependencies on main after the merge
+    # Step 12: Update dependencies on main after the merge
     yield llm(
         "If the project uses a package manager, update dependencies on main after the "
         "merge. This ensures the main environment is in sync with any new dependencies "
@@ -233,7 +225,7 @@ def execute(request: str):
         "- Rust/Cargo: `cd ../main && cargo build`"
     )
 
-    # Step 14: Sync local settings
+    # Step 13: Sync local settings
     yield llm(
         "If the project uses `.claude/settings.local.json` (or similar local "
         "configuration), read the worktree's version and manually update "
@@ -242,31 +234,5 @@ def execute(request: str):
         "in other worktree branches."
     )
 
-    # Step 15: Clean up environment
-    yield llm(
-        "If the project uses isolated environments per worktree (e.g., Python virtual "
-        "environments), clean them up to prevent stale environments from accumulating:\n"
-        "- Python/Poetry: `poetry env remove --all`\n"
-        "- Python/venv: `rm -rf .venv` (if using per-worktree venvs)"
-    )
-
-    # Step 16: Clean up the worktree
-    cleanup_cmd = (
-        f"cd ../main && git worktree remove -f {worktree_path} && "
-        f"rm -rf {worktree_path} && git branch -D {completed_branch}"
-    )
-    yield auto(
-        cleanup_cmd,
-        context=(
-            "Clean up by running `cd ../main && git worktree remove -f <worktree-path> "
-            "&& rm -rf <worktree-path> && git branch -D <completed-branch>` **from the "
-            "`../main` directory**. The `-f` flag forces removal even if the worktree has "
-            "modifications. The `rm -rf` ensures any leftover files are fully removed. "
-            "Do NOT run this from the worktree directory itself.\n\n"
-            "If this command succeeds, you will start getting errors such as "
-            '`Error: Path "/path/to/old/branch" does not exist`. This means that the '
-            "worktree directory you'd started in no longer exists, and all commands you "
-            "continue to run will fail. This is a sign for you to stop. The script is "
-            "complete."
-        ),
-    )
+    # Step 14: Tear down worktree
+    yield call_script("teardown-worktree")
