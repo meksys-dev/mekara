@@ -31,12 +31,17 @@ Individual setup commands are available in the Wiki under Project How To's if yo
 
 ```mermaid
 flowchart TB
-    change_cmd["/change"] -.-> start["/start"]
+    change_cmd["/change"] -.-> start_flow
 
     subgraph manual_flow["Manual Flow"]
       direction TB
-      start --> waterfall["/waterfall"] -.-> extract_flow[Extract PRs] --> finish_flow
+      start_flow --> waterfall["/waterfall"] -.-> extract_flow[Extract PRs] --> finish_flow
       docs --> finish_flow
+    end
+
+    subgraph start_flow["/start"]
+      direction TB
+      setup["/setup-worktree"]
     end
 
     subgraph extract_flow["Split into smaller PRs"]
@@ -46,7 +51,7 @@ flowchart TB
 
     subgraph finish_flow["/finish"]
       direction TB
-      merge["/merge-main"]
+      merge["/merge-main"] --> teardown["/teardown-worktree"]
     end
 
     style manual_flow fill:transparent,stroke:#888,stroke-dasharray:5 5
@@ -57,13 +62,13 @@ The bread and butter of the mekara workflow is a standard pipeline through which
 - `/change` provides a complete end-to-end workflow that combines all the steps below into a single command with explicit feedback loops. Use this when you want the agent to handle the entire process while ensuring you maintain control through iterative feedback before finalization.
 - `/waterfall` enforces a gated implementation process: restate understanding → surface assumptions → high-level design → low-level design → update docs → implement → reconcile docs. Each step requires explicit user confirmation before proceeding. Called automatically by `/change`, or invoke directly for ad-hoc work.
 - Alternatively, manage the workflow manually:
-  - `/start` work on a new feature in a fresh Git worktree branch
+  - `/start` work on a new feature in a fresh Git worktree branch (internally calls `/setup-worktree` to create the worktree and install dependencies)
     - Make your updates to the project. (See below for details)
     - Sync documentation to recent changes. (See below for details)
     - Optionally split this change up into smaller PRs:
       - `/analyze-branch-for-extraction` to optionally identify independently extractable changes (prerequisite refactorings, process improvements) that can be split into separate PRs
       - `/extract-pr` to extract specific subsets of changes into clean PRs for easier reviews
-  - `/finish` to merge latest from main (via `/merge-main`), submit a PR, and merge once all checks pass
+  - `/finish` to merge latest from main (via `/merge-main`), submit a PR, merge once all checks pass, and clean up the worktree (via `/teardown-worktree`)
 
 ### Change Project
 

@@ -1,9 +1,10 @@
-Context: Changes have been made to the project, and these changes need to be synced over to the documentation.
+Context: Changes have been made to the project (or are about to be), and these changes need to be synced over to the documentation.
 
-### Step 0: Take stock of the recent changes made to the project
+### Step 0: Take stock of the changes to document
 
 - If you have been directly collaborating with the user in the current conversation, then no further action is needed for this step. The changes you have been working on are the changes you're meant to document.
 - If the user has not asked you to make any changes, that means that you are to observe the changes made since we last branched off from `main`.
+- If you have been given a description of *planned* changes that have not yet been implemented (e.g., invoked from `/waterfall` Step 5), use that description as the basis for the documentation update. The docs will be temporarily ahead of the code — that's intentional; they serve as the spec for implementation.
 
 ### Step 1: Make the corresponding changes to the Docusaurus documentation
 
