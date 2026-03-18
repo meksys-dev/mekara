@@ -214,7 +214,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 - [x] Requirements section must document all edge cases including: underscore fallback (try exact name, then underscore variant at each precedence level), `$ARGUMENTS` first-occurrence-only substitution (subsequent occurrences preserved verbatim), exception fallback to NL when auto step fails
 - [x] Data Structures section must include every field of every major type with its name, type, and description — precise enough to reimplement without reading source code
 
-### Phase 3: Script Loading Interface (Issues 1, 2, 3)
+### Phase 3: Script Loading Interface (Issues 1, 2, 3) ✅
 
 **Goal:** Make loaded script types contain actual content and remove NL building from executor.
 
@@ -222,18 +222,18 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 **Tasks:**
 
-- [ ] Restructure `LoadedNLScript` with fields: `target: ResolvedTarget`, `nl_source: str`, `prompt: str`
-- [ ] Restructure `LoadedCompiledScript` as a separate dataclass (NOT a subclass of `LoadedNLScript` — subclassing breaks `isinstance()` type narrowing used throughout executor and CLI) with same fields plus `generator: ScriptGenerator`
-- [ ] Update `load_script()` to call `build_nl_command_prompt()` for both types and populate content fields
-- [ ] Add `nl_source: str` and `prompt: str` to `CompiledScriptFrame` and `NLScriptFrame`
-- [ ] Remove `arguments: str` from `ScriptFrame` (redundant — arguments are already baked into `prompt` via `$ARGUMENTS` substitution at load time)
-- [ ] Update `_push_compiled_script()` and `_push_nl_script()` to accept and store content from loaded scripts
-- [ ] Update `push_script()` and `run_until_llm()` call sites to pass content from loaded scripts
-- [ ] Replace `self._load_nl_source(top_frame)` calls in `pending` property with direct frame content field access
-- [ ] Remove `_load_nl_source()` method entirely — executor must not import from `nl.py`
-- [ ] Update CLI `_hook_user_prompt_submit()` to use `load_script()` instead of manually calling `build_nl_command_prompt()`
-- [ ] Update `ScriptLoaderStub` / `LoadScriptStub` in `tests/utils.py` to populate `nl_source` and `prompt` fields
-- [ ] Run tests, type check
+- [x] Restructure `LoadedNLScript` with fields: `target: ResolvedTarget`, `nl_source: str`, `prompt: str`
+- [x] Restructure `LoadedCompiledScript` as a separate dataclass (NOT a subclass of `LoadedNLScript` — subclassing breaks `isinstance()` type narrowing used throughout executor and CLI) with same fields plus `generator: ScriptGenerator`
+- [x] Update `load_script()` to call `build_nl_command_prompt()` for both types and populate content fields
+- [x] Add `nl_source: str` and `prompt: str` to `CompiledScriptFrame` and `NLScriptFrame`
+- [x] Remove `arguments: str` from `ScriptFrame` (redundant — arguments are already baked into `prompt` via `$ARGUMENTS` substitution at load time)
+- [x] Update `_push_compiled_script()` and `_push_nl_script()` to accept and store content from loaded scripts
+- [x] Update `push_script()` and `run_until_llm()` call sites to pass content from loaded scripts
+- [x] Replace `self._load_nl_source(top_frame)` calls in `pending` property with direct frame content field access
+- [x] Remove `_load_nl_source()` method entirely — executor must not import from `nl.py`
+- [x] Update CLI `_hook_user_prompt_submit()` to use `load_script()` instead of manually calling `build_nl_command_prompt()`
+- [x] Update `ScriptLoaderStub` / `LoadScriptStub` in `tests/utils.py` to populate `nl_source` and `prompt` fields
+- [x] Run tests, type check
 
 ### Phase 4: Resolution Cleanup (Issues 4, 5, 6)
 
@@ -258,7 +258,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 **Goal:** Remove unused fields and types from runtime.
 
-**Files:** `src/mekara/scripting/runtime.py`, `src/mekara/scripting/auto.py`, `src/mekara/mcp/executor.py`
+**Files:** `src/mekara/scripting/runtime.py`, `src/mekara/scripting/auto.py`, `src/mekara/scripting/loading.py`, `src/mekara/mcp/executor.py`
 
 **Tasks:**
 
@@ -268,6 +268,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 - [ ] Remove `ActionType` enum from `runtime.py` and `action_type` property from `Auto` (only used by VCR for serialization — VCR can check `isinstance(action, ShellAction)` directly)
 - [ ] Update VCR code (`src/mekara/vcr/events.py`) to stop importing `ActionType` and use `isinstance` checks instead
 - [ ] Remove `ScriptExecutionError` from `auto.py` (defined in scripting module but only raised by VCR — move to VCR or replace with VCR-local error)
+- [ ] Fix `LoadedCompiledScript.generator` annotation in `loading.py`: change `Generator[Auto | Llm | CallScript, Any, Any]` to `ScriptGenerator` (the import already exists but wasn't used in the annotation — pre-existing inconsistency, not introduced in Phase 3)
 - [ ] Run tests, type check
 
 ### Phase 6: Standards Resolution (Issue 8)

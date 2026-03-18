@@ -266,6 +266,7 @@ def _hook_auto_approve() -> int:
 
 def _hook_user_prompt_submit() -> int:
     """Handle UserPromptSubmit hook - detect /commands and direct to MCP."""
+    from mekara.scripting.loading import load_script
     from mekara.scripting.resolution import Script, resolve_target
     from mekara.utils.project import find_project_root
 
@@ -312,12 +313,9 @@ def _hook_user_prompt_submit() -> int:
     # For bundled natural-language commands (not available as Claude commands),
     # output the entire command content with $ARGUMENTS replaced and standards injected
     if target.is_bundled_command:
-        from mekara.scripting.nl import build_nl_command_prompt
-
-        raw_content = target.nl.path.read_text()
-        content = build_nl_command_prompt(raw_content, arguments, base_dir)
+        loaded = load_script(command_name_normalized, arguments, base_dir=base_dir)
         print(f"<command-name>/{command_name_normalized}</command-name>")
-        print(content)
+        print(loaded.prompt)
         return 0
 
     # Only output MCP instructions for compiled scripts

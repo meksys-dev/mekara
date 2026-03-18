@@ -66,11 +66,13 @@ class TestHookUserPromptSubmit:
 
     def test_non_slash_command_returns_zero(self) -> None:
         """Non-slash commands should return 0 with no output."""
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "hello world"})):
-            with patch("builtins.print") as mock_print:
-                result = _hook_user_prompt_submit()
-                assert result == 0
-                mock_print.assert_not_called()
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "hello world"})),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            mock_print.assert_not_called()
 
     def test_empty_prompt_returns_zero(self) -> None:
         """Empty prompt should return 0."""
@@ -86,12 +88,14 @@ class TestHookUserPromptSubmit:
 
     def test_unresolved_command_returns_zero(self) -> None:
         """Unresolved commands should return 0."""
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/nonexistent-command"})):
-            with patch("mekara.scripting.resolution.resolve_target", return_value=None):
-                with patch("builtins.print") as mock_print:
-                    result = _hook_user_prompt_submit()
-                    assert result == 0
-                    mock_print.assert_not_called()
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/nonexistent-command"})),
+            patch("mekara.scripting.resolution.resolve_target", return_value=None),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            mock_print.assert_not_called()
 
     def test_compiled_script_outputs_mcp_instructions(self, tmp_path: Path) -> None:
         """Compiled scripts should output MCP instructions."""
@@ -106,17 +110,19 @@ class TestHookUserPromptSubmit:
             name="test-script",
         )
 
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/test-script arg1 arg2"})):
-            with patch("mekara.scripting.resolution.resolve_target", return_value=target):
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print") as mock_print:
-                        result = _hook_user_prompt_submit()
-                        assert result == 0
-                        mock_print.assert_called_once()
-                        output = mock_print.call_args[0][0]
-                        assert "MEKARA SCRIPT DETECTED" in output
-                        assert "test-script" in output
-                        assert "arg1 arg2" in output
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/test-script arg1 arg2"})),
+            patch("mekara.scripting.resolution.resolve_target", return_value=target),
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            mock_print.assert_called_once()
+            output = mock_print.call_args[0][0]
+            assert "MEKARA SCRIPT DETECTED" in output
+            assert "test-script" in output
+            assert "arg1 arg2" in output
 
     def test_natural_language_command_no_mcp_output(self, tmp_path: Path) -> None:
         """Natural language commands should not output MCP instructions."""
@@ -129,14 +135,16 @@ class TestHookUserPromptSubmit:
             name="test-command",
         )
 
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/test-command"})):
-            with patch("mekara.scripting.resolution.resolve_target", return_value=target):
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print") as mock_print:
-                        result = _hook_user_prompt_submit()
-                        assert result == 0
-                        # No MCP instructions for NL commands
-                        mock_print.assert_not_called()
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/test-command"})),
+            patch("mekara.scripting.resolution.resolve_target", return_value=target),
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            # No MCP instructions for NL commands
+            mock_print.assert_not_called()
 
     def test_dev_mode_outputs_for_mekara_affecting_commands(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -156,17 +164,19 @@ class TestHookUserPromptSubmit:
             name="my-script",
         )
 
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/my-script"})):
-            with patch("mekara.scripting.resolution.resolve_target", return_value=target):
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print") as mock_print:
-                        result = _hook_user_prompt_submit()
-                        assert result == 0
-                        # Should have 2 calls: dev-mode and MCP instructions
-                        assert mock_print.call_count == 2
-                        dev_output = mock_print.call_args_list[0][0][0]
-                        assert "<dev-mode>" in dev_output
-                        assert "DEV MODE ACTIVE" in dev_output
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/my-script"})),
+            patch("mekara.scripting.resolution.resolve_target", return_value=target),
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            # Should have 2 calls: dev-mode and MCP instructions
+            assert mock_print.call_count == 2
+            dev_output = mock_print.call_args_list[0][0][0]
+            assert "<dev-mode>" in dev_output
+            assert "DEV MODE ACTIVE" in dev_output
 
     def test_dev_mode_no_output_for_non_mekara_commands(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -186,17 +196,19 @@ class TestHookUserPromptSubmit:
             name="finish",
         )
 
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/finish"})):
-            with patch("mekara.scripting.resolution.resolve_target", return_value=target):
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print") as mock_print:
-                        result = _hook_user_prompt_submit()
-                        assert result == 0
-                        # Only MCP instructions, no dev-mode
-                        assert mock_print.call_count == 1
-                        output = mock_print.call_args[0][0]
-                        assert "<dev-mode>" not in output
-                        assert "MEKARA SCRIPT DETECTED" in output
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/finish"})),
+            patch("mekara.scripting.resolution.resolve_target", return_value=target),
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            # Only MCP instructions, no dev-mode
+            assert mock_print.call_count == 1
+            output = mock_print.call_args[0][0]
+            assert "<dev-mode>" not in output
+            assert "MEKARA SCRIPT DETECTED" in output
 
     def test_colon_separator_normalized(self, tmp_path: Path) -> None:
         """Colons in command names should be normalized to slashes."""
@@ -211,17 +223,19 @@ class TestHookUserPromptSubmit:
             name="test:nested",  # Canonical name uses colons
         )
 
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/test:nested"})):
-            with patch(
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/test:nested"})),
+            patch(
                 "mekara.scripting.resolution.resolve_target", return_value=target
-            ) as mock_resolve:
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print"):
-                        _hook_user_prompt_submit()
-                        # Verify resolve was called with normalized name
-                        mock_resolve.assert_called_once()
-                        call_args = mock_resolve.call_args[0]
-                        assert call_args[0] == "test/nested"
+            ) as mock_resolve,
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print"),
+        ):
+            _hook_user_prompt_submit()
+            # Verify resolve was called with normalized name
+            mock_resolve.assert_called_once()
+            call_args = mock_resolve.call_args[0]
+            assert call_args[0] == "test/nested"
 
     def test_double_slash_treated_as_single_slash(self, tmp_path: Path) -> None:
         """Double-slash (//command) should be treated identically to single-slash."""
@@ -237,23 +251,25 @@ class TestHookUserPromptSubmit:
         )
 
         # Test //test-script resolves same as /test-script
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "//test-script arg1"})):
-            with patch(
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "//test-script arg1"})),
+            patch(
                 "mekara.scripting.resolution.resolve_target", return_value=target
-            ) as mock_resolve:
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print") as mock_print:
-                        result = _hook_user_prompt_submit()
-                        assert result == 0
-                        # Verify resolve was called with normalized name (no leading slash)
-                        mock_resolve.assert_called_once()
-                        call_args = mock_resolve.call_args[0]
-                        assert call_args[0] == "test-script"
-                        # Should output MCP instructions
-                        mock_print.assert_called_once()
-                        output = mock_print.call_args[0][0]
-                        assert "MEKARA SCRIPT DETECTED" in output
-                        assert "arg1" in output
+            ) as mock_resolve,
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            # Verify resolve was called with normalized name (no leading slash)
+            mock_resolve.assert_called_once()
+            call_args = mock_resolve.call_args[0]
+            assert call_args[0] == "test-script"
+            # Should output MCP instructions
+            mock_print.assert_called_once()
+            output = mock_print.call_args[0][0]
+            assert "MEKARA SCRIPT DETECTED" in output
+            assert "arg1" in output
 
     def test_bundled_natural_language_outputs_content(self, tmp_path: Path) -> None:
         """Bundled natural-language commands should output their content."""
@@ -266,21 +282,24 @@ class TestHookUserPromptSubmit:
             name="bundled-cmd",
         )
 
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/bundled-cmd my-arg"})):
-            with patch("mekara.scripting.resolution.resolve_target", return_value=target):
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print") as mock_print:
-                        result = _hook_user_prompt_submit()
-                        assert result == 0
-                        # Should have 2 print calls: command-name tag and content
-                        assert mock_print.call_count == 2
-                        # First call: command-name tag
-                        name_output = mock_print.call_args_list[0][0][0]
-                        assert "<command-name>/bundled-cmd</command-name>" in name_output
-                        # Second call: content with $ARGUMENTS replaced
-                        content_output = mock_print.call_args_list[1][0][0]
-                        assert "Do something with my-arg here." in content_output
-                        assert "$ARGUMENTS" not in content_output
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/bundled-cmd my-arg"})),
+            patch("mekara.scripting.resolution.resolve_target", return_value=target),
+            patch("mekara.scripting.loading.resolve_target", return_value=target),
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print") as mock_print,
+        ):
+            result = _hook_user_prompt_submit()
+            assert result == 0
+            # Should have 2 print calls: command-name tag and content
+            assert mock_print.call_count == 2
+            # First call: command-name tag
+            name_output = mock_print.call_args_list[0][0][0]
+            assert "<command-name>/bundled-cmd</command-name>" in name_output
+            # Second call: content with $ARGUMENTS replaced
+            content_output = mock_print.call_args_list[1][0][0]
+            assert "Do something with my-arg here." in content_output
+            assert "$ARGUMENTS" not in content_output
 
     def test_bundled_command_replaces_only_first_arguments(self, tmp_path: Path) -> None:
         """$ARGUMENTS should only be replaced once (first occurrence)."""
@@ -293,15 +312,18 @@ class TestHookUserPromptSubmit:
             name="multi-args",
         )
 
-        with patch("sys.stdin.read", return_value=json.dumps({"prompt": "/multi-args replaced"})):
-            with patch("mekara.scripting.resolution.resolve_target", return_value=target):
-                with patch("mekara.utils.project.find_project_root", return_value=tmp_path):
-                    with patch("builtins.print") as mock_print:
-                        _hook_user_prompt_submit()
-                        content_output = mock_print.call_args_list[1][0][0]
-                        # First occurrence replaced, second kept
-                        assert "First: replaced" in content_output
-                        assert "Second: $ARGUMENTS" in content_output
+        with (
+            patch("sys.stdin.read", return_value=json.dumps({"prompt": "/multi-args replaced"})),
+            patch("mekara.scripting.resolution.resolve_target", return_value=target),
+            patch("mekara.scripting.loading.resolve_target", return_value=target),
+            patch("mekara.utils.project.find_project_root", return_value=tmp_path),
+            patch("builtins.print") as mock_print,
+        ):
+            _hook_user_prompt_submit()
+            content_output = mock_print.call_args_list[1][0][0]
+            # First occurrence replaced, second kept
+            assert "First: replaced" in content_output
+            assert "Second: $ARGUMENTS" in content_output
 
 
 class TestHookPreToolUse:
