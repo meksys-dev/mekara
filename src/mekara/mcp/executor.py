@@ -233,7 +233,8 @@ class ScriptFrame:
     script_name: str
     working_dir: Path
     resolved_target: ResolvedTarget
-    arguments: str
+    nl_source: str  # Raw NL file content (before processing)
+    prompt: str  # Processed content ($ARGUMENTS substituted, standards injected)
 
 
 @dataclass
@@ -343,7 +344,7 @@ class McpScriptExecutor:
         if isinstance(top_frame, CompiledScriptFrame) and top_frame.exception is not None:
             nl_source = ""
             if not top_frame.has_shown_nl_source:
-                nl_source = self._load_nl_source(top_frame)
+                nl_source = top_frame.prompt
                 top_frame.has_shown_nl_source = True
             return PendingNLFallback(
                 script_name=top_frame.script_name,
@@ -357,7 +358,7 @@ class McpScriptExecutor:
         if isinstance(top_frame, NLScriptFrame):
             return PendingNLScript(
                 name=top_frame.script_name,
-                content=self._load_nl_source(top_frame),
+                content=top_frame.prompt,
             )
 
         # Compiled script with Llm step
@@ -365,8 +366,9 @@ class McpScriptExecutor:
         if isinstance(top_frame.current_step, Llm):
             context = ""
             if not top_frame.has_shown_nl_source:
-                nl_source = self._load_nl_source(top_frame)
-                context = f"## Script Context: `{top_frame.script_name}`\n\n{nl_source}\n\n---\n\n"
+                context = (
+                    f"## Script Context: `{top_frame.script_name}`\n\n{top_frame.prompt}\n\n---\n\n"
+                )
                 top_frame.has_shown_nl_source = True
             return PendingLlmStep(
                 step=top_frame.current_step,
@@ -377,19 +379,6 @@ class McpScriptExecutor:
             )
 
         return None
-
-    def _load_nl_source(self, frame: ScriptFrame) -> str:
-        """Load and process NL source content for a frame.
-
-        With the new ResolvedTarget design, NL source is always available via
-        target.nl.path since NL is required and compiled is optional.
-        """
-        from mekara.scripting.nl import build_nl_command_prompt
-        from mekara.utils.project import find_project_root
-
-        raw_content = frame.resolved_target.nl.path.read_text()
-        base_dir = find_project_root()
-        return build_nl_command_prompt(raw_content, frame.arguments, base_dir)
 
     def get_stack_path(self) -> str:
         """Get a human-readable path showing the current script stack.
@@ -464,14 +453,10 @@ class McpScriptExecutor:
                 # Load nested script (compiled or NL) using unified loader
                 try:
                     loaded = load_script(step.name, step.request)
-                except ScriptLoadError as e:
+                except ScriptLoadError:
                     # Script not found or failed to load
                     result = ScriptCallResult(
                         success=False,
-                        summary=str(e),
-                        aborted=True,
-                        steps_executed=0,
-                        exception=None,
                     )
                     self.recently_executed_steps.append(
                         ExecutedStep(
@@ -495,7 +480,8 @@ class McpScriptExecutor:
                         loaded.target.name,
                         nested_working_dir,
                         resolved_target=loaded.target,
-                        arguments=step.request,
+                        nl_source=loaded.nl_source,
+                        prompt=loaded.prompt,
                     )
 
                     # Return the pending NL script (computed from top frame)
@@ -514,7 +500,8 @@ class McpScriptExecutor:
                         loaded.target.name,
                         nested_working_dir,
                         resolved_target=loaded.target,
-                        arguments=step.request,
+                        nl_source=loaded.nl_source,
+                        prompt=loaded.prompt,
                     )
                 continue
 
@@ -601,7 +588,6 @@ class McpScriptExecutor:
         """Pop a completed frame and resume parent with ScriptCallResult."""
         completed_frame = self.stack.pop()
         assert isinstance(completed_frame, CompiledScriptFrame)
-        steps_executed = completed_frame.step_index
 
         if self.stack:
             parent = self.stack[-1]
@@ -613,10 +599,6 @@ class McpScriptExecutor:
             ):
                 result = ScriptCallResult(
                     success=True,
-                    summary=f"Completed {completed_frame.script_name} in {steps_executed} steps",
-                    aborted=False,
-                    steps_executed=steps_executed,
-                    exception=None,
                 )
                 self.recently_executed_steps.append(
                     ExecutedStep(
@@ -658,7 +640,8 @@ class McpScriptExecutor:
         working_dir: Path,
         *,
         resolved_target: ResolvedTarget,
-        arguments: str,
+        nl_source: str,
+        prompt: str,
     ) -> None:
         """Push a compiled script onto the execution stack.
 
@@ -671,7 +654,8 @@ class McpScriptExecutor:
                 script_name=script_name,
                 working_dir=working_dir,
                 resolved_target=resolved_target,
-                arguments=arguments,
+                nl_source=nl_source,
+                prompt=prompt,
                 generator=generator,
             )
         )
@@ -682,7 +666,8 @@ class McpScriptExecutor:
         working_dir: Path,
         *,
         resolved_target: ResolvedTarget,
-        arguments: str,
+        nl_source: str,
+        prompt: str,
     ) -> None:
         """Push an NL script onto the execution stack.
 
@@ -696,7 +681,8 @@ class McpScriptExecutor:
                 script_name=script_name,
                 working_dir=working_dir,
                 resolved_target=resolved_target,
-                arguments=arguments,
+                nl_source=nl_source,
+                prompt=prompt,
             )
         )
 
@@ -713,19 +699,17 @@ class McpScriptExecutor:
             arguments: Arguments to pass to the script
             working_dir: Working directory for AUTO STEP EXECUTION ONLY (not script resolution)
         """
-        from mekara.utils.project import find_project_root
-
         # CRITICAL: Script resolution uses project root from cwd, NOT from working_dir.
         # working_dir only affects WHERE auto steps execute, not WHICH scripts get loaded.
-        base_dir = find_project_root()
-        loaded = load_script(script_name, arguments, base_dir=base_dir)
+        loaded = load_script(script_name, arguments)
 
         if isinstance(loaded, LoadedNLScript):
             self._push_nl_script(
                 loaded.target.name,
                 working_dir,
                 resolved_target=loaded.target,
-                arguments=arguments,
+                nl_source=loaded.nl_source,
+                prompt=loaded.prompt,
             )
             return
 
@@ -735,7 +719,8 @@ class McpScriptExecutor:
             loaded.target.name,
             working_dir,
             resolved_target=loaded.target,
-            arguments=arguments,
+            nl_source=loaded.nl_source,
+            prompt=loaded.prompt,
         )
 
     def continue_after_llm(self, outputs: dict[str, Any]) -> bool:
@@ -805,10 +790,6 @@ class McpScriptExecutor:
                     # Create result for the call_script step
                     call_result = ScriptCallResult(
                         success=True,
-                        summary=f"Completed: {nl_frame.script_name}",
-                        aborted=False,
-                        steps_executed=1,
-                        exception=None,
                     )
                     # Record exit from NL script
                     self.recently_executed_steps.append(
@@ -839,9 +820,6 @@ class McpScriptExecutor:
                 ):
                     call_result = ScriptCallResult(
                         success=False,
-                        summary=f"Completed with fallback: {failed_frame.script_name}",
-                        aborted=False,
-                        steps_executed=failed_frame.step_index + 1,
                         exception=auto_exception.exception,
                     )
                     self.recently_executed_steps.append(

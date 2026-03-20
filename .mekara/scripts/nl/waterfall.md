@@ -49,9 +49,11 @@ Write a design document following the structure and requirements in @docs/docs/s
 
 Include any `docs/docs/` pages that describe the affected behavior and will need updating. Make sure that you do not present all this inline in your regular chat output — all non-trivial output must be diffable.
 
+**Capture the full richness of Steps 1–3.** The design document is the handoff artifact that future agents will implement from. If the waterfall session produced rationale, section descriptions, specific examples, or guidelines through the clarification process, embed that content directly in the design document — either in the Design Details section or as inline notes on tasks. A task like "Document the rationale: friction points for scope creep" is ambiguous and leaves the implementing agent guessing as to what that rationale was. "Document the rationale: explicit NOT-responsibilities create friction points that provide human legibility for scope creep" is clear and unambiguous. Every detail that emerged from assumption resolution and high-level design confirmation belongs in the document, not just in the chat history.
+
 **STOP. Ask the user: "Are these the right changes?" Do NOT proceed until the user confirms.**
 
-After confirmation, commit the design document.
+After confirmation, commit the design document. Then wait for user confirmation again before continuing onto step 5.
 
 ### Step 5: Update documentation first
 
@@ -77,7 +79,7 @@ If there were no deviations, say so and skip the edits.
 
 **STOP. Ask the user: "Are the docs accurate?" Do NOT proceed until the user confirms.**
 
-After confirmation, commit the code and doc changes for this phase.
+After confirmation, commit the code and doc changes for this phase. Then wait for user confirmation again unless this is already the last piece of work you believe you need to do.
 
 #### Step 8: Check completion
 
@@ -91,9 +93,36 @@ If there are remaining phases in the design document, go back to step 6 for the 
   - "Looks good", "approve", "yes", "correct" are approval.
   - "Ok", "thanks", "I see" are NOT approval — they may be the user processing information before giving feedback.
   If uncertain, ask: "Is this correct, or are there changes you'd like?" This is the single most important rule of this command.
-- **Examples of what goes wrong without this process**:
-  - Removing a documentation section without checking if other things still reference it (e.g., deleting bash hook guidance because the main hook moved to Python, when other bash hooks still exist)
-  - Overcomplicating with unnecessary abstractions (e.g., adding subprocess calls, wrapper functions, CLI interfaces that nothing uses)
-  - Stating wrong assumptions as fact (e.g., "bundled is not a source" when it is)
-  - Writing misleading descriptions because you didn't fully understand the semantics (e.g., describing conflict detection incorrectly)
+- **A commit is not a green light to proceed.** After committing at the end of a step (e.g., committing the design doc at the end of steps 4 and 7), STOP and wait for the user to confirm before continuing onto implementation. Do NOT immediately start the next implementation step. The user may want to hand off work to an agent with a fresh context window. The step boundary is a gate even when the commit succeeds cleanly.
+- **Examples of what goes wrong when you don't clarify assumptions**:
+  - **Removing a documentation section without checking references**
+    - *Context*: Refactoring how hooks work; the main hook moved from bash to Python
+    - *Action*: Deleted bash hook guidance from the docs
+    - *Why wrong*: Other bash hooks still existed and still needed the guidance
+    - *Wrong assumption that should've been clarified*: That a change to one part of a system makes all related documentation obsolete
+  - **Overcomplicating with unnecessary abstractions**
+    - *Context*: Implementing a feature
+    - *Action*: Added subprocess calls, wrapper functions, and CLI interfaces
+    - *Why wrong*: Nothing in the codebase uses them; they add complexity with no benefit
+    - *Wrong assumption that should've been clarified*: The general data structures and interfaces that are natural for the problem domain.
+  - **Stating wrong assumptions as fact**
+    - *Context*: Designing how the resolution system works
+    - *Action*: Stated "bundled is not a source" as fact in the design
+    - *Why wrong*: Bundled IS a source; the statement was simply incorrect
+    - *Wrong assumption that should've been clarified*: That bundled scripts were just a fallback and didn't count as a real source alongside local and user
+  - **Jumping ahead after committing**
+    - *Context*: User signed off on a commit
+    - *Action*: Committed, and immediately started making major changes without waiting
+    - *Why wrong*: The user only wanted the commit, and wanted to discuss the next part of the task before the agent worked on it
+    - *Wrong assumption that should've been clarified*: That a commit completing cleanly is an implicit signal to proceed to the next step
+  - **Appending prescriptive rules to examples**
+    - *Context*: Asked to add an example to the "examples of what goes wrong" list
+    - *Action*: Kept appending a situation-specific rule to the end of the example (e.g., "a spec covers exactly one module" or "scope must be surfaced as an assumption in Step 2")
+    - *Why wrong*: The examples section is for concrete illustrations of mistakes, not for encoding rules for specific situations that are inapplicable to most agents reading the examples
+    - *Wrong assumption that should've been clarified*: That creating a new prescriptive rule was part of the task of adding a new example
+  - **Assuming scope without asking**
+    - *Context*: Writing a spec for `src/mekara/scripting/`
+    - *Action*: Silently included `McpScriptExecutor`, `ScriptFrame`, and all executor frame types from `mcp/executor.py`
+    - *Why wrong*: The user never wanted executor types in the scripting spec
+    - *Wrong assumption that should've been clarified*: That the spec's scope includes any and all files mentioned in the task, even if those files were outside of the folder you were writing a spec for.
 - **Living document**: Anytime `/recursive-self-improvement` is called, the examples above should be updated with whatever the user was frustrated about during that session. Note in particular any user profanity or insults.
