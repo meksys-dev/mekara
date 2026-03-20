@@ -41,7 +41,7 @@ class TestMcpVcrIntegration:
         real_executor = RealAutoExecutor()
         vcr_executor = VcrAutoExecutor(cassette=record_cassette, inner=real_executor)
 
-        target = resolve_target("test/random", base_dir=_base_dir)
+        target = resolve_target("test/random")
         assert target is not None, "test/random script not found"
 
         executor = McpScriptExecutor(tmp_path, vcr_executor)
@@ -142,7 +142,7 @@ class TestMcpVcrIntegration:
         real_executor = RealAutoExecutor()
         vcr_executor = VcrAutoExecutor(cassette=record_cassette, inner=real_executor)
 
-        target = resolve_target("test/random", base_dir=_base_dir)
+        target = resolve_target("test/random")
         assert target is not None
 
         executor = McpScriptExecutor(tmp_path, vcr_executor)
@@ -187,7 +187,7 @@ class TestMcpVcrCassetteFormat:
         real_executor = RealAutoExecutor()
         vcr_executor = VcrAutoExecutor(cassette=cassette, inner=real_executor)
 
-        target = resolve_target("test/random", base_dir=_base_dir)
+        target = resolve_target("test/random")
         assert target is not None
 
         executor = McpScriptExecutor(tmp_path, vcr_executor)

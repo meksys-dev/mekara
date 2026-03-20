@@ -175,7 +175,6 @@ def _hook_pre_tool_use() -> int:
     This ensures compiled scripts are executed via MCP, which supports nesting.
     """
     from mekara.scripting.resolution import Script, resolve_target
-    from mekara.utils.project import find_project_root
 
     # Read hook input from stdin (JSON format)
     stdin_content = sys.stdin.read()
@@ -199,8 +198,7 @@ def _hook_pre_tool_use() -> int:
     skill_name_normalized = skill_name.replace(":", "/")
 
     # Check if this is a compiled mekara script
-    base_dir = find_project_root()
-    target = resolve_target(skill_name_normalized, base_dir=base_dir)
+    target = resolve_target(skill_name_normalized)
 
     if target is None or target.target_type != Script.COMPILED:
         # Not a compiled script - let the Skill tool proceed normally
@@ -268,7 +266,6 @@ def _hook_user_prompt_submit() -> int:
     """Handle UserPromptSubmit hook - detect /commands and direct to MCP."""
     from mekara.scripting.loading import load_script
     from mekara.scripting.resolution import Script, resolve_target
-    from mekara.utils.project import find_project_root
 
     # Read hook input from stdin (JSON format)
     stdin_content = sys.stdin.read()
@@ -298,8 +295,7 @@ def _hook_user_prompt_submit() -> int:
     command_name_normalized = command_name.replace(":", "/")
 
     # Use mekara's resolution logic to check what type of command this is
-    base_dir = find_project_root()
-    target = resolve_target(command_name_normalized, base_dir=base_dir)
+    target = resolve_target(command_name_normalized)
 
     if target is None:
         return 0
@@ -313,7 +309,7 @@ def _hook_user_prompt_submit() -> int:
     # For bundled natural-language commands (not available as Claude commands),
     # output the entire command content with $ARGUMENTS replaced and standards injected
     if target.is_bundled and target.is_nl:
-        loaded = load_script(command_name_normalized, arguments, base_dir=base_dir)
+        loaded = load_script(command_name_normalized, arguments)
         print(f"<command-name>/{command_name_normalized}</command-name>")
         print(loaded.prompt)
         return 0

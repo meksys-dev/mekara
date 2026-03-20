@@ -167,10 +167,8 @@ class TestMekaraServerNestedStart:
     async def test_start_while_script_running_pushes_to_stack(self, tmp_path: Path) -> None:
         """Calling start while a script is running should push onto stack, not replace."""
         from mekara.scripting.resolution import resolve_target
-        from mekara.utils.project import find_project_root
 
-        base_dir = find_project_root()
-        target = resolve_target("test/random", base_dir=base_dir)
+        target = resolve_target("test/random")
         assert target is not None, "test/random script not found"
 
         # Create server with a custom executor for the first script
@@ -213,10 +211,8 @@ class TestMekaraServerNestedStart:
     ) -> None:
         """Parent script state should be preserved when nested script is pushed."""
         from mekara.scripting.resolution import resolve_target
-        from mekara.utils.project import find_project_root
 
-        base_dir = find_project_root()
-        target = resolve_target("test/random", base_dir=base_dir)
+        target = resolve_target("test/random")
         assert target is not None
 
         server = MekaraServer(working_dir=tmp_path)

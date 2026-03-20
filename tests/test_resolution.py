@@ -1,11 +1,18 @@
 """Tests for script and command resolution logic."""
 
+from contextlib import ExitStack
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from mekara.scripting.resolution import ResolvedTarget, Script, ScriptInfo, resolve_target
+from mekara.scripting.resolution import (
+    ResolvedTarget,
+    Script,
+    ScriptInfo,
+    SearchLevel,
+    resolve_target,
+)
 
 
 class TestScriptInfo:
@@ -96,52 +103,24 @@ class TestResolveTarget:
 
     def test_returns_none_when_nothing_found(self, tmp_path: Path) -> None:
         """Should return None when no matching NL source exists."""
-        # Create a project with empty directories
-        (tmp_path / ".mekara" / "scripts").mkdir(parents=True)
-        (tmp_path / ".mekara" / "scripts" / "nl").mkdir(parents=True)
-
+        nl_levels = [SearchLevel(tmp_path / "nl", ".md")]
+        compiled_levels = [SearchLevel(tmp_path / "compiled", ".py")]
         with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "user_scripts",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "user_commands",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "bundled_scripts",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "bundled_commands",
-            ),
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", nl_levels),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", compiled_levels),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", tmp_path / "bundled"),
         ):
-            result = resolve_target("nonexistent", base_dir=tmp_path)
+            result = resolve_target("nonexistent")
         assert result is None
 
-    def test_returns_none_when_no_base_dir_and_no_user_or_bundled(self, tmp_path: Path) -> None:
-        """Should return None when no base_dir and no user/bundled targets exist."""
+    def test_returns_none_when_no_project_and_no_user_or_bundled(self, tmp_path: Path) -> None:
+        """Should return None when there are no levels or no matching scripts."""
         with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "user_scripts",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "user_commands",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "bundled_scripts",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "bundled_commands",
-            ),
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", []),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", []),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", tmp_path / "bundled"),
         ):
-            result = resolve_target("anything", base_dir=None)
+            result = resolve_target("anything")
         assert result is None
 
 
@@ -150,8 +129,7 @@ class TestNewPrecedenceAlgorithm:
 
     @pytest.fixture
     def project_with_all_locations(self, tmp_path: Path) -> dict[str, Path]:
-        """Create a project with scripts/commands at all 6 locations."""
-        # Create all directory structures
+        """Create a project with scripts/commands at all 3 precedence levels."""
         local_scripts = tmp_path / "project" / ".mekara" / "scripts" / "compiled"
         local_commands = tmp_path / "project" / ".mekara" / "scripts" / "nl"
         user_scripts = tmp_path / "user" / ".mekara" / "scripts" / "compiled"
@@ -177,7 +155,25 @@ class TestNewPrecedenceAlgorithm:
             "user_commands": user_commands,
             "bundled_scripts": bundled_scripts,
             "bundled_commands": bundled_commands,
+            "bundled_base": tmp_path / "bundled",
         }
+
+    def _patch_levels(self, locs: dict[str, Path]) -> tuple:
+        nl_levels = [
+            SearchLevel(locs["local_commands"], ".md"),
+            SearchLevel(locs["user_commands"], ".md"),
+            SearchLevel(locs["bundled_commands"], ".md"),
+        ]
+        compiled_levels = [
+            SearchLevel(locs["local_scripts"], ".py"),
+            SearchLevel(locs["user_scripts"], ".py"),
+            SearchLevel(locs["bundled_scripts"], ".py"),
+        ]
+        return (
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", nl_levels),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", compiled_levels),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", locs["bundled_base"]),
+        )
 
     def test_local_nl_with_local_compiled(
         self, project_with_all_locations: dict[str, Path]
@@ -188,23 +184,10 @@ class TestNewPrecedenceAlgorithm:
         (locs["local_scripts"] / "test.py").write_text("# local compiled")
         (locs["local_commands"] / "test.md").write_text("local command")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir", return_value=locs["user_scripts"]
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir", return_value=locs["user_commands"]
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=locs["bundled_scripts"],
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=locs["bundled_commands"],
-            ),
-        ):
-            result = resolve_target("test", base_dir=locs["base_dir"])
+        with ExitStack() as stack:
+            for p in self._patch_levels(locs):
+                stack.enter_context(p)
+            result = resolve_target("test")
 
         assert result is not None
         assert result.target_type == Script.COMPILED
@@ -216,32 +199,19 @@ class TestNewPrecedenceAlgorithm:
     def test_local_nl_ignores_bundled_compiled(
         self, project_with_all_locations: dict[str, Path]
     ) -> None:
-        """Local NL should NOT include bundled compiled (level 5 > level 2)."""
+        """Local NL should NOT include bundled compiled (lower precedence)."""
         locs = project_with_all_locations
 
         (locs["local_commands"] / "test.md").write_text("local command")
         (locs["bundled_scripts"] / "test.py").write_text("# bundled compiled")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir", return_value=locs["user_scripts"]
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir", return_value=locs["user_commands"]
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=locs["bundled_scripts"],
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=locs["bundled_commands"],
-            ),
-        ):
-            result = resolve_target("test", base_dir=locs["base_dir"])
+        with ExitStack() as stack:
+            for p in self._patch_levels(locs):
+                stack.enter_context(p)
+            result = resolve_target("test")
 
         assert result is not None
-        assert result.target_type == Script.NATURAL_LANGUAGE  # NL-only
+        assert result.target_type == Script.NATURAL_LANGUAGE
         assert result.compiled is None
         assert result.nl.path == locs["local_commands"] / "test.md"
         assert result.is_bundled is False
@@ -249,29 +219,16 @@ class TestNewPrecedenceAlgorithm:
     def test_bundled_nl_with_user_compiled(
         self, project_with_all_locations: dict[str, Path]
     ) -> None:
-        """Bundled NL (level 6) + user compiled (level 3) should include both (3 < 6)."""
+        """Bundled NL + user compiled should include both (user has higher precedence)."""
         locs = project_with_all_locations
 
         (locs["user_scripts"] / "test.py").write_text("# user compiled")
         (locs["bundled_commands"] / "test.md").write_text("bundled command")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir", return_value=locs["user_scripts"]
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir", return_value=locs["user_commands"]
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=locs["bundled_scripts"],
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=locs["bundled_commands"],
-            ),
-        ):
-            result = resolve_target("test", base_dir=locs["base_dir"])
+        with ExitStack() as stack:
+            for p in self._patch_levels(locs):
+                stack.enter_context(p)
+            result = resolve_target("test")
 
         assert result is not None
         assert result.target_type == Script.COMPILED
@@ -284,32 +241,19 @@ class TestNewPrecedenceAlgorithm:
     def test_user_nl_ignores_bundled_compiled(
         self, project_with_all_locations: dict[str, Path]
     ) -> None:
-        """User NL (level 4) should NOT include bundled compiled (level 5 > 4)."""
+        """User NL should NOT include bundled compiled (lower precedence)."""
         locs = project_with_all_locations
 
         (locs["user_commands"] / "test.md").write_text("user command")
         (locs["bundled_scripts"] / "test.py").write_text("# bundled compiled")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir", return_value=locs["user_scripts"]
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir", return_value=locs["user_commands"]
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=locs["bundled_scripts"],
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=locs["bundled_commands"],
-            ),
-        ):
-            result = resolve_target("test", base_dir=locs["base_dir"])
+        with ExitStack() as stack:
+            for p in self._patch_levels(locs):
+                stack.enter_context(p)
+            result = resolve_target("test")
 
         assert result is not None
-        assert result.target_type == Script.NATURAL_LANGUAGE  # NL-only
+        assert result.target_type == Script.NATURAL_LANGUAGE
         assert result.compiled is None
         assert result.nl.path == locs["user_commands"] / "test.md"
 
@@ -319,23 +263,10 @@ class TestNewPrecedenceAlgorithm:
 
         (locs["bundled_commands"] / "test.md").write_text("bundled command")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir", return_value=locs["user_scripts"]
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir", return_value=locs["user_commands"]
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=locs["bundled_scripts"],
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=locs["bundled_commands"],
-            ),
-        ):
-            result = resolve_target("test", base_dir=locs["base_dir"])
+        with ExitStack() as stack:
+            for p in self._patch_levels(locs):
+                stack.enter_context(p)
+            result = resolve_target("test")
 
         assert result is not None
         assert result.target_type == Script.NATURAL_LANGUAGE
@@ -347,29 +278,16 @@ class TestNewPrecedenceAlgorithm:
     def test_bundled_nl_with_bundled_compiled(
         self, project_with_all_locations: dict[str, Path]
     ) -> None:
-        """Bundled NL (level 6) + bundled compiled (level 5) should include both."""
+        """Bundled NL + bundled compiled should include both."""
         locs = project_with_all_locations
 
         (locs["bundled_scripts"] / "test.py").write_text("# bundled compiled")
         (locs["bundled_commands"] / "test.md").write_text("bundled command")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir", return_value=locs["user_scripts"]
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir", return_value=locs["user_commands"]
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=locs["bundled_scripts"],
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=locs["bundled_commands"],
-            ),
-        ):
-            result = resolve_target("test", base_dir=locs["base_dir"])
+        with ExitStack() as stack:
+            for p in self._patch_levels(locs):
+                stack.enter_context(p)
+            result = resolve_target("test")
 
         assert result is not None
         assert result.target_type == Script.COMPILED
@@ -383,6 +301,15 @@ class TestNewPrecedenceAlgorithm:
 class TestHyphenUnderscoreHandling:
     """Tests for hyphen/underscore conversion in script names."""
 
+    def _patch_local(self, tmp_path: Path) -> tuple:
+        nl_levels = [SearchLevel(tmp_path / ".mekara" / "scripts" / "nl", ".md")]
+        compiled_levels = [SearchLevel(tmp_path / ".mekara" / "scripts" / "compiled", ".py")]
+        return (
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", nl_levels),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", compiled_levels),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", tmp_path / "nonexistent"),
+        )
+
     def test_exact_match_preferred_for_compiled(self, tmp_path: Path) -> None:
         """Exact hyphen match should be preferred if it exists."""
         scripts_path = tmp_path / ".mekara" / "scripts" / "compiled"
@@ -390,30 +317,14 @@ class TestHyphenUnderscoreHandling:
         scripts_path.mkdir(parents=True)
         commands_path.mkdir(parents=True)
 
-        # Create both versions of compiled and the NL source
         (scripts_path / "merge-main.py").write_text("# hyphen version")
         (scripts_path / "merge_main.py").write_text("# underscore version")
         (commands_path / "merge-main.md").write_text("NL source")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-        ):
-            result = resolve_target("merge-main", base_dir=tmp_path)
+        with ExitStack() as stack:
+            for p in self._patch_local(tmp_path):
+                stack.enter_context(p)
+            result = resolve_target("merge-main")
 
         assert result is not None
         assert result.name == "merge-main"
@@ -427,29 +338,13 @@ class TestHyphenUnderscoreHandling:
         scripts_path.mkdir(parents=True)
         commands_path.mkdir(parents=True)
 
-        # Only underscore version exists for compiled, need NL source too
         (scripts_path / "merge_main.py").write_text("# underscore version")
         (commands_path / "merge_main.md").write_text("NL source")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-        ):
-            result = resolve_target("merge-main", base_dir=tmp_path)
+        with ExitStack() as stack:
+            for p in self._patch_local(tmp_path):
+                stack.enter_context(p)
+            result = resolve_target("merge-main")
 
         assert result is not None
         assert result.compiled is not None
@@ -460,78 +355,39 @@ class TestHyphenUnderscoreHandling:
         commands_path = tmp_path / ".mekara" / "scripts" / "nl"
         commands_path.mkdir(parents=True)
 
-        # Only underscore version exists
         (commands_path / "my_command.md").write_text("# command")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-        ):
-            result = resolve_target("my-command", base_dir=tmp_path)
+        with ExitStack() as stack:
+            for p in self._patch_local(tmp_path):
+                stack.enter_context(p)
+            result = resolve_target("my-command")
 
         assert result is not None
         assert result.target_type == Script.NATURAL_LANGUAGE
         assert result.nl.path.name == "my_command.md"
 
     def test_hyphenated_directory_converted_to_underscored(self, tmp_path: Path) -> None:
-        """Hyphenated directory names should be converted to underscored for compiled scripts.
-
-        This tests the real-world case where NL source is in ai-tooling/ but compiled
-        script is in ai_tooling/ (Python module name requirement).
-        """
+        """Hyphenated directory names should be converted to underscored for compiled scripts."""
         scripts_path = tmp_path / ".mekara" / "scripts" / "compiled"
         commands_path = tmp_path / ".mekara" / "scripts" / "nl"
 
-        # NL source uses hyphenated directory
         nl_dir = commands_path / "ai-tooling"
         nl_dir.mkdir(parents=True)
         (nl_dir / "setup-mekara-mcp.md").write_text("# NL source")
 
-        # Compiled script uses underscored directory (Python module requirement)
         compiled_dir = scripts_path / "ai_tooling"
         compiled_dir.mkdir(parents=True)
         (compiled_dir / "setup_mekara_mcp.py").write_text("# compiled")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-        ):
-            result = resolve_target("ai-tooling/setup-mekara-mcp", base_dir=tmp_path)
+        with ExitStack() as stack:
+            for p in self._patch_local(tmp_path):
+                stack.enter_context(p)
+            result = resolve_target("ai-tooling/setup-mekara-mcp")
 
         assert result is not None
         assert result.name == "ai-tooling:setup-mekara-mcp"
-        # NL source has hyphenated directory
         assert "ai-tooling" in str(result.nl.path)
         assert result.nl.path.name == "setup-mekara-mcp.md"
-        # Compiled script has underscored directory
         assert result.compiled is not None
         assert "ai_tooling" in str(result.compiled.path)
         assert result.compiled.path.name == "setup_mekara_mcp.py"
@@ -540,31 +396,25 @@ class TestHyphenUnderscoreHandling:
 class TestCanonicalName:
     """Tests for canonical name format with colons."""
 
+    def _patch_local(self, tmp_path: Path) -> tuple:
+        nl_levels = [SearchLevel(tmp_path / ".mekara" / "scripts" / "nl", ".md")]
+        compiled_levels = [SearchLevel(tmp_path / ".mekara" / "scripts" / "compiled", ".py")]
+        return (
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", nl_levels),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", compiled_levels),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", tmp_path / "nonexistent"),
+        )
+
     def test_name_uses_colons_for_path_separator(self, tmp_path: Path) -> None:
         """Name should use colons as path separators."""
         commands_path = tmp_path / ".mekara" / "scripts" / "nl" / "test"
         commands_path.mkdir(parents=True)
         (commands_path / "nested.md").write_text("# nested command")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-        ):
-            result = resolve_target("test/nested", base_dir=tmp_path)
+        with ExitStack() as stack:
+            for p in self._patch_local(tmp_path):
+                stack.enter_context(p)
+            result = resolve_target("test/nested")
 
         assert result is not None
         assert result.name == "test:nested"
@@ -575,84 +425,64 @@ class TestCanonicalName:
         commands_path.mkdir(parents=True)
         (commands_path / "merge-main.md").write_text("# command")
 
-        with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-        ):
-            result = resolve_target("merge-main", base_dir=tmp_path)
+        with ExitStack() as stack:
+            for p in self._patch_local(tmp_path):
+                stack.enter_context(p)
+            result = resolve_target("merge-main")
 
         assert result is not None
         assert result.name == "merge-main"
 
 
-class TestNoBaseDirBehavior:
-    """Tests for resolution when not in a project (base_dir=None)."""
+class TestNoProjectBehavior:
+    """Tests for resolution when not in a project (no local level)."""
 
-    def test_skips_local_directories_when_no_base_dir(self, tmp_path: Path) -> None:
-        """Should not search local directories when base_dir is None."""
-        user_commands = tmp_path / "user" / ".claude" / "commands"
+    def test_skips_local_directories_when_no_project(self, tmp_path: Path) -> None:
+        """Should not search local directories when not in a project."""
+        user_commands = tmp_path / "user" / ".mekara" / "scripts" / "nl"
         user_commands.mkdir(parents=True)
         (user_commands / "mytest.md").write_text("# user command")
 
+        # No local level in the lists (simulates no project)
+        nl_levels = [
+            SearchLevel(user_commands, ".md"),
+            SearchLevel(tmp_path / "bundled" / "nl", ".md"),
+        ]
+        compiled_levels = [
+            SearchLevel(tmp_path / "user" / ".mekara" / "scripts" / "compiled", ".py"),
+            SearchLevel(tmp_path / "bundled" / "compiled", ".py"),
+        ]
         with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch("mekara.scripting.resolution.user_commands_dir", return_value=user_commands),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", nl_levels),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", compiled_levels),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", tmp_path / "bundled"),
         ):
-            result = resolve_target("mytest", base_dir=None)
+            result = resolve_target("mytest")
 
         assert result is not None
         assert result.nl.path == user_commands / "mytest.md"
         assert result.is_bundled is False
 
-    def test_finds_bundled_when_no_base_dir(self, tmp_path: Path) -> None:
-        """Should find bundled targets when base_dir is None."""
+    def test_finds_bundled_when_no_project(self, tmp_path: Path) -> None:
+        """Should find bundled targets when not in a project."""
         bundled_commands = tmp_path / "bundled" / "nl"
         bundled_commands.mkdir(parents=True)
         (bundled_commands / "document.md").write_text("# bundled command")
 
+        nl_levels = [
+            SearchLevel(tmp_path / "nonexistent" / "nl", ".md"),
+            SearchLevel(bundled_commands, ".md"),
+        ]
+        compiled_levels = [
+            SearchLevel(tmp_path / "nonexistent" / "compiled", ".py"),
+            SearchLevel(tmp_path / "bundled" / "compiled", ".py"),
+        ]
         with (
-            patch(
-                "mekara.scripting.resolution.user_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.user_commands_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir", return_value=bundled_commands
-            ),
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", nl_levels),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", compiled_levels),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", tmp_path / "bundled"),
         ):
-            result = resolve_target("document", base_dir=None)
+            result = resolve_target("document")
 
         assert result is not None
         assert result.target_type == Script.NATURAL_LANGUAGE
@@ -668,23 +498,21 @@ class TestUserDirectoryExistenceCheck:
         bundled_commands.mkdir(parents=True)
         (bundled_commands / "test.md").write_text("# bundled")
 
-        # Point to non-existent directories
-        nonexistent = tmp_path / "does_not_exist"
-
+        nl_levels = [
+            SearchLevel(tmp_path / "does_not_exist" / "nl", ".md"),
+            SearchLevel(bundled_commands, ".md"),
+        ]
+        compiled_levels = [
+            SearchLevel(tmp_path / "does_not_exist" / "compiled", ".py"),
+            SearchLevel(tmp_path / "bundled" / "compiled", ".py"),
+        ]
         with (
-            patch("mekara.scripting.resolution.user_scripts_dir", return_value=nonexistent),
-            patch("mekara.scripting.resolution.user_commands_dir", return_value=nonexistent),
-            patch(
-                "mekara.scripting.resolution.bundled_scripts_dir",
-                return_value=tmp_path / "nonexistent",
-            ),
-            patch(
-                "mekara.scripting.resolution.bundled_commands_dir", return_value=bundled_commands
-            ),
+            patch("mekara.scripting.resolution._NL_SCRIPT_LEVELS", nl_levels),
+            patch("mekara.scripting.resolution._COMPILED_SCRIPT_LEVELS", compiled_levels),
+            patch("mekara.scripting.resolution._BUNDLED_BASE", tmp_path / "bundled"),
         ):
-            result = resolve_target("test", base_dir=None)
+            result = resolve_target("test")
 
-        # Should still find the bundled version
         assert result is not None
         assert result.nl.path == bundled_commands / "test.md"
         assert result.is_bundled is True

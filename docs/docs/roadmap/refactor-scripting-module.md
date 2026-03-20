@@ -271,7 +271,7 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 - [x] Fix `LoadedCompiledScript.generator` annotation in `loading.py`: change `Generator[Auto | Llm | CallScript, Any, Any]` to `ScriptGenerator` (the import already exists but wasn't used in the annotation — pre-existing inconsistency, not introduced in Phase 3)
 - [x] Run tests, type check
 
-### Phase 6: Standards Resolution (Issue 8)
+### Phase 6: Standards Resolution (Issue 8) ✅
 
 **Goal:** Extract shared precedence helper to eliminate duplicated resolution logic.
 
@@ -279,10 +279,10 @@ Written in 4 places in `executor.py` with messages like `"Completed finish in 3 
 
 **Tasks:**
 
-- [ ] Create `_resolve_file_at_precedence_levels(name, max_level)` in `resolution.py` — the `max_level` parameter is what makes the helper usable by both callers despite their different constraints
-- [ ] Refactor `resolve_standard()` to use the shared helper with no cap (searches all three levels)
-- [ ] Refactor `resolve_target()` to use the shared helper twice: first call for NL (no cap) to get the NL level, second call for compiled with `max_level` = NL level — this expresses "compiled must be at same-or-higher precedence than NL" as a parameter rather than special-case logic
-- [ ] Run tests, type check
+- [x] Create `_resolve_file_at_precedence_levels(name, max_level)` in `resolution.py` — the `max_level` parameter is what makes the helper usable by both callers despite their different constraints
+- [x] Refactor `resolve_standard()` to use the shared helper with no cap (searches all three levels)
+- [x] Refactor `resolve_target()` to use the shared helper twice: first call for NL (no cap) to get the NL level, second call for compiled with `max_level` = NL level — this expresses "compiled must be at same-or-higher precedence than NL" as a parameter rather than special-case logic
+- [x] Run tests, type check
 
 ## Notes
 

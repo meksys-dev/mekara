@@ -118,7 +118,7 @@ Each step type has a corresponding result type that the consumer sends back into
 
 ### Script Loading
 
-A consumer loads a script by calling `load_script(name, request, base_dir)`. This is the unified entrypoint that orchestrates resolution, content reading, and prompt construction. It returns either a `LoadedNLScript` or a `LoadedCompiledScript`, both of which are fully processed and ready to use.
+A consumer loads a script by calling `load_script(name, request)` where `request` is the user-originated request. This is the unified entrypoint that orchestrates resolution, content reading, and prompt construction. It returns either a `LoadedNLScript` or a `LoadedCompiledScript`, both of which are fully processed and ready to use.
 
 If the script cannot be found or loaded (missing NL source, missing `execute` function in compiled module, etc.), `load_script` raises `ScriptLoadError`.
 
@@ -139,9 +139,9 @@ The returned object carries a `target` field of type `ResolvedTarget`, which pro
 | `nl`       | `ScriptInfo`         | NL source info (always present)                  |
 | `name`     | `str`                | Canonical name with colons and hyphens preserved |
 
-Derived properties: `target_type` (returns `Script.COMPILED` or `Script.NATURAL_LANGUAGE`), `is_bundled` (bundled status of the effective script), `is_nl` (true if NL-only), `is_compiled` (true if compiled exists).
+Derived properties: `target_type` (returns `Script.COMPILED` or `Script.NATURAL_LANGUAGE`), `is_bundled` (the `is_bundled` field of the effective `ScriptInfo`), `is_nl` (true if NL-only), `is_compiled` (true if compiled exists).
 
-Consumers can also call `resolve_target(name, base_dir)` directly to get a `ResolvedTarget` without loading content — this is pure path resolution with no file I/O on content.
+Consumers can also call `resolve_target(name)` directly to get a `ResolvedTarget` without loading content — this is pure path resolution with no file I/O on content.
 
 The loaded script types share content fields but are distinct types (not subtypes of each other) — consumers must be able to distinguish them by type narrowing. Both carry:
 
@@ -175,14 +175,14 @@ flowchart TD
     style LoadedCompiled fill:#bff7f9,color:#000
 ```
 
-NL prompt construction is also available directly via `build_nl_command_prompt(command_content, request, base_dir)` for consumers that already have raw content and need to process it independently of the loading pipeline.
+NL prompt construction is also available directly via `build_nl_command_prompt(command_content, request)` for consumers that already have raw content and need to process it independently of the loading pipeline.
 
 ### Standards
 
 Standards are reusable documentation fragments that scripts reference via `@standard:name` syntax. The module provides two functions for working with them:
 
-- `resolve_standard(name, base_dir) -> Path | None` — resolve a standard name to its file path using the same project > user > bundled precedence as scripts
-- `load_standard(name, base_dir) -> str | None` — load a standard's content with `{{VERSION}}` and `<Version />` substitution
+- `resolve_standard(name) -> Path | None` — resolve a standard name to its file path using the same project > user > bundled precedence as scripts
+- `load_standard(name) -> str | None` — load a standard's content with `{{VERSION}}` and `<Version />` substitution
 
 `get_mekara_version()` reads the version from `pyproject.toml` (returns `"unknown"` if not found) and is used by `load_standard` for version substitution.
 
@@ -219,55 +219,69 @@ src/mekara/scripting/
 ### Design Choices
 
 - `ResolvedTarget` and `ScriptInfo` are frozen dataclasses (immutable after construction)
+- `SearchLevel` and `Match` are `NamedTuple`s (immutable value types for the resolution machinery)
 - `ScriptGenerator` is typed as `Generator[Auto | Llm | CallScript, StepResult | None, Any]`
 - Compiled modules are loaded via `importlib.util.spec_from_file_location`
 
 ### Internal Types
 
-#### Precedence Level Constants
+#### Resolution Types
 
-| Constant                  | Value | Description      |
-| ------------------------- | ----- | ---------------- |
-| `_LOCAL_COMPILED_LEVEL`   | 1     | Local compiled   |
-| `_LOCAL_NL_LEVEL`         | 2     | Local NL         |
-| `_USER_COMPILED_LEVEL`    | 3     | User compiled    |
-| `_USER_NL_LEVEL`          | 4     | User NL          |
-| `_BUNDLED_COMPILED_LEVEL` | 5     | Bundled compiled |
-| `_BUNDLED_NL_LEVEL`       | 6     | Bundled NL       |
+**`SearchLevel`** — one directory to search with a given file extension:
+
+| Field       | Type   | Description                          |
+| ----------- | ------ | ------------------------------------ |
+| `directory` | `Path` | Directory to search in               |
+| `extension` | `str`  | File extension to match (e.g. `.md`) |
+
+**`Match`** — a found file with its position in the search list:
+
+| Field   | Type   | Description                                       |
+| ------- | ------ | ------------------------------------------------- |
+| `index` | `int`  | Index in the levels list where the file was found |
+| `path`  | `Path` | Absolute path to the matched file                 |
+
+#### Static Level Lists
+
+At module load time, `resolution.py` builds `_LEVEL_DIRS` — a list of the base directory for each precedence level:
+
+- Local: `project_root / ".mekara"` (omitted if not in a project)
+- User: `Path.home() / ".mekara"`
+- Bundled: `package / "bundled"`
+
+All specific search level lists are derived from `_LEVEL_DIRS` by appending the relevant subpath:
+
+- `_NL_SCRIPT_LEVELS` — `SearchLevel(d / "scripts" / "nl", ".md")` for each `d` in `_LEVEL_DIRS`
+- `_COMPILED_SCRIPT_LEVELS` — `SearchLevel(d / "scripts" / "compiled", ".py")` for each `d`
+- `_BUNDLED_BASE = _LEVEL_DIRS[-1]` — used to infer `is_bundled` when constructing `ScriptInfo` from a `Match`
+
+`standards.py` imports `_LEVEL_DIRS` and derives its own list:
+
+- `_STANDARDS_LEVELS` — `SearchLevel(d / "standards", ".md")` for each `d` in `_LEVEL_DIRS`
 
 ### Algorithms
 
 #### Precedence Resolution
 
-`resolve_target(name, base_dir)`:
+`resolve_target(name)`:
 
-1. Compute `name_underscored = name.replace("-", "_")`
-2. Find NL source at highest precedence:
-   - Check local NL (level 2): `base_dir/.mekara/scripts/nl/` (skip if `base_dir` is None)
-   - Check user NL (level 4): `~/.mekara/scripts/nl/`
-   - Check bundled NL (level 6): package `bundled/scripts/nl/`
-   - At each level, try exact name then underscore variant
-   - Record the level of the first match as `nl_level`
-3. If no NL found, return `None`
-4. Find compiled at same or higher precedence than NL:
-   - Check local compiled (level 1): only if `nl_level >= 1`
-   - Check user compiled (level 3): only if `nl_level >= 3`
-   - Check bundled compiled (level 5): only if `nl_level >= 5`
-   - At each level, try exact name then underscore variant
-5. Build canonical name: `name.replace("/", ":")`
-6. Return `ResolvedTarget(compiled=compiled_info, nl=nl_info, name=canonical_name)`
+1. Find NL source: call `_find_highest_precedence(_NL_SCRIPT_LEVELS, filename)` where `filename = name` (tries both exact and underscore variant)
+2. If no NL found, return `None`; record `nl_match.index`
+3. Find compiled: call `_find_highest_precedence(_COMPILED_SCRIPT_LEVELS[:nl_match.index + 1], filename)` — the slice caps compiled search to the same or higher precedence as the NL source
+4. Build canonical name: `name.replace("/", ":")`
+5. Return `ResolvedTarget(compiled=compiled_info, nl=nl_info, name=canonical_name)`
 
-#### `_find_script_at(base_path, name, name_underscored, suffix, *, is_bundled) -> ScriptInfo | None`
+#### `_find_highest_precedence(levels, filename) -> Match | None`
 
-Shared helper for finding scripts at a single precedence level:
+Shared helper that searches a list of `SearchLevel`s in order:
 
-1. Try exact: `base_path / f"{name}{suffix}"`
-2. Try underscore: `base_path / f"{name_underscored}{suffix}"`
-3. Return `ScriptInfo(path, is_bundled)` for first match, or `None`
+1. For each level at index `i`, try `level.directory / f"{filename}{level.extension}"` (exact)
+2. Then try `level.directory / f"{filename.replace('-', '_')}{level.extension}"` (underscore variant)
+3. Return `Match(index=i, path=matched_path)` for the first match found, or `None`
 
 #### $ARGUMENTS Substitution
 
-In `build_nl_command_prompt()`:
+In `build_nl_command_prompt(command_content, request)`:
 
 1. If `$ARGUMENTS` appears in content, replace only the first occurrence with the request string (using `str.replace(old, new, 1)`)
 2. Subsequent `$ARGUMENTS` occurrences are preserved verbatim
@@ -278,17 +292,15 @@ In `build_nl_command_prompt()`, after $ARGUMENTS substitution:
 
 1. Find all `@standard:name` references via regex `r"@standard:(\w+)"`
 2. Deduplicate while preserving order
-3. Load each standard via `load_standard(name, base_dir)`
+3. Load each standard via `load_standard(name)`
 4. If any standards were loaded, append a `## Referenced Standards` section with each standard under an `### @standard:name` heading
 
 #### Standards Resolution
 
-`resolve_standard(name, base_dir)`:
+`resolve_standard(name)`:
 
-1. Check local: `base_dir/.mekara/standards/{name}.md` (skip if `base_dir` is None)
-2. Check user: `~/.mekara/standards/{name}.md`
-3. Check bundled: package `bundled/standards/{name}.md`
-4. Return path of first match, or `None`
+1. Call `_find_highest_precedence(_STANDARDS_LEVELS, name)` — no cap, searches all levels
+2. Return `match.path` if found, or `None`
 
 #### Compiled Module Loading
 

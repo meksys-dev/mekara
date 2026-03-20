@@ -39,7 +39,6 @@ from mekara.scripting.runtime import (
     ScriptCallResult,
     ShellResult,
 )
-from mekara.utils.project import find_project_root
 
 
 class AutoExecutorProtocol(Protocol):
@@ -702,8 +701,7 @@ class McpScriptExecutor:
         """
         # CRITICAL: Script resolution uses project root from cwd, NOT from working_dir.
         # working_dir only affects WHERE auto steps execute, not WHICH scripts get loaded.
-        base_dir = find_project_root()
-        loaded = load_script(script_name, arguments, base_dir=base_dir)
+        loaded = load_script(script_name, arguments)
 
         if isinstance(loaded, LoadedNLScript):
             self._push_nl_script(
