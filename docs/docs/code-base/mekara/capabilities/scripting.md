@@ -218,6 +218,7 @@ src/mekara/scripting/
 - `SearchLevel` and `Match` are `NamedTuple`s (immutable value types for the resolution machinery)
 - `ScriptGenerator` is typed as `Generator[Auto | Llm | CallScript, StepResult | None, Any]`
 - Compiled modules are loaded via `importlib.util.spec_from_file_location`
+- `LoadedNLScript` and `LoadedCompiledScript` are separate dataclasses, NOT a subclass relationship — if `LoadedCompiledScript` subclassed `LoadedNLScript`, then `isinstance(loaded, LoadedNLScript)` would be `True` for compiled scripts too, breaking all `isinstance()` type narrowing in the executor and CLI
 
 ### Internal Types
 
