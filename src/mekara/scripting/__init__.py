@@ -6,11 +6,14 @@ from mekara.scripting.runtime import (
     AutoResult,
     CallAction,
     CallResult,
+    CallScript,
     Llm,
     LlmResult,
+    ScriptCallResult,
     ShellAction,
     ShellResult,
     auto,
+    call_script,
     llm,
 )
 
@@ -20,10 +23,13 @@ __all__ = [
     "AutoResult",
     "CallAction",
     "CallResult",
+    "CallScript",
     "Llm",
     "LlmResult",
+    "ScriptCallResult",
     "ShellAction",
     "ShellResult",
     "auto",
+    "call_script",
     "llm",
 ]

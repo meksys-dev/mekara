@@ -11,7 +11,7 @@ from typing import Any, AsyncIterator
 from mekara.scripting.auto import (
     AutoExecutionError,
     AutoExecutionResult,
-    RealAutoExecutor,
+    AutoExecutor,
 )
 from mekara.scripting.runtime import Auto, AutoResult
 from mekara.vcr.events import AutoStepEvent
@@ -35,7 +35,7 @@ class VcrReplayMismatchError(Exception):
 class VcrAutoExecutor:
     """Auto executor that records/replays via a VCR cassette.
 
-    Record mode: wraps a RealAutoExecutor, delegates execution, records results.
+    Record mode: wraps a AutoExecutor, delegates execution, records results.
     Replay mode: NO inner executor - returns everything from cassette.
 
     Stateless: all context (including working_dir) passed per method call.
@@ -45,7 +45,7 @@ class VcrAutoExecutor:
         self,
         *,
         cassette: Any,
-        inner: RealAutoExecutor | None = None,
+        inner: AutoExecutor | None = None,
     ) -> None:
         from mekara.vcr.cassette import VCRCassette
 

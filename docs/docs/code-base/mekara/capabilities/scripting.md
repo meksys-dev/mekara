@@ -52,7 +52,7 @@ Name resolution details:
 **NL prompt construction:** The module reads raw NL content and processes it into a ready-to-use prompt through two transformations applied in order:
 
 1. `$ARGUMENTS` substitution — only the first `$ARGUMENTS` occurrence is replaced with the actual request. Subsequent occurrences are preserved verbatim, allowing scripts to reference `$ARGUMENTS` in documentation without those references being substituted.
-2. Standards injection — `@standard:name` references are resolved (using the same project > user > bundled precedence) and appended as a "Referenced Standards" section. Standard content has `{{VERSION}}` (and `<Version />` for Docusaurus compatibility) replaced with the actual mekara version.
+2. Standards injection — `@standard:name` references are resolved (using the same project > user > bundled precedence) and appended as a "Referenced Standards" section. Standard content has `<Version />` (Docusaurus component syntax) replaced with the actual mekara version.
 
 **Constraints:**
 
@@ -63,10 +63,6 @@ Name resolution details:
 ### Provides auto step execution harness
 
 The module provides the machinery for consumers to execute individual auto steps (shell commands and Python function calls). The module does not decide when to execute these steps — that decision belongs to the consumer.
-
-**Constraints:**
-
-- Shell commands run in a clean environment with virtualenv contamination removed (`VIRTUAL_ENV`, `PYTHONHOME`, `CONDA_PREFIX`, `CONDA_DEFAULT_ENV`, and virtualenv PATH entries).
 
 ## Architecture
 
@@ -182,7 +178,7 @@ NL prompt construction is also available directly via `build_nl_command_prompt(c
 Standards are reusable documentation fragments that scripts reference via `@standard:name` syntax. The module provides two functions for working with them:
 
 - `resolve_standard(name) -> Path | None` — resolve a standard name to its file path using the same project > user > bundled precedence as scripts
-- `load_standard(name) -> str | None` — load a standard's content with `{{VERSION}}` and `<Version />` substitution
+- `load_standard(name) -> str | None` — load a standard's content with `<Version />` substitution
 
 `get_mekara_version()` reads the version from `pyproject.toml` (returns `"unknown"` if not found) and is used by `load_standard` for version substitution.
 
@@ -328,8 +324,3 @@ For Python calls:
 3. Capture stdout/stderr
 4. On exception, raise `AutoExecutionError` with captured output
 5. Return `CallResult` with return value and captured output
-
-Environment isolation for shell commands:
-
-- Remove `VIRTUAL_ENV`, `PYTHONHOME`, `CONDA_PREFIX`, `CONDA_DEFAULT_ENV`
-- Remove PATH entries pointing to mekara's virtualenv

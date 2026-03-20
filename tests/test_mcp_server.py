@@ -16,7 +16,7 @@ from mekara.mcp.executor import (
     PendingLlmStep,
 )
 from mekara.mcp.server import MekaraServer
-from mekara.scripting.auto import RealAutoExecutor
+from mekara.scripting.auto import AutoExecutor
 from mekara.scripting.runtime import Auto, CallScript, Llm, auto, llm
 from tests.utils import ScriptLoaderStub
 
@@ -56,7 +56,7 @@ class TestMcpScriptExecutorPushScript:
                 "child": script_with_auto_only,
             },
         ).apply()
-        executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
         executor.push_script("parent", "", tmp_path)
 
         # Initial state: stack has one frame
@@ -89,7 +89,7 @@ class TestMcpScriptExecutorPushScript:
                 "child": script_with_auto_only,
             },
         ).apply()
-        executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
         executor.push_script("parent", "", tmp_path)
 
         # Run until we hit the parent's llm step
@@ -124,7 +124,7 @@ class TestMcpScriptExecutorPushScript:
                 "child": script_with_two_llm_steps,
             },
         ).apply()
-        executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
         executor.push_script("parent", "", tmp_path)
 
         # Run until we hit the parent's llm step
@@ -175,7 +175,7 @@ class TestMekaraServerNestedStart:
         server = MekaraServer(working_dir=tmp_path)
 
         # Manually set up an executor in a pending llm state
-        server.executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        server.executor = McpScriptExecutor(tmp_path, AutoExecutor())
         server.executor.push_script(target.name, "", tmp_path)
 
         # Run until llm step
@@ -225,7 +225,7 @@ class TestMekaraServerNestedStart:
                 "parent_script": script_with_llm_step,
             },
         ).apply()
-        server.executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        server.executor = McpScriptExecutor(tmp_path, AutoExecutor())
         server.executor.push_script("parent_script", "", tmp_path)
 
         # Run until llm step

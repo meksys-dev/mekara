@@ -51,7 +51,7 @@ class AutoExecutionError(Exception):
         self.output = output
 
 
-class RealAutoExecutor:
+class AutoExecutor:
     """Executes auto steps (shell commands, Python functions) in real time.
 
     Stateless bridge to the environment. All context passed per method call.

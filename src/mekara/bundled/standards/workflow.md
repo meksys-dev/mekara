@@ -71,6 +71,7 @@ The bread and butter of the mekara workflow is a standard pipeline through which
 flowchart TB
     planning -.-> implement["/implement-next-commit"] -.-> claude["Claude Code"] -.-> recovery -.-> claude
     claude -.-> check["/check-plan-completion"]
+    claude -.-> spec["/check-spec-compliance"]
     check -.-> archive["/archive-roadmap"]
     claude -.-> implement
 
@@ -95,6 +96,7 @@ flowchart TB
 - If the agent keeps making repeated mistakes, run `/stop-fucking-up` to stop implementation and force it to fully understand the problem before continuing
 - If the agent goes off track beyond recovery, run `/salvage` to hand work off to a fresh agent with lessons learned from the current session
 - Run `/check-plan-completion` after implementing to verify all plan goals are met
+- Run `/check-spec-compliance` to verify a module's implementation matches its spec document and fix all discrepancies
 - Run `/archive-roadmap` after completing a roadmap feature to move relevant information to permanent documentation and remove the completed roadmap file
 
 :::info

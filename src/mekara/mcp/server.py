@@ -105,11 +105,11 @@ class MekaraServer:
         auto_executor: AutoExecutorProtocol | None = None,
         working_dir: Path | None = None,
     ) -> None:
-        from mekara.scripting.auto import RealAutoExecutor
+        from mekara.scripting.auto import AutoExecutor
 
         # Executor always exists and holds ALL execution state
         resolved_working_dir = working_dir if working_dir is not None else Path.cwd()
-        resolved_auto_executor = auto_executor if auto_executor is not None else RealAutoExecutor()
+        resolved_auto_executor = auto_executor if auto_executor is not None else AutoExecutor()
 
         self.executor = McpScriptExecutor(resolved_working_dir, resolved_auto_executor)
 

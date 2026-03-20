@@ -207,7 +207,7 @@ When `start()` is called while a script is already running:
 
 When a nested script completes, the executor checks the parent frame's `current_step` to determine whether the invocation was automatic or manual. Automatic invocation (via `CallScript`) results in automatic advancement of the parent's execution frame; manual invocation (via `Llm` or NL script step) requires manual advancement.
 
-The server is VCR-agnostic—it receives an `AutoExecutorProtocol` at construction time and doesn't know whether it's a `RealAutoExecutor` or `VcrAutoExecutor`. For VCR testing, `VcrMekaraServer` wraps `MekaraServer` and records/replays MCP tool inputs and outputs at the boundary.
+The server is VCR-agnostic—it receives an `AutoExecutorProtocol` at construction time and doesn't know whether it's a `AutoExecutor` or `VcrAutoExecutor`. For VCR testing, `VcrMekaraServer` wraps `MekaraServer` and records/replays MCP tool inputs and outputs at the boundary.
 
 `run_server()` checks for the `MEKARA_VCR_CASSETTE` environment variable. When set, it creates a `VcrMekaraServer` in record mode instead of a plain `MekaraServer`. This enables recording cassettes when running Claude Code with the MCP server (e.g., `MEKARA_VCR_CASSETTE=path.yaml claude`).
 

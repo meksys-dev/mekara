@@ -419,12 +419,12 @@ def _install_hooks() -> int:
     import asyncio
 
     from mekara.mcp.executor import McpScriptExecutor, PendingNLFallback
-    from mekara.scripting.auto import RealAutoExecutor
+    from mekara.scripting.auto import AutoExecutor
     from mekara.scripting.loading import ScriptLoadError
 
     print("Setting up mekara MCP integration...")
     working_dir = Path.cwd()
-    executor = McpScriptExecutor(working_dir, RealAutoExecutor())
+    executor = McpScriptExecutor(working_dir, AutoExecutor())
 
     # Push the setup script onto the executor
     try:
