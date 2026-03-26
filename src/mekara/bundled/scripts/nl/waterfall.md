@@ -94,6 +94,7 @@ If there are remaining phases in the design document, go back to step 6 for the 
   - "Ok", "thanks", "I see" are NOT approval — they may be the user processing information before giving feedback.
   If uncertain, ask: "Is this correct, or are there changes you'd like?" This is the single most important rule of this command.
 - **A commit is not a green light to proceed.** After committing at the end of a step (e.g., committing the design doc at the end of steps 4 and 7), STOP and wait for the user to confirm before continuing onto implementation. Do NOT immediately start the next implementation step. The user may want to hand off work to an agent with a fresh context window. The step boundary is a gate even when the commit succeeds cleanly.
+- **Skipping steps 3–4 does not skip step 5**: When the user says a change is simple enough to skip the design doc (steps 3–4), step 5 (documentation update) is still required. The two are independent. Always run `/document` unless the user explicitly says to skip documentation too.
 - **Examples of what goes wrong when you don't clarify assumptions**:
   - **Removing a documentation section without checking references**
     - *Context*: Refactoring how hooks work; the main hook moved from bash to Python

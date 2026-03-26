@@ -52,6 +52,7 @@ def _env_bool(name: str) -> bool:
         f"(env: {MEKARA_DEV_ENV}=true)"
     ),
 )
+@click.version_option(None, "-V", "--version", package_name="mekara")
 @click.pass_context
 def cli(ctx: click.Context, debug: bool, dev_mode: bool) -> None:
     """Global flags handler and help display when no command."""
