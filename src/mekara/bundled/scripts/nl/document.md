@@ -15,6 +15,7 @@ Make the corresponding changes to the Docusaurus documentation inside @docs/docs
 
   For example, if the existing documentation says only "Install dependencies", and the change made was to also install Python dependencies, then there is no need to update the existing docs because nothing has changed at that level of detail. On the other hand, if the existing docs say "Install NodeJS dependencies," then absolutely *do* update them to also mention the installation of Python dependencies, because something *has* changed at the existing level of detail.
 
+- **Document all aliases together**: When documenting a CLI flag, option, or command that has multiple forms (e.g., `--version` and `-V`), always include all forms in the same entry. Never document only the short form or only the long form.
 - **Document non-obvious implementation details**: If a fix required significant discussion, trial-and-error, or understanding of subtle behavior, document it. The test is: would a future implementer need to rediscover this information through effort? Bug fixes that involve understanding subtle SDK/library behavior, workarounds for non-obvious issues, or architectural decisions should be documented even if the "what" hasn't changed—the "why" and "how" are valuable.
   - When the user corrects you or points out a bug, document the pitfall and how to avoid it. If it helps with comprehension, include code examples showing both broken and correct patterns.
 
