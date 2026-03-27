@@ -1,5 +1,3 @@
-# Plan Design Document
-
 Plans and writes a mekara design document in `docs/docs/roadmap/` (or updates an existing one), using an interactive outline-and-feedback loop with the user.
 
 <UserContext>$ARGUMENTS</UserContext>

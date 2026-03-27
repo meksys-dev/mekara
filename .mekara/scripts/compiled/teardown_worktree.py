@@ -11,7 +11,7 @@ def execute(request: str):
     and local branch. Auto-detects the branch name and worktree path from the
     current directory.
     """
-    # Step 1: Detect context
+    # Step 0: Detect context
     branch_result = yield auto(
         "git branch --show-current",
         context=(
@@ -32,7 +32,7 @@ def execute(request: str):
     )
     worktree_path = pwd_result.output.strip()
 
-    # Step 2: Remove virtual environment
+    # Step 1: Remove virtual environment
     yield auto(
         "poetry env remove --all",
         context=(
@@ -43,7 +43,7 @@ def execute(request: str):
         ),
     )
 
-    # Step 3: Delete remote branch if it exists
+    # Step 2: Delete remote branch if it exists
     # git ls-remote (without --exit-code) always exits 0; non-empty output means branch exists
     check_result = yield auto(
         f"git ls-remote origin {branch}",
@@ -60,7 +60,7 @@ def execute(request: str):
             context="Delete the remote branch with `git push origin --delete <branch>`.",
         )
 
-    # Step 4: Remove worktree and local branch
+    # Step 3: Remove worktree and local branch
     # Original instruction includes: "If this command succeeds, you will start getting errors
     # such as `Error: Path "/path/to/old/branch" does not exist`. This means that the worktree
     # directory you started in no longer exists, and all commands you continue to run will fail.

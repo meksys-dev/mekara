@@ -35,7 +35,7 @@ def execute(request: str):
     and local branch. Auto-detects the branch name and worktree path from the
     current directory.
     """
-    # Step 1: Detect context
+    # Step 0: Detect context
     branch_result = yield auto(
         "git branch --show-current",
         context=(
@@ -56,7 +56,7 @@ def execute(request: str):
     )
     worktree_path = pwd_result.output.strip()
 
-    # Step 2: Remove virtual environment
+    # Step 1: Remove virtual environment
     yield llm(
         "If the project uses a tool that stores environments **outside** the worktree "
         "directory, remove them explicitly to prevent stale environments from "
@@ -67,10 +67,10 @@ def execute(request: str):
         "- Python/Pipenv: `pipenv --rm`"
     )
 
-    # Step 3: Delete remote branch if it exists
+    # Step 2: Delete remote branch if it exists
     yield from _delete_remote_branch_if_exists(branch)
 
-    # Step 4: Remove worktree and local branch
+    # Step 3: Remove worktree and local branch
     # Original instruction includes: "If this command succeeds, you will start getting errors
     # such as `Error: Path "..." does not exist`. This is a sign for you to stop."
     # This is handled naturally by the script ending after this step.
