@@ -4,16 +4,14 @@ You are creating a systematized command that captures a problem-solving approach
 
 The created command must follow the structure defined in @standard:command.
 
-## Context
+## Process
 
 The user has just worked through a specific problem with you and solved it. Now they want you to create a command in `.mekara/scripts/nl/` that:
 
-1. Captures the **general problem-solving pattern** used
-2. Replaces **situation-specific details** with instructions to query the user
-3. Enables future agents to apply the same approach to new situations
-4. Includes **all lessons and user feedback** from this session
-
-## Process
+- Captures the **general problem-solving pattern** used
+- Replaces **situation-specific details** with instructions to query the user
+- Enables future agents to apply the same approach to new situations
+- Includes **all lessons and user feedback** from this session
 
 All the information you need is already in the conversation. Don't ask the user questions - gather this information yourself by reviewing the conversation:
 
@@ -91,7 +89,7 @@ Update `docs/docs/development/workflows.md` to add the command:
 - **Keep it focused** - Each command should address one type of problem-solving pattern
 - **Complete the full systematization** - Don't skip Step 5 (documentation updates). Updating your project's workflow documentation is part of creating a complete, reusable command
 
-## Example Transformation
+### Example Transformation
 
 **User request:**
 > the compiled /finish command is giving me this error: ```XXX```

@@ -1,11 +1,13 @@
 Extract a specific subset of changes from a branch into a clean PR, without introducing anything beyond what's needed for that subset.
 
+<UserContext>$ARGUMENTS</UserContext>
+
+## Process
+
 ### Step 0: Gather information
 
 Ask the user:
 1. What specific subset of changes should this PR contain? (e.g., "documentation restructuring", "the new authentication module", "bug fix for issue #123")
-
-## Process
 
 ### Step 1: Identify Commit Boundaries
 
@@ -166,23 +168,19 @@ git commit -m "<message>" # Single clean commit
 
 ---
 
-## Step 10: Run /finish
+### Step 10: Run /finish
 
 After extraction is complete and tests pass, run `/finish` to merge main, run CI checks, and create the PR. Do NOT manually create a PR with `gh pr create` - always use `/finish` which handles the full workflow including merging latest main and proper PR creation.
 
 ## Key Principles
 
-1. **Confirm ambiguity before acting**: When it's unclear what belongs in the subset vs. what should be reverted, stop and ask the user to clarify.
+- **Confirm ambiguity before acting**: When it's unclear what belongs in the subset vs. what should be reverted, stop and ask the user to clarify.
+- **Intertwined changes require surgical extraction**: When the target subset was developed alongside other features, you can't just keep/revert whole files. You must rewrite files to contain only the subset-related changes.
+- **For reorganization: same information, different structure**: If extracting a reorganization, the final state must contain the same information as main, just organized differently. No new information.
+- **Fix references after moving content**: Moving content breaks cross-references. Search for and update all links to moved files/sections.
+- **Soft reset for clean history**: Use `git reset --soft main` to collapse messy history into a single commit while preserving the final state.
 
-2. **Intertwined changes require surgical extraction**: When the target subset was developed alongside other features, you can't just keep/revert whole files. You must rewrite files to contain only the subset-related changes.
-
-3. **For reorganization: same information, different structure**: If extracting a reorganization, the final state must contain the same information as main, just organized differently. No new information.
-
-4. **Fix references after moving content**: Moving content breaks cross-references. Search for and update all links to moved files/sections.
-
-5. **Soft reset for clean history**: Use `git reset --soft main` to collapse messy history into a single commit while preserving the final state.
-
-## Common Pitfalls
+### Common Pitfalls
 
 - **Keeping unrelated changes that happen to touch the same files**: A file might be modified for multiple reasons. Extract only the changes relevant to the subset.
 

@@ -15,7 +15,16 @@ Common updates:
 
 Show full templates with placeholders. Explain when to use new patterns vs. existing ones. Preserve all existing content.
 
-## Example
+## Key Principles
+
+- **Preserve existing content** - When updating `/systematize`, add new conventions alongside existing ones. Never remove content that's still valid.
+- **Ground examples in real sessions** - Use the actual convention that was established in the session as the example, with specifics replaced by placeholders.
+
+**When the update involves structure types or templates** (e.g., adding a branching pattern to `/systematize`):
+- **Show full templates with placeholders** - Include complete template examples so future agents can copy the pattern directly.
+- **Explain when to use each pattern** - Include guidance on when to use the new pattern vs. existing ones (e.g., "For workflows with major decision branches" vs. "For linear workflows").
+
+### Example
 
 **User request**: "improve @.mekara/scripts/nl/systematize.md so that new natural language scripts will follow the conventions set here in this session"
 

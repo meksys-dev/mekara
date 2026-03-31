@@ -142,9 +142,9 @@ Virtual environments often contain absolute paths that reference the old locatio
 
 Skip this step if the stack doesn't use environment directories with absolute paths.
 
-## Rollback Plan
+### Step 7: Rollback (if migration failed)
 
-If migration fails mid-process:
+If migration fails at any point during Steps 2–6:
 
 1. **Stop immediately** — do not delete anything
 2. **Restore from staging** (if the staging directory still exists):

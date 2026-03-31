@@ -54,7 +54,11 @@ Contains numbered steps that describe the workflow. Step numbering starts at 0.
 
 ### Key Principles Section
 
-Contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps.
+Contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps. Key Principles should complement the Process steps, not repeat them. If a principle is specific to a single step, it belongs in that step's body. If there are no cross-cutting principles to document yet, omit the section contents and leave it as an empty placeholder for `/recursive-self-improvement` to populate later.
+
+Key Principles may contain `### Subsection` headings to organize related content. In particular, `### Common Pitfalls` is a standard subsection for documenting specific mistakes agents have made and the concrete actions to take (or avoid) instead. When `/recursive-self-improvement` adds guidance to a script based on user feedback, Common Pitfalls is the natural home for that guidance — it captures the exact scenarios, commands, and patterns that go wrong.
+
+Actionable procedures with concrete commands (e.g., rollback plans, resolution strategies) belong as Process steps, not Key Principles subsections. Key Principles is for guidance and heuristics, not procedures.
 
 ## Step Formatting
 
@@ -94,6 +98,10 @@ Titles should be 2-5 words and clearly describe the action or purpose.
 ### No Nested Numbered Lists
 
 Never use numbered sublists within a step. If a step has multiple substeps, flatten them into separate `### Step N:` sections.
+
+### No Verification Checklists
+
+Do not add `## Verification Checklist` sections that repeat what the Process steps already cover. If Step 5 says "run tests" and Step 6 says "check for conflict markers", a checklist restating those same items adds nothing. Verification belongs in the steps themselves.
 
 ## Branching Structure
 

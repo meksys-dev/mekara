@@ -2,14 +2,14 @@ Systematically document a complex feature that required significant trial-and-er
 
 <UserContext>$ARGUMENTS</UserContext>
 
+## Process
+
 ### Step 0: Gather information
 
 Ask the user:
-1. What feature was just implemented? (They may have already indicated this above)
-2. Where should the documentation live? (Check existing docs structure first)
-3. Are there any specific implementation details they want emphasized?
-
-## Process
+- What feature was just implemented? (They may have already indicated this above)
+- Where should the documentation live? (Check existing docs structure first)
+- Are there any specific implementation details they want emphasized?
 
 ### Step 1: Review the Implementation History
 
