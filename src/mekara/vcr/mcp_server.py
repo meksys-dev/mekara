@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from mekara.mcp.server import MekaraServer
-from mekara.scripting.auto import RealAutoExecutor
+from mekara.scripting.auto import AutoExecutor
 from mekara.vcr import VcrAutoExecutor
 from mekara.vcr.cassette import VCRCassette
 from mekara.vcr.events import (
@@ -40,8 +40,8 @@ class VcrMekaraServer:
         if cassette.mode == "record":
             if working_dir is None:
                 raise ValueError("Record mode requires working_dir")
-            # RealAutoExecutor is stateless - just need one instance
-            real_executor = RealAutoExecutor()
+            # AutoExecutor is stateless - just need one instance
+            real_executor = AutoExecutor()
             vcr_executor = VcrAutoExecutor(cassette=cassette, inner=real_executor)
             self._inner = MekaraServer(auto_executor=vcr_executor, working_dir=working_dir)
         else:

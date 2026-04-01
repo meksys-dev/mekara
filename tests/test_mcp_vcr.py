@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from mekara.scripting.auto import RealAutoExecutor
+from mekara.scripting.auto import AutoExecutor
 from mekara.utils.project import find_project_root
 from mekara.vcr import VcrAutoExecutor
 from mekara.vcr.cassette import VCRCassette
@@ -38,10 +38,10 @@ class TestMcpVcrIntegration:
         record_cassette = VCRCassette(
             cassette_path, mode="record", initial_state={"working_dir": str(tmp_path)}
         )
-        real_executor = RealAutoExecutor()
+        real_executor = AutoExecutor()
         vcr_executor = VcrAutoExecutor(cassette=record_cassette, inner=real_executor)
 
-        target = resolve_target("test/random", base_dir=_base_dir)
+        target = resolve_target("test/random")
         assert target is not None, "test/random script not found"
 
         executor = McpScriptExecutor(tmp_path, vcr_executor)
@@ -98,7 +98,7 @@ class TestMcpVcrIntegration:
         record_cassette = VCRCassette(
             cassette_path, mode="record", initial_state={"working_dir": str(tmp_path)}
         )
-        real_executor = RealAutoExecutor()
+        real_executor = AutoExecutor()
         vcr_executor = VcrAutoExecutor(cassette=record_cassette, inner=real_executor)
         executor = McpScriptExecutor(tmp_path, vcr_executor)
         executor.push_script("test_script", "", tmp_path)
@@ -139,10 +139,10 @@ class TestMcpVcrIntegration:
         record_cassette = VCRCassette(
             cassette_path, mode="record", initial_state={"working_dir": str(tmp_path)}
         )
-        real_executor = RealAutoExecutor()
+        real_executor = AutoExecutor()
         vcr_executor = VcrAutoExecutor(cassette=record_cassette, inner=real_executor)
 
-        target = resolve_target("test/random", base_dir=_base_dir)
+        target = resolve_target("test/random")
         assert target is not None
 
         executor = McpScriptExecutor(tmp_path, vcr_executor)
@@ -184,10 +184,10 @@ class TestMcpVcrCassetteFormat:
         cassette = VCRCassette(
             cassette_path, mode="record", initial_state={"working_dir": str(tmp_path)}
         )
-        real_executor = RealAutoExecutor()
+        real_executor = AutoExecutor()
         vcr_executor = VcrAutoExecutor(cassette=cassette, inner=real_executor)
 
-        target = resolve_target("test/random", base_dir=_base_dir)
+        target = resolve_target("test/random")
         assert target is not None
 
         executor = McpScriptExecutor(tmp_path, vcr_executor)

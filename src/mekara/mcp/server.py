@@ -105,11 +105,11 @@ class MekaraServer:
         auto_executor: AutoExecutorProtocol | None = None,
         working_dir: Path | None = None,
     ) -> None:
-        from mekara.scripting.auto import RealAutoExecutor
+        from mekara.scripting.auto import AutoExecutor
 
         # Executor always exists and holds ALL execution state
         resolved_working_dir = working_dir if working_dir is not None else Path.cwd()
-        resolved_auto_executor = auto_executor if auto_executor is not None else RealAutoExecutor()
+        resolved_auto_executor = auto_executor if auto_executor is not None else AutoExecutor()
 
         self.executor = McpScriptExecutor(resolved_working_dir, resolved_auto_executor)
 
@@ -154,8 +154,16 @@ class MekaraServer:
         # Run until first llm step (or NL command, or completion)
         result = await self.executor.run_until_llm()
 
-        # Handle result (may be llm step, NL command, or completion)
-        return self._handle_run_result(result)
+        principle = (
+            "⚠️  **FUNDAMENTAL PRINCIPLE**: You called `mcp__mekara__start` — "
+            "that means surrendering control to the mekara script runner entirely. "
+            "The script runner owns ALL control flow. Every step, including manually-executed "
+            "NL scripts, must advance through the script runner. "
+            "You MUST NOT continue manually after any step — "
+            "always call the appropriate continuation tool "
+            "(`finish_nl_script` or `continue_compiled_script`)."
+        )
+        return principle + "\n\n" + self._handle_run_result(result)
 
     async def continue_compiled_script(self, outputs: dict[str, Any]) -> str:
         """Continue script execution after completing an llm step.

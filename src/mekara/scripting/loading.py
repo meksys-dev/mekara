@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import importlib.util
-from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
 from mekara.scripting.auto import ScriptGenerator
-from mekara.scripting.resolution import ResolvedTarget, Script
-from mekara.scripting.runtime import Auto, CallScript, Llm
+from mekara.scripting.nl import build_nl_command_prompt
+from mekara.scripting.resolution import ResolvedTarget, Script, resolve_target
 
 
 class ScriptLoadError(Exception):
@@ -47,29 +46,28 @@ def _load_compiled_module(script_file: Path, *, script_name: str) -> CompiledExe
 
 
 @dataclass
-class LoadedCompiledScript:
-    """A successfully loaded compiled script."""
-
-    generator: Generator[Auto | Llm | CallScript, Any, Any]
-    target: ResolvedTarget
-
-
-@dataclass
 class LoadedNLScript:
     """A successfully loaded NL command."""
 
     target: ResolvedTarget
+    nl_source: str  # Raw NL file content (before processing)
+    prompt: str  # Processed content ($ARGUMENTS substituted, standards injected)
+
+
+@dataclass
+class LoadedCompiledScript:
+    """A successfully loaded compiled script."""
+
+    target: ResolvedTarget
+    nl_source: str  # Raw NL file content (before processing)
+    prompt: str  # Processed content ($ARGUMENTS substituted, standards injected)
+    generator: ScriptGenerator
 
 
 LoadedScript = LoadedCompiledScript | LoadedNLScript
 
 
-def load_script(
-    name: str,
-    request: str = "",
-    *,
-    base_dir: Path | None = None,
-) -> LoadedScript:
+def load_script(name: str, request: str = "") -> LoadedScript:
     """Load a script by name - unified entrypoint for all script loading.
 
     This is the single source of truth for script loading, used by both
@@ -78,7 +76,6 @@ def load_script(
     Args:
         name: Script name (e.g., "test/random", "finish")
         request: Arguments/request to pass to the script
-        base_dir: Base directory for script resolution (defaults to project root)
 
     Returns:
         LoadedCompiledScript or LoadedNLScript
@@ -86,21 +83,25 @@ def load_script(
     Raises:
         ScriptLoadError: If script cannot be found or loaded
     """
-    from mekara.scripting.resolution import resolve_target
-    from mekara.utils.project import find_project_root
-
     # Normalize colons to slashes
     name = name.replace(":", "/")
 
-    base_dir = base_dir or find_project_root()
-    target = resolve_target(name, base_dir=base_dir)
+    target = resolve_target(name)
     if target is None:
         raise ScriptLoadError(f"Script not found: {name}")
+
+    nl_source = target.nl.path.read_text()
+    prompt = build_nl_command_prompt(nl_source, request)
 
     if target.target_type == Script.COMPILED:
         assert target.compiled is not None
         script_func = _load_compiled_module(target.compiled.path, script_name=target.name)
-        return LoadedCompiledScript(generator=script_func(request), target=target)
+        return LoadedCompiledScript(
+            target=target,
+            nl_source=nl_source,
+            prompt=prompt,
+            generator=script_func(request),
+        )
 
     # Natural language command
-    return LoadedNLScript(target=target)
+    return LoadedNLScript(target=target, nl_source=nl_source, prompt=prompt)

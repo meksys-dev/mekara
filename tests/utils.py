@@ -32,13 +32,7 @@ class LoadScriptStub:
         (tmp_path / "scripts").mkdir(parents=True, exist_ok=True)
         (tmp_path / "commands").mkdir(parents=True, exist_ok=True)
 
-    def __call__(
-        self,
-        name: str,
-        request: str = "",
-        *,
-        base_dir: Path | None = None,
-    ) -> LoadedScript:
+    def __call__(self, name: str, request: str = "") -> LoadedScript:
         if name in self._factories:
             generator = self._factories[name](request)
             # Create paths for mock target
@@ -52,8 +46,14 @@ class LoadScriptStub:
                 nl=ScriptInfo(path=nl_path, is_bundled=False),
                 name=name,
             )
-            return LoadedCompiledScript(generator=generator, target=target)
-        return self._real_loader(name, request, base_dir=base_dir)
+            nl_source = nl_path.read_text()
+            return LoadedCompiledScript(
+                target=target,
+                nl_source=nl_source,
+                prompt=nl_source,
+                generator=generator,
+            )
+        return self._real_loader(name, request)
 
 
 class ScriptLoaderStub:
