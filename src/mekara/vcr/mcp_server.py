@@ -23,6 +23,7 @@ from mekara.vcr.events import (
     McpStartInputEvent,
     McpStatusInputEvent,
     McpToolOutputEvent,
+    McpWriteBundledCommandInputEvent,
 )
 
 
@@ -173,3 +174,33 @@ class VcrMekaraServer:
     async def finish(self) -> str:
         """Deprecated: Use finish_nl_script instead."""
         return await self.finish_nl_script()
+
+    def write_bundled_command(self, name: str, force: bool = False) -> str:
+        """Write a bundled command's NL source to disk with VCR recording.
+
+        In replay mode, inputs come from the test driver (which consumed mcp_tool_input).
+        VcrMekaraServer only consumes mcp_tool_output to verify output matches.
+        """
+        if self._cassette.mode == "record":
+            self._cassette.record_event(McpWriteBundledCommandInputEvent(name=name, force=force))
+            response = self._inner.write_bundled_command(name, force)
+            self._cassette.record_event(
+                McpToolOutputEvent(tool="write_bundled_command", output=response)
+            )
+            self._cassette.save()
+            return response
+        else:
+            # Replay: run real application code
+            # Inputs came from test driver which consumed mcp_tool_input
+            response = self._inner.write_bundled_command(name, force)
+
+            # Consume mcp_tool_output and verify output matches recorded
+            output_event = self._cassette.consume_event(McpToolOutputEvent)
+            if response != output_event.output:
+                raise ValueError(
+                    f"VCR replay error: write_bundled_command() output mismatch.\n"
+                    f"Expected: {output_event.output!r}\n"
+                    f"Got: {response!r}\n"
+                    "Re-record the cassette if outputs have changed."
+                )
+            return response

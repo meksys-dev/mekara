@@ -253,6 +253,71 @@ class MekaraServer:
 
         return "\n".join(lines)
 
+    def write_bundled_command(self, name: str, force: bool = False) -> str:
+        """Write a bundled command's NL source (and .py if exists) to .mekara/scripts/.
+
+        Args:
+            name: Command name (e.g., "finish", "project:release"). Colons become
+                path separators.
+            force: If True, overwrite existing local files. Default False.
+
+        Returns:
+            Message listing the written file paths, or an error message.
+        """
+        from mekara.utils.project import bundled_commands_dir, bundled_scripts_dir
+
+        # Normalize name: replace colons with slashes
+        name = name.replace(":", "/")
+
+        # Convert hyphens to underscores for filesystem lookup
+        name_underscored = name.replace("-", "_")
+
+        # Resolve bundled NL source
+        bundled_commands = bundled_commands_dir()
+        bundled_scripts = bundled_scripts_dir()
+
+        bundled_nl_path = bundled_commands / f"{name}.md"
+        if not bundled_nl_path.exists():
+            bundled_nl_path_underscored = bundled_commands / f"{name_underscored}.md"
+            if bundled_nl_path_underscored.exists():
+                bundled_nl_path = bundled_nl_path_underscored
+            else:
+                return f"Error: No bundled command found for '{name}'"
+
+        # Check for local override
+        local_nl_path = self.executor.working_dir / ".mekara" / "scripts" / "nl" / f"{name}.md"
+        if local_nl_path.exists() and not force:
+            rel_path = local_nl_path.relative_to(self.executor.working_dir)
+            return (
+                f"Error: Local override already exists at {rel_path}. Use force=True to overwrite."
+            )
+
+        # Create parent directories
+        local_nl_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Copy bundled NL source to local
+        import shutil
+
+        shutil.copy2(bundled_nl_path, local_nl_path)
+        written_files = [str(local_nl_path.relative_to(self.executor.working_dir))]
+
+        # Check if bundled compiled version exists and copy it
+        bundled_compiled_path = bundled_scripts / f"{name}.py"
+        if not bundled_compiled_path.exists():
+            bundled_compiled_path = bundled_scripts / f"{name_underscored}.py"
+
+        if bundled_compiled_path.exists():
+            local_compiled_path = (
+                self.executor.working_dir / ".mekara" / "scripts" / "compiled" / f"{name}.py"
+            )
+            local_compiled_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(bundled_compiled_path, local_compiled_path)
+            written_files.append(str(local_compiled_path.relative_to(self.executor.working_dir)))
+
+        # Return success message
+        files_str = "\n".join(f"- `{f}`" for f in written_files)
+        return f"Wrote bundled command `{name}` to disk:\n\n{files_str}"
+
 
 def run_server() -> None:
     """Run the MCP server with stdio transport."""
@@ -281,6 +346,7 @@ def run_server() -> None:
     mcp.tool()(server.continue_compiled_script)
     mcp.tool()(server.finish_nl_script)
     mcp.tool()(server.status)
+    mcp.tool()(server.write_bundled_command)
 
     mcp.run(transport="stdio")
 

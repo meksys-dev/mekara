@@ -81,7 +81,8 @@ Create `~/.claude/settings.json` (or update if it exists) with hooks and MCP too
       "mcp__mekara__start",
       "mcp__mekara__continue_script",
       "mcp__mekara__finish_nl_script",
-      "mcp__mekara__status"
+      "mcp__mekara__status",
+      "mcp__mekara__write_bundled_command"
     ]
   }
 }
@@ -111,7 +112,8 @@ Create `~/.config/opencode/opencode.json` (or update if it exists) to declare th
     "mcp__mekara__start": "allow",
     "mcp__mekara__continue_script": "allow",
     "mcp__mekara__finish_nl_script": "allow",
-    "mcp__mekara__status": "allow"
+    "mcp__mekara__status": "allow",
+    "mcp__mekara__write_bundled_command": "allow"
   }
 }
 ```

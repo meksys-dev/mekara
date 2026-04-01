@@ -126,19 +126,19 @@ The script also documents the full customization workflow for agents. See [Custo
 
 ## Implementation Plan
 
-### Phase 1: Add MCP tool and VCR wrapper
+### Phase 1: Add MCP tool and VCR wrapper ✅
 
 **Goal:** Implement the `write_bundled_command` method on `MekaraServer` and its VCR wrapper
 
 **Tasks:**
 
-- [ ] Add `McpWriteBundledCommandInputEvent` to `src/mekara/vcr/events.py`
-- [ ] Add `write_bundled_command` method to `MekaraServer` in `src/mekara/mcp/server.py`
-- [ ] Add `write_bundled_command` method to `VcrMekaraServer` in `src/mekara/vcr/mcp_server.py`
-- [ ] Register the tool in `run_server()` in `src/mekara/mcp/server.py`
-- [ ] Write tests for the new tool (happy path, already-exists error, force overwrite, not-found error, compiled copy)
+- [x] Add `McpWriteBundledCommandInputEvent` to `src/mekara/vcr/events.py`
+- [x] Add `write_bundled_command` method to `MekaraServer` in `src/mekara/mcp/server.py`
+- [x] Add `write_bundled_command` method to `VcrMekaraServer` in `src/mekara/vcr/mcp_server.py`
+- [x] Register the tool in `run_server()` in `src/mekara/mcp/server.py`
+- [x] Write tests for the new tool (happy path, already-exists error, force overwrite, not-found error, compiled copy)
 
-### Phase 2: Update scripts and permissions
+### Phase 2: Update scripts and permissions ✅
 
 **Goal:** Wire the tool into the customize workflow and permissions
 
@@ -147,5 +147,5 @@ The script also documents the full customization workflow for agents. See [Custo
 **Tasks:**
 
 - [x] Update `.mekara/scripts/nl/customize.md` to reference the MCP tool in Step 1
-- [ ] Add `mcp__mekara__write_bundled_command` to permissions in `.mekara/scripts/nl/ai-tooling/setup-mekara-mcp.md`
-- [ ] Run `/mekara:generalize-bundled-script` on `ai-tooling/setup-mekara-mcp`
+- [x] Add `mcp__mekara__write_bundled_command` to permissions in `.mekara/scripts/nl/ai-tooling/setup-mekara-mcp.md`
+- [x] Run `/mekara:generalize-bundled-script` on `ai-tooling/setup-mekara-mcp`
