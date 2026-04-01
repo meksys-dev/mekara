@@ -6,16 +6,17 @@ from mekara.scripting.runtime import auto, call_script, llm
 def execute(request: str):
     """Extract a specific subset of changes from a branch into a clean PR."""
 
-    # Information Needed - Ask the user what subset to extract
+    # Step 0: Gather information
     yield llm(
-        "Ask the user: What specific subset of changes should this PR contain? "
+        "Ask the user:\n"
+        "1. What specific subset of changes should this PR contain? "
         '(e.g., "documentation restructuring", "the new authentication module", '
         '"bug fix for issue #123")',
         expects={"subset_description": "description of the subset to extract"},
     )
     # subset_description is captured in expects but used implicitly in conversation context
 
-    # Step 1: Identify Commit Boundaries - Review all commits on the branch
+    # Step 1: Identify Commit Boundaries
     yield auto(
         "git log --oneline main..HEAD",
         context="Review all commits on the branch:",
