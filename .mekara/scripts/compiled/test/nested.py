@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .claude/commands/test/nested.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/test/nested.md"""
 
 from pathlib import Path
 

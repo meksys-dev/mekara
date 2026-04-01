@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .claude/commands/test/random.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/test/random.md"""
 
 from mekara.scripting.runtime import auto, llm
 

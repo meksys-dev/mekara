@@ -20,6 +20,14 @@ Every command script follows this structure:
 
 <UserContext>$ARGUMENTS</UserContext>
 
+## Context
+
+[Optional section - Background information, APIs, constraints, or domain knowledge needed to execute the command]
+
+## Output Specification
+
+[Optional section - Requirements the produced artifact or outcome must satisfy]
+
 ## Process
 
 ### Step 0: [Descriptive title (2-5 words)]
@@ -64,6 +72,20 @@ The `$ARGUMENTS` placeholder is substituted at runtime with whatever the user pr
 Contains numbered steps that describe the workflow. Step numbering starts at 0.
 
 ## Optional Sections
+
+### Context Section
+
+When present, this section contains prerequisite information the agent needs in order to carry out the command correctly. Use it for APIs, constraints, domain knowledge, evaluation criteria, or any other context-dependent information that enables the process but is not itself a step in the workflow.
+
+### Output Specification Section
+
+When present, this section defines what the command's output must satisfy. Use it when the command produces an artifact or transformation that needs to conform to a contract, format, or external standard.
+
+Do not move prerequisite or execution-enabling information here just because it influences the output. If the information helps the agent perform the process, it belongs in `## Context`; if it defines the required properties of the final artifact or outcome, it belongs in `## Output Specification`.
+
+If the command references another standard, put that requirement here rather than as free-floating text before `## Process`.
+
+When later steps or principles need to refer back to that requirement, point to the Output Specification rather than repeating the standard reference again.
 
 ### Key Principles Section
 

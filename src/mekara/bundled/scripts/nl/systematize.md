@@ -2,7 +2,9 @@ You are creating a systematized command that captures a problem-solving approach
 
 <UserContext>$ARGUMENTS</UserContext>
 
-The created command must follow the structure defined in @standard:command.
+## Output Specification
+
+- The created command must follow the structure defined in @standard:command.
 
 ## Process
 
@@ -55,7 +57,7 @@ Review the conversation to extract:
 ### Step 3: Write the command file
 
 - Create `.mekara/scripts/nl/<name>.md`
-- Follow the command standard exactly (see @standard:command)
+- Satisfy the Output Specification above
 - Include examples if helpful (but make them generic)
 - For scenario-specific sections (like verification mechanisms or performance characteristics), use "if applicable" phrasing and provide concrete examples from the current implementation so future agents can recognize similar patterns (e.g., "For a caching feature, include timing: Recording ~10s, Replay ~0.5s")
 
@@ -75,7 +77,7 @@ Update `docs/docs/development/workflows.md` to add the command:
 
 ## Key Principles
 
-- **Follow the standard command structure** - Use `$ARGUMENTS` not "arguments provided by user", include all required sections (Process, Key Principles), number steps starting from 0. Read the command standard before writing the command file.
+- **Follow the Output Specification** - Use `$ARGUMENTS` not "arguments provided by user", include all required sections, and number steps starting from 0. Read the standard referenced by the Output Specification before writing the command file.
 - **One shell command per step** - Each step should mention at most one shell command. If multiple commands must run atomically, combine them with `&&`. If they're independent operations, split them into separate steps. This enables compilation to executable scripts.
 - **Don't over-specify trivialities** - Don't spell out commands for simple actions that can be done multiple ways (reading a file, browsing a directory). Do specify exact commands when there's a single canonical way, or when flags/formatting/determinism matter.
 - **Document reasoning inline** - For systematized commands, document WHY a step is done a certain way directly in the command file. This prevents future agents from undoing intentional decisions.

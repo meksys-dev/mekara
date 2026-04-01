@@ -181,7 +181,7 @@ Fix any issues before committing.
 - Troubleshooting: Common Pitfalls + Performance Expectations
 - Integration: Related documentation updates
 
-## Example Documentation Flow
+## Examples
 
 1. User just finished implementing VCR recording after many failed attempts
 2. Review conversation: 6 failed approaches, multiple "WTF" corrections, timing issues

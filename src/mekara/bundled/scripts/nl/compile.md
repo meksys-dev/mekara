@@ -2,11 +2,13 @@ You are compiling a natural language script into a Python generator function for
 
 <UserContext>$ARGUMENTS</UserContext>
 
-## Input Script
+## Context
 
-The source script is at: `$ARGUMENTS`
+The source script is at `$ARGUMENTS`.
 
-## Output Format
+Use the runtime and API guidance below when translating the natural language source into a Python generator script.
+
+### Compilation Guidance
 
 Generate a Python file that:
 1. Imports `auto`, `call_script`, and `llm` from `mekara.scripting.runtime`
@@ -18,7 +20,7 @@ Generate a Python file that:
 
 The `.py` filename should match the source `.md` filename with hyphens replaced by underscores per PEP 8. Scripts can be nested in subdirectories (e.g., `.mekara/scripts/nl/git/finish.md` compiles to `.mekara/scripts/compiled/git/finish.py`).
 
-## The `auto` Primitive
+### The `auto` Primitive
 
 `auto` supports two forms and **requires a `context` parameter** that explains WHY the step runs:
 
@@ -98,7 +100,7 @@ yield llm(
 ```
 Both paragraphs belong to step 13. The context must include the indented continuation text, not just the first line.
 
-## Helper Generator Functions
+### Helper Generator Functions
 
 When you need to reuse **multiple `auto` steps** together (e.g., a sequence of shell commands), extract them into a helper generator function and call it with `yield from`:
 
@@ -129,7 +131,7 @@ Import `Auto` and `ShellResult` from `mekara.scripting.runtime`.
 yield auto(_verify_and_merge, {"pr_number": pr_number}, context="...")
 ```
 
-## Return Values
+### Return Values
 
 **`auto` returns:**
 - `ShellResult` for shell commands: `success`, `exit_code`, `output`
@@ -158,7 +160,7 @@ The `expects` dict maps output keys to descriptions. The `mekara` runtime:
 2. Validates the LLM provided all expected outputs
 3. Returns an error to the LLM if any are missing, prompting it to try again
 
-## Classification Rules
+### Classification Rules
 
 **Use `auto` for:**
 - Shell commands that don't need interpretation (explicit commands in backticks)
@@ -193,7 +195,7 @@ yield call_script("script-name", working_dir=Path("/different/directory"))  # Ov
 
 By default, nested scripts inherit the parent's working directory. Use `working_dir` to override this when the nested script needs to run in a different directory (e.g., a different worktree).
 
-## Extracting Values from Command Output
+### Extracting Values from Command Output
 
 When a later step needs a value from a command's output (e.g., "use `<pr-number>` from the previous step"):
 
@@ -222,7 +224,7 @@ If you're unsure whether a command supports a flag, use the command exactly as w
 - Never assume output format based on documentation alone - verify empirically
 - Never fall back to `llm` just because parsing seems uncertain - that's lazy. Test first, then write deterministic parsing code.
 
-## Checks and Comparisons
+### Checks and Comparisons
 
 When a step checks a condition to decide whether to execute subsequent steps, use `auto` with a Python function that returns a boolean, then use an `if` statement:
 ```python
@@ -251,37 +253,23 @@ if verify_result.value:
 
 This pattern is efficient: when the check passes (no action needed), execution continues without invoking the LLM. Only invoke the LLM when there's actual work to do.
 
-## Examples
+### Omitted Instructions
 
-Source (`start.md`):
-```markdown
-1. Parse the user's request to generate a branch name
-2. Create worktree with `git worktree add -b mekara/<branch> ../<branch>`
-3. Install Python dependencies with `poetry install --with dev`
-4. Tell the user the final instructions
-```
+When parts of the original script instructions are intentionally omitted from the compiled output (e.g., exception handling that falls back to the LLM, or context only visible during LLM interactions), mark them with a comment:
 
-Output (`.mekara/scripts/compiled/start.py` - note: if source were `my-script.md`, output would be `.mekara/scripts/compiled/my_script.py`; if source were in a subdirectory like `git/my-script.md`, output would be `.mekara/scripts/compiled/git/my_script.py`):
 ```python
-"""Auto-generated script. Source: .mekara/scripts/nl/start.md"""
-
-from mekara.scripting.runtime import auto, call_script, llm
-
-
-def execute(request: str):
-    """Script entry point."""
-    result = yield llm(
-        "Parse the user's request and generate a suitable branch name (2-3 words)",
-        expects={"branch": "short kebab-case branch name"}
-    )
-    branch = result.outputs["branch"]
-
-    yield auto(f"git worktree add -b mekara/{branch} ../{branch}", context="Create worktree")
-    yield auto("poetry install --with dev", context="Install Python dependencies")
-
-    yield llm("Tell the user the final instructions for starting work")
-    yield call_script("finish", request="Summarize the changes")
+# Original instruction includes: "If X happens, do Y"
+# This exception is handled by the LLM when the command fails
+yield auto("command", context="Run the command")
 ```
+
+This preserves the original context for future reference while explaining why it's not in the compiled code.
+
+## Output Specification
+
+- Produce `.mekara/scripts/compiled/<name>.py`, using underscores in the filename where the source `.md` uses hyphens.
+- Ensure the generated file exposes the standard `execute(request: str)` entry point expected by the mekara runtime.
+- Ensure the generated code preserves the source workflow in runnable compiled form.
 
 ## Process
 
@@ -325,18 +313,6 @@ Report what was compiled and wait for user feedback. Do not proceed to the commi
 
 **Commit both the source `.md` file and the compiled `.py` file together** - when updating a mekara script, always commit the source and compiled versions in the same commit to keep them synchronized.
 
-## Omitted Instructions
-
-When parts of the original script instructions are intentionally omitted from the compiled output (e.g., exception handling that falls back to the LLM, or context only visible during LLM interactions), mark them with a comment:
-
-```python
-# Original instruction includes: "If X happens, do Y"
-# This exception is handled by the LLM when the command fails
-yield auto("command", context="Run the command")
-```
-
-This preserves the original context for future reference while explaining why it's not in the compiled code.
-
 ## Key Principles
 
 - Don't use `llm` for "tell the user X" when X is fully known (no synthesis of information needed) - use `auto` with a print function instead
@@ -356,3 +332,35 @@ This preserves the original context for future reference while explaining why it
 - **Read files in separate `auto` steps** - if a specific file's contents will be needed by a subsequent LLM step, read it with `cat` so that the LLM won't have to spend an extra cycle making the read action.
 - **Define and reuse functions with parameters instead of duplicating logic** - when the same operation applies to different targets (e.g., branch protection for `main` and `docs`), define a parameterized function (e.g., with a `branch` parameter) rather than copy-pasting the auto steps and changing one value. When there are multiple shell commands to execute, do NOT use `subprocess.run` and do NOT duplicate code—use a helper generator function with `yield from` instead (see "Helper Generator Functions" above).
 - **Verify jq outputs** - jq doesn't error out when the expected keys are missing, it simply produces `null`. Simply running a jq command without consuming the output is an anti-pattern that doesn't do anything.
+
+## Examples
+
+Source (`start.md`):
+```markdown
+1. Parse the user's request to generate a branch name
+2. Create worktree with `git worktree add -b mekara/<branch> ../<branch>`
+3. Install Python dependencies with `poetry install --with dev`
+4. Tell the user the final instructions
+```
+
+Output (`.mekara/scripts/compiled/start.py` - note: if source were `my-script.md`, output would be `.mekara/scripts/compiled/my_script.py`; if source were in a subdirectory like `git/my-script.md`, output would be `.mekara/scripts/compiled/git/my_script.py`):
+```python
+"""Auto-generated script. Source: .mekara/scripts/nl/start.md"""
+
+from mekara.scripting.runtime import auto, call_script, llm
+
+
+def execute(request: str):
+    """Script entry point."""
+    result = yield llm(
+        "Parse the user's request and generate a suitable branch name (2-3 words)",
+        expects={"branch": "short kebab-case branch name"}
+    )
+    branch = result.outputs["branch"]
+
+    yield auto(f"git worktree add -b mekara/{branch} ../{branch}", context="Create worktree")
+    yield auto("poetry install --with dev", context="Install Python dependencies")
+
+    yield llm("Tell the user the final instructions for starting work")
+    yield call_script("finish", request="Summarize the changes")
+```

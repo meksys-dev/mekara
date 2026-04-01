@@ -10,7 +10,7 @@ Bring all natural language scripts in `.mekara/scripts/nl/` (and their bundled/c
 
 ## Introduction
 
-The command standard defines the required structure for all NL scripts: a plain 1-2 sentence opening description, a `<UserContext>$ARGUMENTS</UserContext>` block, and a `## Process` section with `### Step N: Title` steps starting at 0. `## Key Principles` is optional when a script has cross-cutting guidance, and `## Examples` is an optional top-level reference section. A comprehensive audit of all 47 scripts revealed 25 that deviate from this standard in various ways, ranging from missing sections to completely non-standard formats (numbered lists, `## Context` preambles, H1 headings, `<UserOverride>` instead of `<UserContext>`, etc.). Additionally, five compiled Python scripts need their `context=` strings updated to stay aligned with changes to their NL sources.
+The command standard now allows optional `## Context` and `## Output Specification` sections in addition to the required opening description, `<UserContext>$ARGUMENTS</UserContext>`, and `## Process` section with `### Step N: Title` steps starting at 0. `## Key Principles` and `## Examples` remain optional top-level sections. A comprehensive audit of all 47 scripts revealed 25 that deviated from the earlier standard in various ways, ranging from missing sections to completely non-standard formats (numbered lists, H1 headings, `<UserOverride>` instead of `<UserContext>`, etc.). Subsequent implementation also exposed that several compiled Python scripts still need their `context=` strings and `Source:` headers updated to stay aligned with their NL sources.
 
 ## Objectives
 
@@ -69,7 +69,7 @@ src/mekara/bundled/scripts/compiled/ ← 4 compiled scripts updated
 - `analyze-branch-for-extraction.md` — steps 1–8
 - `merge-main.md` — steps 1–7
 
-**Non-standard extra sections** (sections beyond Description / UserContext / Process / optional Key Principles / optional Examples):
+**Non-standard extra sections** (sections beyond Description / UserContext / optional Context / optional Output Specification / Process / optional Key Principles / optional Examples):
 
 - `analyze-branch-for-extraction.md` — `## Common Patterns` after Key Principles
 - `compile.md` — `## Instructions` (not `## Process`); no Key Principles
@@ -95,7 +95,7 @@ src/mekara/bundled/scripts/compiled/ ← 4 compiled scripts updated
 
 ### Handling of special cases
 
-**`compile.md`**: Technically a spec document rather than a user workflow, but it IS invocable as `/compile`. Changes: add `<UserContext>$ARGUMENTS</UserContext>` after the opening sentence; rename `## Instructions` to `## Process` and convert the numbered items to `### Step 0:` … `### Step 9:` headings; keep the existing guidance in `## Key Principles`; rename `## Example` to the allowed optional `## Examples` section.
+**`compile.md`**: Technically a spec document rather than a user workflow, but it IS invocable as `/compile`. The command standard now explicitly allows this file shape. Changes: keep the runtime/API material under `## Context`; describe the generated artifact contract under `## Output Specification`; keep the executable workflow under `## Process`; keep cross-cutting guidance in `## Key Principles`; and keep worked examples under `## Examples`.
 
 **`project/setup-docs.md`**: Uses the Path A/B branching structure, but it's non-standard. Fixes: move `## Information Needed` content into `### Step 0: Gather requirements` (deciding the approach is part of gathering); rename Path A/B steps to use the standard `### Step AN:` / `### Step BN:` numbering; add convergence notes; add `## Key Principles`.
 
@@ -179,3 +179,29 @@ Each commit includes all related changes together: `.mekara/scripts/nl/` edits, 
 - [x] `test/imagine-object.md` — add opening description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process`; convert to `### Step N: Title`; add `## Key Principles`
 - [x] `test/nested.md` — add opening description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process`; convert numbered list to `### Step N: Title`; add `## Key Principles`
 - [x] Run `python scripts/sync_nl.py --all`
+
+### Phase 5: Follow-up after standards update ✅
+
+**Goal:** Reflect the newly adopted `## Context` / `## Output Specification` structure, capture what is actually done vs. still pending, and finish the remaining cleanup work.
+
+**First half of follow-up:**
+
+- [x] Update `docs/docs/standards/command.md` to allow optional `## Context` and `## Output Specification`
+- [x] Update `src/mekara/bundled/standards/command.md` to match the standard change
+- [x] Move the command-standard requirement in `.mekara/scripts/nl/systematize.md` into `## Output Specification`
+- [x] Move the command-standard requirement in `src/mekara/bundled/scripts/nl/systematize.md` into `## Output Specification`
+- [x] Move the command-standard requirement in `.mekara/scripts/nl/project/systematize.md` into `## Output Specification`
+- [x] Move the command-standard requirement in `src/mekara/bundled/scripts/nl/project/systematize.md` into `## Output Specification`
+- [x] Rename `## Example Documentation Flow` to `## Examples` in `.mekara/scripts/nl/document-complex-feature.md`
+- [x] Restructure `.mekara/scripts/nl/project/setup-docs.md` to use `Path A` / `Path B` headings with convergence notes and add `## Key Principles`
+
+**Second half of follow-up:**
+
+- [x] Finish `.mekara/scripts/nl/compile.md` and `src/mekara/bundled/scripts/nl/compile.md` so they cleanly use `## Context`, `## Output Specification`, `## Process`, `## Key Principles`, and `## Examples`
+- [x] Propagate the remaining NL changes to `src/mekara/bundled/scripts/nl/` and `docs/wiki/` as appropriate
+- [x] Fix stale compiled-script `context=` strings in `.mekara/scripts/compiled/extract_pr.py` and `src/mekara/bundled/scripts/compiled/extract_pr.py`
+- [x] Audit the compiled `teardown_worktree.py` context strings: `.mekara/scripts/compiled/teardown_worktree.py` already matched its NL source, and `src/mekara/bundled/scripts/compiled/teardown_worktree.py` was updated to match the current bundled NL text
+- [x] Update compiled-script `Source:` headers that still point at `.claude/commands/...`
+- [x] Re-run the completion audit and record that the targeted Phase 5 violations above are resolved
+
+**Status note:** The earlier phases recorded `compile.md`, `document-complex-feature.md`, `project/setup-docs.md`, and some compiled-script updates as complete under the old standard assumptions. Phase 5 supersedes those assumptions and now records the completed follow-up work and audit results.

@@ -61,7 +61,7 @@ def execute(request: str):
         "If the project uses a tool that stores environments **outside** the worktree "
         "directory, remove them explicitly to prevent stale environments from "
         "accumulating. (Environments stored inside the worktree — `.venv`, "
-        "`node_modules`, `target/`, etc. — are automatically wiped in step 4.)\n\n"
+        "`node_modules`, `target/`, etc. — are automatically wiped in step 3.)\n\n"
         "Examples of tools that require explicit cleanup:\n"
         "- Python/Poetry: `poetry env remove --all`\n"
         "- Python/Pipenv: `pipenv --rm`"

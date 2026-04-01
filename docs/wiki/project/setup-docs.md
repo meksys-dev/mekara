@@ -29,7 +29,14 @@ Present the user's choice back to them and confirm before proceeding:
 
 - "Based on your preference, I'll set up documentation using the [subdirectory/worktree branch] approach. Is that correct?"
 
-## Approach A: Subdirectory Setup (`docs/` folder)
+**Decision Point: Which setup approach should be used?**
+
+- If the user wants docs in the main repository -> Go to **Path A: Subdirectory Setup**
+- If the user wants docs in a separate orphan branch -> Go to **Path B: Separate Worktree Branch Setup**
+
+---
+
+## Path A: Subdirectory Setup (`docs/` folder)
 
 ### Step 1A: Create docs subdirectory
 
@@ -64,7 +71,11 @@ npm init -y
 
 Note: If the base project is already using a package manager and the docs use the same language, reuse the same package manager for the documentation site.
 
-## Approach B: Separate Worktree Branch Setup
+**Note**: After Step A2, continue to **Step 4: Add documentation framework dependencies**.
+
+---
+
+## Path B: Separate Worktree Branch Setup
 
 ### Step 1B: Check for branch name conflicts
 
@@ -118,7 +129,7 @@ npm init -y
 
 Note: If the base project is already using a package manager and the docs use the same language, reuse the same package manager for the documentation site.
 
-## Common Steps (Paths A and B converge here)
+**Note**: After Step B3, continue to **Step 4: Add documentation framework dependencies**.
 
 ### Step 4: Add documentation framework dependencies
 
@@ -319,3 +330,9 @@ Note: Documentation updates require coordinating branches in both worktrees when
 ```
 
 Commit this README update to the main branch.
+
+## Key Principles
+
+- **Confirm the setup approach before creating files**: The subdirectory and worktree flows diverge immediately, so restate the chosen path and wait for confirmation before creating anything.
+- **Reuse the project's existing tooling when possible**: If the main project already has a package manager, hook runner, or documentation conventions that fit the docs stack, reuse them instead of introducing parallel tooling.
+- **Converge quickly after branch-specific setup**: Keep Path A and Path B limited to the steps that truly differ, then return to shared steps so the workflow stays readable.
