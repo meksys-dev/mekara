@@ -143,10 +143,14 @@ class PendingNLScript:
     def format(self) -> str:
         """Format this pending NL script for display."""
         return (
-            f"## Natural Language Command: `{self.name}`\n\n"
-            f"{self.content}\n\n"
+            f"## Natural Language Script: `{self.name}`\n\n"
+            f"<nl_script>\n{self.content}\n</nl_script>\n\n"
             "---\n\n"
-            "When you have completed this command, call `finish_nl_script` to mark it complete."
+            "⚠️  **CRITICAL**: Even though you execute this set of instructions manually, "
+            "overall control flow is still managed by the script runner. "
+            "You MUST call `finish_nl_script` when done with *this* script — "
+            "do NOT continue with remaining parts of the parent script on your own. "
+            "All script execution must go through the script runner."
         )
 
 

@@ -48,14 +48,18 @@ Re-record VCR cassettes when:
 
 To regenerate the `mcp-nested.yaml` cassette, you need to record a live interaction with Claude Code:
 
-1. Set the VCR cassette environment variable before launching Claude Code:
+1. Activate the local Python venv so that we're using the development version of `mekara` rather than the globally installed system version:
+   ```bash
+   $(poetry env activate)
+   ```
+2. Set the VCR cassette environment variable before launching Claude Code:
    ```bash
    MEKARA_VCR_CASSETTE=tests/cassettes/mcp-nested.yaml claude
    ```
-2. In Claude Code, type `/test:nested`
-3. The nested script will run `/test/random` internally. Enter a number guess when prompted (e.g., `99`)
-4. The script will continue until it asks for a noun and adjective. Usually the AI will already have offered a few choices of pairings, in which case you need only say "the first pair." If not, you may prompt it for suggestions or provide your own.
-5. The script will complete and tell you how many objects of a certain kind you owe.
+3. In Claude Code, type `/test:nested`
+4. The nested script will run `/test/random` internally. Enter a number guess when prompted (e.g., `99`)
+5. The script will continue until it asks for a noun and adjective. Usually the AI will already have offered a few choices of pairings, in which case you need only say "the first pair." If not, you may prompt it for suggestions or provide your own.
+6. The script will complete and tell you how many objects of a certain kind you owe.
 
 The cassette file will be written to `tests/cassettes/mcp-nested.yaml` during this interaction.
 

@@ -172,6 +172,20 @@ If VCR tests fail with `ValueError: VCR replay event mismatch. Expected McpToolO
 
 Claude Code represents nested commands like `/test/random` as `test:random` internally. The hook and MCP server normalize colons to slashes for filesystem lookup, but `ResolvedTarget.name` uses the canonical colon format (e.g., `test:nested`) for display in execution history and stack traces.
 
+### LLM Control Flow Warning
+
+The `start()` response always begins with a FUNDAMENTAL PRINCIPLE message:
+
+> ⚠️ **FUNDAMENTAL PRINCIPLE**: You called `mcp__mekara__start` — that means surrendering control to the mekara script runner entirely. The script runner owns ALL control flow. Every step, including manually-executed NL scripts, must advance through the script runner. You MUST NOT continue manually after any step — always call the appropriate continuation tool (`finish_nl_script` or `continue_compiled_script`).
+
+and `PendingNLScript` responses include a CRITICAL notice:
+
+> ⚠️ **CRITICAL**: Even though you execute this set of instructions manually, overall control flow is still managed by the script runner. You MUST call `finish_nl_script` when done with _this_ script — do NOT continue with remaining parts of the parent script on your own. All script execution must go through the script runner.
+
+:::warning[Why this is necessary]
+Without these warnings, LLMs sometimes make the following mistake: they receive NL script instructions (e.g., from `/merge-main` as a nested step), follow the instructions manually, and then **continue executing the parent script's remaining steps themselves** — never calling `finish_nl_script`. This abandons the script runner mid-execution.
+:::
+
 ### Error Handling
 
 All failures halt the current (or parent) frame with an error `PendingLlmStep` via `_halt_frame_with_error()`. Three failure types use this path:
