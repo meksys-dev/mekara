@@ -30,7 +30,7 @@ def _verify_pr_merged(pr_number: str) -> None:
 def execute(request: str):
     """Script entry point.
 
-    Context: You are starting out in a Git worktree folder. Work has been completed
+    You are starting out in a Git worktree folder. Work has been completed
     and it is time to merge this work back into the `main` branch via a pull request
     (branch protection is enabled on `main`).
     """

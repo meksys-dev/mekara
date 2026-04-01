@@ -1,10 +1,12 @@
-# Improve workflows for future agents
+Improve workflows for future agents.
+
+<UserContext>$ARGUMENTS</UserContext>
+
+## Process
 
 ### Step 0: Update the specific file in `.mekara/scripts/nl/`
 
-Update the specific file in `.mekara/scripts/nl/` for the previous command that you were given, or for this specific override provided by the user:
-
-<UserOverride>$ARGUMENTS</UserOverride>
+Update the specific file in `.mekara/scripts/nl/` for the previous command that you were given, or for this specific override provided by the user.
 
 Put in advice for future agents to collaborate better with the user, based on the user feedback that's been given to you in this interaction.
 
@@ -24,7 +26,7 @@ If the script has a compiled version in `.mekara/scripts/compiled/`, update the 
 
 Commit the workflow improvement after making the update.
 
-## Guidelines for Updates
+## Key Principles
 
 - Don't edit _this_ file unless it was invoked specifically for you to improve your own self-improvement
 - Keep additions concise - only add what directly addresses user feedback

@@ -152,7 +152,7 @@ Each commit includes all related changes together: `.mekara/scripts/nl/` edits, 
 - [x] `systematize.md` — remove `## Context` section (fold key sentence into opening description or Step 0); fold `## Example Transformation` content into Key Principles; update `src/mekara/bundled/scripts/nl/systematize.md` preserving generalizations
 - [x] Run `python scripts/sync_nl.py --all`
 
-### Phase 3: Major restructuring
+### Phase 3: Major restructuring ✅
 
 **Goal:** Fully restructure scripts that use a completely non-standard format.
 
@@ -160,13 +160,13 @@ Each commit includes all related changes together: `.mekara/scripts/nl/` edits, 
 
 **Tasks:**
 
-- [ ] `finish.md` — replace "Context:" label with plain description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process` header; add `## Key Principles`; update `src/mekara/bundled/scripts/nl/finish.md` preserving generalizations; update `.mekara/scripts/compiled/finish.py` and `src/mekara/bundled/scripts/compiled/finish.py`
-- [ ] `document.md` — replace "Context:" label with plain description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process` header; add `## Key Principles`
-- [ ] `start.md` — add opening description; convert numbered list to `### Step N: Title` format under `## Process`; fix `<UserContext>` placement; add `## Key Principles`; update `src/mekara/bundled/scripts/nl/start.md` preserving generalizations; update `.mekara/scripts/compiled/start.py` and `src/mekara/bundled/scripts/compiled/start.py`
-- [ ] `recursive-self-improvement.md` — remove H1; replace `<UserOverride>` with `<UserContext>`; add `## Process` header; rename `## Guidelines for Updates` to `## Key Principles`; update `src/mekara/bundled/scripts/nl/recursive-self-improvement.md` preserving generalizations
-- [ ] `compile.md` — add `<UserContext>$ARGUMENTS</UserContext>`; rename `## Instructions` to `## Process` with `### Step N:` headings; add `## Key Principles`
-- [ ] `project/setup-docs.md` — move `## Information Needed` into Step 0; fix Path A/B structure to use standard `### Step AN:` / `### Step BN:` naming and convergence notes; add `## Key Principles`
-- [ ] Run `python scripts/sync_nl.py --all`
+- [x] `finish.md` — replace "Context:" label with plain description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process` header; add `## Key Principles`; update `src/mekara/bundled/scripts/nl/finish.md` preserving generalizations; update `.mekara/scripts/compiled/finish.py` and `src/mekara/bundled/scripts/compiled/finish.py`
+- [x] `document.md` — replace "Context:" label with plain description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process` header; add `## Key Principles`
+- [x] `start.md` — add opening description; convert numbered list to `### Step N: Title` format under `## Process`; fix `<UserContext>` placement; add `## Key Principles`; update `src/mekara/bundled/scripts/nl/start.md` preserving generalizations; update `.mekara/scripts/compiled/start.py` and `src/mekara/bundled/scripts/compiled/start.py`
+- [x] `recursive-self-improvement.md` — remove H1; replace `<UserOverride>` with `<UserContext>`; add `## Process` header; rename `## Guidelines for Updates` to `## Key Principles`; update `src/mekara/bundled/scripts/nl/recursive-self-improvement.md` preserving generalizations
+- [x] `compile.md` — add `<UserContext>$ARGUMENTS</UserContext>`; rename `## Instructions` to `## Process` with `### Step N:` headings; add `## Key Principles`
+- [x] `project/setup-docs.md` — move `## Information Needed` into Step 0; fix Path A/B structure to use standard `### Step AN:` / `### Step BN:` naming and convergence notes; add `## Key Principles`
+- [x] Run `python scripts/sync_nl.py --all`
 
 ### Phase 4: Test scripts
 

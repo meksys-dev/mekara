@@ -54,7 +54,7 @@ Contains numbered steps that describe the workflow. Step numbering starts at 0.
 
 ### Key Principles Section
 
-Contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps. Key Principles should complement the Process steps, not repeat them. If a principle is specific to a single step, it belongs in that step's body. If there are no cross-cutting principles to document yet, omit the section contents and leave it as an empty placeholder for `/recursive-self-improvement` to populate later.
+Contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps. Key Principles should complement the Process steps, not repeat them. If a principle is specific to a single step, it belongs in that step's body. If there are no cross-cutting principles to document yet, use the placeholder: "This is a relatively straightforward script that does not require key guiding principles at this time."
 
 Key Principles may contain `### Subsection` headings to organize related content. In particular, `### Common Pitfalls` is a standard subsection for documenting specific mistakes agents have made and the concrete actions to take (or avoid) instead. When `/recursive-self-improvement` adds guidance to a script based on user feedback, Common Pitfalls is the natural home for that guidance — it captures the exact scenarios, commands, and patterns that go wrong.
 
