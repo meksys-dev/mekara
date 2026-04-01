@@ -1,10 +1,12 @@
-# Improve workflows for future agents
+Improve workflows for future agents.
+
+<UserContext>$ARGUMENTS</UserContext>
+
+## Process
 
 ### Step 0: Update the specific file in `.mekara/scripts/nl/`
 
-Update the specific file in `.mekara/scripts/nl/` for the previous command that you were given, or for this specific override provided by the user:
-
-<UserOverride>$ARGUMENTS</UserOverride>
+Update the specific file in `.mekara/scripts/nl/` for the previous command that you were given, or for this specific override provided by the user.
 
 Put in advice for future agents to collaborate better with the user, based on the user feedback that's been given to you in this interaction.
 
@@ -16,6 +18,8 @@ For example, if you were just asked to `/implement-spec`, then update `.mekara/s
 
 **Common mistake:** If `/systematize` created `document-implementation.md`, the command to update is `systematize.md`, not `document-implementation.md`. Always search for `<command-name>` tags first.
 
+If the feedback belongs in cross-cutting guidance rather than in a single process step, update the target script's `## Key Principles` section. If the target script does not already have `## Key Principles`, create that section only when you actually need it for the new guidance.
+
 ### Step 1: Update compiled version if applicable
 
 If the script has a compiled version in `.mekara/scripts/compiled/`, update the compiled version too. Both must stay in sync.
@@ -24,7 +28,7 @@ If the script has a compiled version in `.mekara/scripts/compiled/`, update the 
 
 Commit the workflow improvement after making the update.
 
-## Guidelines for Updates
+## Key Principles
 
 - Don't edit _this_ file unless it was invoked specifically for you to improve your own self-improvement
 - Keep additions concise - only add what directly addresses user feedback

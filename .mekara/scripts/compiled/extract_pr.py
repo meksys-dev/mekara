@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .claude/commands/extract-pr.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/extract-pr.md"""
 
 from mekara.scripting.runtime import auto, call_script, llm
 
@@ -6,19 +6,20 @@ from mekara.scripting.runtime import auto, call_script, llm
 def execute(request: str):
     """Extract a specific subset of changes from a branch into a clean PR."""
 
-    # Information Needed - Ask the user what subset to extract
+    # Step 0: Gather information
     yield llm(
-        "Ask the user: What specific subset of changes should this PR contain? "
+        "Ask the user:\n"
+        "1. What specific subset of changes should this PR contain? "
         '(e.g., "documentation restructuring", "the new authentication module", '
         '"bug fix for issue #123")',
         expects={"subset_description": "description of the subset to extract"},
     )
     # subset_description is captured in expects but used implicitly in conversation context
 
-    # Step 1: Identify Commit Boundaries - Review all commits on the branch
+    # Step 1: Identify Commit Boundaries
     yield auto(
         "git log --oneline main..HEAD",
-        context="Review all commits on the branch",
+        context="Review all commits on the branch:",
     )
 
     # For each commit that might be part of the subset, examine it and decide path
@@ -67,11 +68,23 @@ def execute(request: str):
         # Step A2: Review Changes (same as Step B7 - both paths converge here)
         yield auto(
             "git diff main --name-only",
-            context="Step A2: Review Changes - show changed file names",
+            context=(
+                "Review the list of changed files and confirm they belong in this subset. "
+                "Use `git diff main -- <file>` to inspect as many specific files as needed"
+                "—apply judgment about which files warrant detailed review vs. which are "
+                "obvious (e.g., large generated artifacts). If any unrelated changes are "
+                "present, identify what needs to be fixed before proceeding."
+            ),
         )
         yield auto(
             "git diff main --stat",
-            context="Step A2: Review Changes - show change statistics",
+            context=(
+                "Review the list of changed files and confirm they belong in this subset. "
+                "Use `git diff main -- <file>` to inspect as many specific files as needed"
+                "—apply judgment about which files warrant detailed review vs. which are "
+                "obvious (e.g., large generated artifacts). If any unrelated changes are "
+                "present, identify what needs to be fixed before proceeding."
+            ),
         )
         yield llm(
             "Review the list of changed files and confirm they belong in this subset. "
@@ -84,15 +97,15 @@ def execute(request: str):
         # Step A3: Run Tests and CI Checks (same as Step B8 - both paths converge here)
         yield auto(
             "poetry run pytest",
-            context="Step A3: Run Tests and CI Checks - `poetry run pytest`",
+            context="Verify all tests and checks pass. If any fail, fix them before proceeding.",
         )
         yield auto(
             "poetry run ruff check .",
-            context="Step A3: Run Tests and CI Checks - `poetry run ruff check .`",
+            context="Verify all tests and checks pass. If any fail, fix them before proceeding.",
         )
         yield auto(
             "poetry run pyright",
-            context="Step A3: Run Tests and CI Checks - `poetry run pyright`",
+            context="Verify all tests and checks pass. If any fail, fix them before proceeding.",
         )
         yield llm("Verify all tests and checks pass. If any fail, fix them before proceeding.")
 
@@ -104,7 +117,6 @@ def execute(request: str):
         yield auto(
             "git diff main --name-status",
             context=(
-                "Step B1: Analyze Current State - `git diff main --name-status`\n\n"
                 "Categorize each changed file:\n"
                 "- **A (Added)**: New files - will need to be deleted if unrelated to the "
                 "subset\n"
@@ -170,11 +182,23 @@ def execute(request: str):
         # Step B7: Review Changes (same as Step A2 - both paths converge here)
         yield auto(
             "git diff main --name-only",
-            context="Step B7: Review Changes - show changed file names",
+            context=(
+                "Review the list of changed files and confirm they belong in this subset. "
+                "Use `git diff main -- <file>` to inspect as many specific files as needed"
+                "—apply judgment about which files warrant detailed review vs. which are "
+                "obvious (e.g., large generated artifacts). If any unrelated changes are "
+                "present, identify what needs to be fixed before proceeding."
+            ),
         )
         yield auto(
             "git diff main --stat",
-            context="Step B7: Review Changes - show change statistics",
+            context=(
+                "Review the list of changed files and confirm they belong in this subset. "
+                "Use `git diff main -- <file>` to inspect as many specific files as needed"
+                "—apply judgment about which files warrant detailed review vs. which are "
+                "obvious (e.g., large generated artifacts). If any unrelated changes are "
+                "present, identify what needs to be fixed before proceeding."
+            ),
         )
         yield llm(
             "Review the list of changed files and confirm they belong in this subset. "
@@ -187,15 +211,15 @@ def execute(request: str):
         # Step B8: Run Tests and CI Checks (same as Step A3 - both paths converge here)
         yield auto(
             "poetry run pytest",
-            context="Step B8: Run Tests and CI Checks - `poetry run pytest`",
+            context="Verify all tests and checks pass. If any fail, fix them before proceeding.",
         )
         yield auto(
             "poetry run ruff check .",
-            context="Step B8: Run Tests and CI Checks - `poetry run ruff check .`",
+            context="Verify all tests and checks pass. If any fail, fix them before proceeding.",
         )
         yield auto(
             "poetry run pyright",
-            context="Step B8: Run Tests and CI Checks - `poetry run pyright`",
+            context="Verify all tests and checks pass. If any fail, fix them before proceeding.",
         )
         yield llm("Verify all tests and checks pass. If any fail, fix them before proceeding.")
 

@@ -7,19 +7,16 @@ Set up a documentation site using either a subdirectory or separate orphan branc
 
 <UserContext>$ARGUMENTS</UserContext>
 
-## Information Needed
-
-Ask the user:
-
-1. Which documentation setup approach do you prefer?
-   - **Subdirectory (`docs/` folder)**: Documentation lives in `docs/` subdirectory of the main repository. Easier to maintain and deploy alongside the main project. Documentation changes are part of the main project's git history. Recommended for simpler projects or when you want docs close to code.
-   - **Separate worktree branch**: Documentation lives in a separate git worktree with orphan branch. Completely isolated git history for documentation. Can be deployed independently of the main project. Recommended for complex documentation or separate deployment needs.
-
 ## Process
 
-### Step 1: Gather context
+### Step 0: Gather requirements
 
-Identify from the user context:
+Ask the user which documentation setup approach they prefer:
+
+- **Subdirectory (`docs/` folder)**: Documentation lives in `docs/` subdirectory of the main repository. Easier to maintain and deploy alongside the main project. Documentation changes are part of the main project's git history. Recommended for simpler projects or when you want docs close to code.
+- **Separate worktree branch**: Documentation lives in a separate git worktree with orphan branch. Completely isolated git history for documentation. Can be deployed independently of the main project. Recommended for complex documentation or separate deployment needs.
+
+Then identify from the user context:
 
 - Repository path (where the main project lives)
 - Documentation framework (recommended: Docusaurus, Material for MkDocs, VitePress)
@@ -28,17 +25,20 @@ Identify from the user context:
 
 Ask only if the details without a default are genuinely missing from the context.
 
-**Decision Point: Confirm chosen approach**
-
-Present the user's choice back to them and confirm:
+Present the user's choice back to them and confirm before proceeding:
 
 - "Based on your preference, I'll set up documentation using the [subdirectory/worktree branch] approach. Is that correct?"
 
-Wait for user confirmation before proceeding.
+**Decision Point: Which setup approach should be used?**
 
-## Approach A: Subdirectory Setup (`docs/` folder)
+- If the user wants docs in the main repository -> Go to **Path A: Subdirectory Setup**
+- If the user wants docs in a separate orphan branch -> Go to **Path B: Separate Worktree Branch Setup**
 
-### Step 2A: Create docs subdirectory
+---
+
+## Path A: Subdirectory Setup (`docs/` folder)
+
+### Step 1A: Create docs subdirectory
 
 Create and navigate to the docs directory:
 
@@ -47,7 +47,7 @@ mkdir docs
 cd docs
 ```
 
-### Step 3A: Initialize documentation project
+### Step 2A: Initialize documentation project
 
 Initialize the project using the appropriate tooling for the stack. Examples:
 
@@ -71,9 +71,13 @@ npm init -y
 
 Note: If the base project is already using a package manager and the docs use the same language, reuse the same package manager for the documentation site.
 
-## Approach B: Separate Worktree Branch Setup
+**Note**: After Step A2, continue to **Step 4: Add documentation framework dependencies**.
 
-### Step 2B: Check for branch name conflicts
+---
+
+## Path B: Separate Worktree Branch Setup
+
+### Step 1B: Check for branch name conflicts
 
 Check if there are existing branches that would conflict with creating the docs branch:
 
@@ -83,7 +87,7 @@ git branch -a | grep "^[[:space:]]*<branch-name>/"
 
 If any branches like `<branch-name>/*` exist, they will prevent creating the branch. Delete conflicting branches with user confirmation.
 
-### Step 3B: Create git worktree with orphan branch
+### Step 2B: Create git worktree with orphan branch
 
 Create a detached worktree and checkout an orphan branch in it:
 
@@ -95,7 +99,7 @@ git checkout --orphan <branch-name>
 
 The orphan branch starts with a fresh history, separate from the main project.
 
-### Step 4B: Initialize documentation project
+### Step 3B: Initialize documentation project
 
 Clean the worktree and initialize the project using the appropriate tooling for the stack:
 
@@ -125,7 +129,7 @@ npm init -y
 
 Note: If the base project is already using a package manager and the docs use the same language, reuse the same package manager for the documentation site.
 
-## Common Steps (After Project Initialization)
+**Note**: After Step B3, continue to **Step 4: Add documentation framework dependencies**.
 
 ### Step 4: Add documentation framework dependencies
 
@@ -326,3 +330,9 @@ Note: Documentation updates require coordinating branches in both worktrees when
 ```
 
 Commit this README update to the main branch.
+
+## Key Principles
+
+- **Confirm the setup approach before creating files**: The subdirectory and worktree flows diverge immediately, so restate the chosen path and wait for confirmation before creating anything.
+- **Reuse the project's existing tooling when possible**: If the main project already has a package manager, hook runner, or documentation conventions that fit the docs stack, reuse them instead of introducing parallel tooling.
+- **Converge quickly after branch-specific setup**: Keep Path A and Path B limited to the steps that truly differ, then return to shared steps so the workflow stays readable.

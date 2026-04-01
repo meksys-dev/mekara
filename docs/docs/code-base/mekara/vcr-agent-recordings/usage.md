@@ -16,7 +16,7 @@ VCR boundaries exist at ALL environment interaction points. During replay, real 
 VcrMekaraServer
   └─> MekaraServer (real app code, stateful)
        └─> VcrAutoExecutor
-            └─> RealAutoExecutor (stateless bridge to environment)
+            └─> AutoExecutor (stateless bridge to environment)
 ```
 
 **Replay mode:**
@@ -34,7 +34,7 @@ See [Code Conventions - VCR](../conventions/vcr.md) for detailed rules and patte
 | Boundary       | Protocol                                                | Stateless Bridge      | VCR Wrapper       | Records                                                                         |
 | -------------- | ------------------------------------------------------- | --------------------- | ----------------- | ------------------------------------------------------------------------------- |
 | MCP tool calls | Server interface (`src/mekara/mcp/server.py`)           | N/A (app is stateful) | `VcrMekaraServer` | Tool inputs/outputs (start, continue_compiled_script, finish_nl_script, status) |
-| Auto steps     | `AutoExecutorProtocol` (`src/mekara/scripting/auto.py`) | `RealAutoExecutor`    | `VcrAutoExecutor` | Shell commands, function calls                                                  |
+| Auto steps     | `AutoExecutorProtocol` (`src/mekara/scripting/auto.py`) | `AutoExecutor`        | `VcrAutoExecutor` | Shell commands, function calls                                                  |
 
 ## MCP Tool Call Recording
 

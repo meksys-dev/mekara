@@ -235,3 +235,8 @@ Wait for user confirmation, then use the committer agent to commit all changes:
 - Workflow file (`.github/workflows/build-docs.yml`)
 - Configuration changes (baseUrl updates)
 - Documentation updates
+
+## Key Principles
+
+- **Pin all versions**: All tool versions in CI workflows must be pinned (not `latest`). This ensures reproducible builds.
+- **baseUrl must match GitHub Pages URL**: If the site config uses root path or a custom domain, update it to `https://<org>.github.io` / `/<repo>/` before deploying—otherwise the site will fail to load assets correctly.

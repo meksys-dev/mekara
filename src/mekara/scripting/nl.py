@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
 from mekara.scripting.standards import load_standard
 
 
-def build_nl_command_prompt(
-    command_content: str, request: str, base_dir: Path | None = None
-) -> str:
+def build_nl_command_prompt(command_content: str, request: str) -> str:
     """Build the prompt content for a natural language command.
 
     This is the single source of truth for NL command prompt construction.
@@ -18,7 +15,6 @@ def build_nl_command_prompt(
     Args:
         command_content: The raw content of the command file.
         request: The user's request/arguments to substitute for $ARGUMENTS.
-        base_dir: Project base directory for standards resolution.
 
     Returns:
         The processed command content with $ARGUMENTS substituted and
@@ -32,12 +28,12 @@ def build_nl_command_prompt(
         command_content = command_content.replace("$ARGUMENTS", request, 1)
 
     # Detect @standard:name references and inject standards content
-    command_content = _inject_standards(command_content, base_dir)
+    command_content = _inject_standards(command_content)
 
     return command_content
 
 
-def _inject_standards(content: str, base_dir: Path | None) -> str:
+def _inject_standards(content: str) -> str:
     """Detect @standard:name references and append standard content.
 
     The @standard:name syntax is used in bundled scripts to reference
@@ -46,7 +42,6 @@ def _inject_standards(content: str, base_dir: Path | None) -> str:
 
     Args:
         content: The command content to process.
-        base_dir: Project base directory for standards resolution.
 
     Returns:
         Content with standards appended in a "Referenced Standards" section.
@@ -69,7 +64,7 @@ def _inject_standards(content: str, base_dir: Path | None) -> str:
     # Load each standard
     standards_content: list[str] = []
     for name in unique_names:
-        standard = load_standard(name, base_dir)
+        standard = load_standard(name)
         if standard is not None:
             standards_content.append(f"### @standard:{name}\n\n{standard}")
 

@@ -18,12 +18,12 @@ Record mode:
   VcrMekaraServer
     └─> MekaraServer (real app code, stateful)
          └─> VcrAutoExecutor
-              └─> RealAutoExecutor (stateless bridge to environment)
+              └─> AutoExecutor (stateless bridge to environment)
 
 Replay mode:
   VcrMekaraServer
     └─> MekaraServer (SAME real app code - fully exercised)
-         └─> VcrAutoExecutor (no inner RealAutoExecutor)
+         └─> VcrAutoExecutor (no inner AutoExecutor)
               Returns recorded inputs, asserts outputs
 ```
 
@@ -179,7 +179,7 @@ Every recorded event is consumed at the appropriate boundary by the appropriate 
 
 ```python
 class VcrAutoExecutor:
-    def __init__(self, *, cassette, inner: RealAutoExecutor | None = None):
+    def __init__(self, *, cassette, inner: AutoExecutor | None = None):
         if cassette.mode == "record" and inner is None:
             raise ValueError("Record mode requires inner executor")
         if cassette.mode == "replay" and inner is not None:
@@ -189,19 +189,19 @@ class VcrAutoExecutor:
 
 ## Stateless Bridges to Environment
 
-**Rule:** Environment boundary classes (like `RealAutoExecutor`) must be stateless. They are pure bridges between application logic and the environment - they contain NO business logic or state.
+**Rule:** Environment boundary classes (like `AutoExecutor`) must be stateless. They are pure bridges between application logic and the environment - they contain NO business logic or state.
 
 State belongs in the stateful application layer (e.g., `MekaraServer`, `McpScriptExecutor`). Environment bridges receive all context they need as parameters to each method call.
 
 ```python
 # Good - stateless bridge
-class RealAutoExecutor:
+class AutoExecutor:
     async def execute(self, step: Auto, *, working_dir: Path) -> AsyncIterator[Event]:
         # Execute step in working_dir, yield results
         # NO stored state - all context passed as parameters
 
 # Bad - stateful bridge
-class RealAutoExecutor:
+class AutoExecutor:
     def __init__(self, working_dir: Path):
         self._working_dir = working_dir  # State storage violates rule
 ```
@@ -225,13 +225,13 @@ All real application logic lives in the application layer. VCR boundaries are pu
 
 ```python
 # Good - real code has no VCR awareness
-class RealAutoExecutor:
+class AutoExecutor:
     async def execute(self, step: Auto, *, working_dir: Path) -> AsyncIterator[Event]:
         # Just execute the step, no VCR-related parameters
         ...
 
 # Bad - real interface has parameters only VCR needs
-class RealAutoExecutor:
+class AutoExecutor:
     async def execute(self, step: Auto, *, step_index: int, working_dir: Path) -> AsyncIterator[Event]:
         del step_index  # Not used by real code!
         ...
@@ -248,7 +248,7 @@ class RealAutoExecutor:
 class AutoExecutorProtocol(Protocol):
     def execute(self, step: Auto, *, working_dir: Path) -> AsyncIterator[Event]: ...
 
-class RealAutoExecutor:  # Implements protocol
+class AutoExecutor:  # Implements protocol
     async def execute(self, step: Auto, *, working_dir: Path) -> AsyncIterator[Event]:
         ...
 

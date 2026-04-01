@@ -1,4 +1,8 @@
-Context: Changes have been made to the project (or are about to be), and these changes need to be synced over to the documentation.
+Changes have been made to the project (or are about to be), and these changes need to be synced over to the documentation.
+
+<UserContext>$ARGUMENTS</UserContext>
+
+## Process
 
 ### Step 0: Take stock of the changes to document
 
@@ -15,9 +19,14 @@ Make the corresponding changes to the Docusaurus documentation inside @docs/docs
 
   For example, if the existing documentation says only "Install dependencies", and the change made was to also install Python dependencies, then there is no need to update the existing docs because nothing has changed at that level of detail. On the other hand, if the existing docs say "Install NodeJS dependencies," then absolutely *do* update them to also mention the installation of Python dependencies, because something *has* changed at the existing level of detail.
 
+- **Document all aliases together**: When documenting a CLI flag, option, or command that has multiple forms (e.g., `--version` and `-V`), always include all forms in the same entry. Never document only the short form or only the long form.
 - **Document non-obvious implementation details**: If a fix required significant discussion, trial-and-error, or understanding of subtle behavior, document it. The test is: would a future implementer need to rediscover this information through effort? Bug fixes that involve understanding subtle SDK/library behavior, workarounds for non-obvious issues, or architectural decisions should be documented even if the "what" hasn't changed—the "why" and "how" are valuable.
   - When the user corrects you or points out a bug, document the pitfall and how to avoid it. If it helps with comprehension, include code examples showing both broken and correct patterns.
 
 ### Step 2: Commit your changes after confirming with the user
 
 Commit your changes after confirming with the user.
+
+## Key Principles
+
+- The documentation should be updated so that whoever implements this project again in the future will not have to rediscover this detail on their own. The documentation is a living specification of all human thought that went into shaping the project the way it is now.

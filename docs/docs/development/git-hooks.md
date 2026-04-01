@@ -62,8 +62,11 @@ Normally this script acts only on changed files, but the `--all` option als exis
 
 Bundled scripts in `src/mekara/bundled/scripts/` are edited independently (no automatic sync). The hook:
 
-1. **Validates NL/compiled pairs** — if `src/mekara/bundled/scripts/nl/` changes and a corresponding `src/mekara/bundled/scripts/compiled/` file exists, that compiled file must also change
-2. **Alerts on potential sync needs** — warns when `.mekara/scripts/nl/` or bundled scripts change without corresponding changes in the other location, prompting you to check if synced updates are needed
+1. **Validates generalized NL/compiled pairs** — if a bundled NL script listed in `bundled-script-generalization.md` changes and a corresponding bundled compiled file exists, that compiled file must also change in the same commit
+2. **Validates non-generalized compiled equality** — if both `.mekara/scripts/compiled/` and `src/mekara/bundled/scripts/compiled/` contain a script that is not listed in `bundled-script-generalization.md`, those two compiled files must be exactly identical
+3. **Alerts on potential sync needs** — warns when `.mekara/scripts/nl/` or bundled scripts change without corresponding changes in the other location, prompting you to check if synced updates are needed
+
+   When the hook requires a generated or compiled file update, the agent should be informed that the file update should reflect the real source change. The agent should not add filler comments or docstrings just to force a diff.
 
 :::info[Generalized scripts are excluded from sync]
 Scripts listed in `docs/docs/code-base/mekara/bundled-script-generalization.md` (e.g., `project:release.md`) have intentional divergence between `.mekara/scripts/nl/` (project-specific) and wiki/bundled (generic). The sync script reads that doc at runtime and excludes those scripts in both directions.

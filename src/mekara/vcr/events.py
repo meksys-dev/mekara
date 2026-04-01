@@ -7,7 +7,7 @@ Events serialize to/from YAML dictionaries for cassette storage.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 
 def _check_keys(data: dict[str, Any], expected: set[str], context: str) -> None:
@@ -158,7 +158,7 @@ class AutoStepInputs:
     the call arguments (since callables themselves can't be serialized).
     """
 
-    action_type: str  # ActionType.value ("shell" or "call")
+    action_type: Literal["shell", "call"]
     action: str  # cmd for shell, func name for call
     context: str | None
     kwargs: dict[str, Any] | None  # None for shell, dict for call
@@ -186,18 +186,18 @@ class AutoStepInputs:
     @classmethod
     def from_step(cls, step: Any) -> AutoStepInputs:
         """Create AutoStepInputs from an Auto step."""
-        from mekara.scripting.runtime import ActionType, ShellAction
+        from mekara.scripting.runtime import ShellAction
 
         if isinstance(step.action, ShellAction):
             return cls(
-                action_type=ActionType.SHELL.value,
+                action_type="shell",
                 action=step.action.cmd,
                 context=step.context,
                 kwargs=None,
             )
         # CallAction
         return cls(
-            action_type=ActionType.CALL.value,
+            action_type="call",
             action=step.action.func.__name__,
             context=step.context,
             kwargs=step.action.kwargs,

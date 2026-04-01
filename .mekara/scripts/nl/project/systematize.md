@@ -2,7 +2,9 @@ Create a new stack-agnostic repo-setup command under `.mekara/scripts/nl/project
 
 <UserContext>$ARGUMENTS</UserContext>
 
-The created command must follow the structure defined in @docs/docs/standards/command.md.
+## Output Specification
+
+- The created command must follow the structure defined in @docs/docs/standards/command.md.
 
 ## Process
 
@@ -64,7 +66,7 @@ Use examples to show different approaches for different stacks, but keep steps g
 
 ### Step 5: Write the command file
 
-Create `.mekara/scripts/nl/project/<name>.md` following the command standard (referenced at top of this file).
+Create `.mekara/scripts/nl/project/<name>.md` so it satisfies the Output Specification above.
 
 Repo-setup-specific requirements beyond the standard:
 - Step 0 must gather stack details and intended end state (infer from session; ask only if missing)

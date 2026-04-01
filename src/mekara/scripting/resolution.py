@@ -1,19 +1,16 @@
 """Script and command resolution logic.
 
 This module provides a unified way to resolve script/command names to their
-file paths. The new precedence algorithm:
+file paths. The precedence algorithm:
 
 1. Find NL source at highest precedence (local, user, bundled)
 2. Find compiled at same level or higher than the NL source
 3. Return ResolvedTarget with both pieces (nl required, compiled optional)
 
-Precedence levels (1 = highest):
-1. Local compiled (.mekara/scripts/compiled/*.py)
-2. Local NL (.mekara/scripts/nl/*.md) - canonical; symlinked as .claude/commands/
-3. User compiled (~/.mekara/scripts/compiled/*.py)
-4. User NL (~/.mekara/scripts/nl/*.md) - canonical; symlinked as ~/.claude/commands/
-5. Bundled compiled (package bundled/scripts/compiled/)
-6. Bundled NL (package bundled/scripts/nl/)
+Precedence levels (first match wins):
+- Local (<project_root>/.mekara/)
+- User (~/.mekara/)
+- Bundled (package bundled/)
 """
 
 from __future__ import annotations
@@ -21,12 +18,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import NamedTuple
 
 from mekara.utils.project import (
     bundled_commands_dir,
-    bundled_scripts_dir,
-    user_commands_dir,
-    user_scripts_dir,
+    find_project_root,
 )
 
 
@@ -75,194 +71,106 @@ class ResolvedTarget:
         return self.compiled.is_bundled if self.compiled else self.nl.is_bundled
 
     @property
-    def is_bundled_command(self) -> bool:
-        """Check if this is a bundled natural-language command.
+    def is_nl(self) -> bool:
+        """True if this is an NL-only script (no compiled counterpart)."""
+        return self.compiled is None
 
-        This property is used to determine if command content should be
-        injected into the conversation context when invoked (for bundled
-        commands that may not be available in the project directory).
-        """
-        return self.nl.is_bundled and self.compiled is None
-
-
-# Precedence levels for the algorithm
-_LOCAL_COMPILED_LEVEL = 1
-_LOCAL_NL_LEVEL = 2
-_USER_COMPILED_LEVEL = 3
-_USER_NL_LEVEL = 4
-_BUNDLED_COMPILED_LEVEL = 5
-_BUNDLED_NL_LEVEL = 6
+    @property
+    def is_compiled(self) -> bool:
+        """True if this script has a compiled counterpart."""
+        return self.compiled is not None
 
 
-def resolve_target(name: str, *, base_dir: Path | None) -> ResolvedTarget | None:
+class SearchLevel(NamedTuple):
+    """One directory to search with a given file extension."""
+
+    directory: Path
+    extension: str
+
+
+class Match(NamedTuple):
+    """A found file with its position in the search list."""
+
+    found_index: int
+    path: Path
+
+
+# Base directories for each precedence level, built at module load time.
+# Each entry is the root for that level: local/.mekara, ~/.mekara, package/bundled/.
+# All specific search level lists are derived from these.
+_local_root = find_project_root()
+_LEVEL_DIRS: list[Path] = [
+    *([_local_root / ".mekara"] if _local_root is not None else []),
+    Path.home() / ".mekara",
+    bundled_commands_dir().parent.parent,  # package/bundled/
+]
+
+_NL_SCRIPT_LEVELS: list[SearchLevel] = [
+    SearchLevel(d / "scripts" / "nl", ".md") for d in _LEVEL_DIRS
+]
+_COMPILED_SCRIPT_LEVELS: list[SearchLevel] = [
+    SearchLevel(d / "scripts" / "compiled", ".py") for d in _LEVEL_DIRS
+]
+
+# Bundled base is always the last entry; used to infer is_bundled from a matched path.
+_BUNDLED_BASE: Path = _LEVEL_DIRS[-1]
+
+
+def resolve_target(name: str) -> ResolvedTarget | None:
     """Resolve a script/command name to a target.
-
-    Implements the new precedence algorithm:
-    1. Find NL at highest precedence (check levels 2, 4, 6)
-    2. Find compiled at same level or higher than NL (check levels 1, 3, 5 where level <= NL level)
-    3. Return None if no NL found
 
     Args:
         name: The script/command name to resolve (e.g., "finish", "merge-main").
-        base_dir: The project root directory (containing .mekara or .claude),
-            or None if not in a project. When None, only user-installed and
-            bundled targets are searched.
 
     Returns:
         A ResolvedTarget if found, or None if no matching target exists.
     """
-    # Script names can use hyphens (merge-main) but Python filenames use
-    # underscores (merge_main.py). We try both forms for filesystem lookup.
-    name_underscored = name.replace("-", "_")
-
-    # Step 1: Find NL at highest precedence
-    nl_info: ScriptInfo | None = None
-    nl_level: int | None = None
-
-    # Check local NL (level 2)
-    if base_dir is not None:
-        commands_path = base_dir / ".mekara" / "scripts" / "nl"
-        nl_info = _find_nl_at(commands_path, name, name_underscored, is_bundled=False)
-        if nl_info is not None:
-            nl_level = _LOCAL_NL_LEVEL
-
-    # Check user NL (level 4)
-    if nl_info is None:
-        user_commands = user_commands_dir()
-        if user_commands.exists():
-            nl_info = _find_nl_at(user_commands, name, name_underscored, is_bundled=False)
-            if nl_info is not None:
-                nl_level = _USER_NL_LEVEL
-
-    # Check bundled NL (level 6)
-    if nl_info is None:
-        bundled_commands = bundled_commands_dir()
-        nl_info = _find_nl_at(bundled_commands, name, name_underscored, is_bundled=True)
-        if nl_info is not None:
-            nl_level = _BUNDLED_NL_LEVEL
-
-    # No NL found - script doesn't exist
-    if nl_info is None or nl_level is None:
+    nl_match = _find_highest_precedence(_NL_SCRIPT_LEVELS, name)
+    if nl_match is None:
         return None
 
-    # Step 2: Find compiled at same level or higher than NL
-    compiled_info: ScriptInfo | None = None
+    # Slice to nl_match.found_index+1: compiled must be at same or higher precedence than NL.
+    levels = _COMPILED_SCRIPT_LEVELS[: nl_match.found_index + 1]
+    compiled_match = _find_highest_precedence(levels, name)
 
-    # Check local compiled (level 1) - only if NL level >= 1 (always true if local NL found)
-    if base_dir is not None and _LOCAL_COMPILED_LEVEL <= nl_level:
-        scripts_path = base_dir / ".mekara" / "scripts" / "compiled"
-        compiled_info = _find_compiled_at(scripts_path, name, name_underscored, is_bundled=False)
-
-    # Check user compiled (level 3) - only if NL level >= 3
-    if compiled_info is None and _USER_COMPILED_LEVEL <= nl_level:
-        user_scripts = user_scripts_dir()
-        if user_scripts.exists():
-            compiled_info = _find_compiled_at(
-                user_scripts, name, name_underscored, is_bundled=False
-            )
-
-    # Check bundled compiled (level 5) - only if NL level >= 5
-    if compiled_info is None and _BUNDLED_COMPILED_LEVEL <= nl_level:
-        bundled_scripts = bundled_scripts_dir()
-        compiled_info = _find_compiled_at(bundled_scripts, name, name_underscored, is_bundled=True)
-
-    # Build canonical name with colons for path separators, preserving hyphens
-    canonical_name = name.replace("/", ":")
+    nl_info = ScriptInfo(
+        path=nl_match.path,
+        is_bundled=nl_match.path.is_relative_to(_BUNDLED_BASE),
+    )
+    compiled_info = (
+        ScriptInfo(
+            path=compiled_match.path,
+            is_bundled=compiled_match.path.is_relative_to(_BUNDLED_BASE),
+        )
+        if compiled_match is not None
+        else None
+    )
 
     return ResolvedTarget(
         compiled=compiled_info,
         nl=nl_info,
-        name=canonical_name,
+        name=name.replace("/", ":"),
     )
 
 
-def _find_compiled_at(
-    scripts_path: Path,
-    name: str,
-    name_underscored: str,
-    *,
-    is_bundled: bool,
-) -> ScriptInfo | None:
-    """Find a compiled Python script in the given directory.
-
-    Tries the exact name first, then the underscore version.
-    """
-    # Try exact match first
-    script_file = scripts_path / f"{name}.py"
-    if script_file.exists():
-        return ScriptInfo(path=script_file, is_bundled=is_bundled)
-
-    # Try underscore version
-    script_file_underscored = scripts_path / f"{name_underscored}.py"
-    if script_file_underscored.exists():
-        return ScriptInfo(path=script_file_underscored, is_bundled=is_bundled)
-
-    return None
-
-
-def _find_nl_at(
-    commands_path: Path,
-    name: str,
-    name_underscored: str,
-    *,
-    is_bundled: bool,
-) -> ScriptInfo | None:
-    """Find a natural-language markdown command in the given directory.
-
-    Tries the exact name first, then the underscore version.
-    """
-    # Try exact match first
-    command_file = commands_path / f"{name}.md"
-    if command_file.exists():
-        return ScriptInfo(path=command_file, is_bundled=is_bundled)
-
-    # Try underscore version
-    command_file_underscored = commands_path / f"{name_underscored}.md"
-    if command_file_underscored.exists():
-        return ScriptInfo(path=command_file_underscored, is_bundled=is_bundled)
-
-    return None
-
-
-def list_all_commands(base_dir: Path | None = None) -> list[str]:
-    """List all available command names from all sources.
-
-    Returns command names in slash-command format (e.g., "systematize", "test/nested").
-    Includes commands from local project, user home, and bundled sources.
+def _find_highest_precedence(
+    levels: list[SearchLevel],
+    filename: str,
+) -> Match | None:
+    """Find a file at the first matching level in precedence order.
 
     Args:
-        base_dir: Project root directory (if None, only user and bundled commands
-            are included).
+        levels: List of SearchLevel in precedence order (first = highest).
+        filename: Script name without suffix; hyphens tried first, underscores as fallback.
 
     Returns:
-        Sorted list of unique command names.
+        Match with index and path if found, or None.
     """
-    commands: set[str] = set()
-
-    def add_from_dir(dir_path: Path, suffix: str) -> None:
-        """Extract command names from a directory."""
-        if not dir_path.exists():
-            return
-        for file_path in dir_path.rglob(f"*{suffix}"):
-            # Get relative path from base
-            relative = file_path.relative_to(dir_path)
-            # Convert to command name (remove suffix, use forward slashes)
-            name = str(relative.with_suffix("")).replace("\\", "/")
-            # Convert underscores to hyphens for consistency
-            name = name.replace("_", "-")
-            commands.add(name)
-
-    # Local project (if in a project)
-    if base_dir is not None:
-        add_from_dir(base_dir / ".mekara" / "scripts" / "compiled", ".py")
-        add_from_dir(base_dir / ".mekara" / "scripts" / "nl", ".md")
-
-    # User-installed
-    add_from_dir(user_scripts_dir(), ".py")
-    add_from_dir(user_commands_dir(), ".md")
-
-    # Bundled
-    add_from_dir(bundled_scripts_dir(), ".py")
-    add_from_dir(bundled_commands_dir(), ".md")
-
-    return sorted(commands)
+    for i, level in enumerate(levels):
+        exact = level.directory / f"{filename}{level.extension}"
+        if exact.exists():
+            return Match(found_index=i, path=exact)
+        underscored = level.directory / f"{filename.replace('-', '_')}{level.extension}"
+        if underscored.exists():
+            return Match(found_index=i, path=underscored)
+    return None

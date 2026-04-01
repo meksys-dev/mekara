@@ -13,6 +13,7 @@ mekara provides these CLI commands:
 | Command                   | Purpose                                             |
 | ------------------------- | --------------------------------------------------- |
 | `mekara`                  | Show help text                                      |
+| `mekara --version` / `-V` | Show installed version                              |
 | `mekara mcp`              | Start the MCP server                                |
 | `mekara install`          | Install both hooks and commands                     |
 | `mekara install hooks`    | Set up MCP server and hook integration              |

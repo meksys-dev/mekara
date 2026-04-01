@@ -10,7 +10,14 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from mekara.utils.project import bundled_standards_dir, user_standards_dir
+from mekara.scripting.resolution import (
+    _LEVEL_DIRS,
+    SearchLevel,
+    _find_highest_precedence,
+)
+
+# Derived from _LEVEL_DIRS, same as NL/compiled level lists but for standards.
+_STANDARDS_LEVELS: list[SearchLevel] = [SearchLevel(d / "standards", ".md") for d in _LEVEL_DIRS]
 
 
 def get_mekara_version() -> str:
@@ -38,45 +45,25 @@ def get_mekara_version() -> str:
     return "unknown"
 
 
-def resolve_standard(name: str, base_dir: Path | None = None) -> Path | None:
+def resolve_standard(name: str) -> Path | None:
     """Resolve a standard name to its file path.
 
     Searches for the standard in the following order:
-    1. Local: <base_dir>/.mekara/standards/<name>.md
+    1. Local: <project_root>/.mekara/standards/<name>.md
     2. User: ~/.mekara/standards/<name>.md
     3. Bundled: package bundled/standards/<name>.md
 
     Args:
         name: The standard name (e.g., "command" for command.md)
-        base_dir: Project base directory for local standards lookup.
-            If None, skips local lookup.
 
     Returns:
         Path to the standard file, or None if not found.
     """
-    candidates: list[Path] = []
-
-    # 1. Local project standards
-    if base_dir is not None:
-        local_path = base_dir / ".mekara" / "standards" / f"{name}.md"
-        candidates.append(local_path)
-
-    # 2. User standards
-    user_path = user_standards_dir() / f"{name}.md"
-    candidates.append(user_path)
-
-    # 3. Bundled standards
-    bundled_path = bundled_standards_dir() / f"{name}.md"
-    candidates.append(bundled_path)
-
-    for path in candidates:
-        if path.exists():
-            return path
-
-    return None
+    result = _find_highest_precedence(_STANDARDS_LEVELS, name)
+    return result.path if result is not None else None
 
 
-def load_standard(name: str, base_dir: Path | None = None) -> str | None:
+def load_standard(name: str) -> str | None:
     """Load a standard's content with version substitution.
 
     Resolves the standard name to a file, reads its content, and substitutes
@@ -84,12 +71,11 @@ def load_standard(name: str, base_dir: Path | None = None) -> str | None:
 
     Args:
         name: The standard name (e.g., "command")
-        base_dir: Project base directory for local standards lookup.
 
     Returns:
         The standard content with {{VERSION}} substituted, or None if not found.
     """
-    path = resolve_standard(name, base_dir)
+    path = resolve_standard(name)
     if path is None:
         return None
 

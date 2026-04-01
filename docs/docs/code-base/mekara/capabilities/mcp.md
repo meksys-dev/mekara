@@ -101,7 +101,7 @@ This design ensures nested NL scripts work correctly—when another script is pu
 
 For compiled scripts, the executor shows the original NL source once per script: the first time the script requires LLM interaction (an `llm` step or an exception fallback). The source is loaded from the resolved target and the first `$ARGUMENTS` is substituted, then the frame is marked as having shown context so it isn't repeated.
 
-If an auto step raises an exception, the executor wraps it in an `AutoException`, records it in the executed step list, and places the compiled frame into fallback mode. The pending state becomes `PendingNLFallback`, which includes the exception details and the original NL source so the LLM can complete the task manually. Completion uses `finish_nl_script()`, which pops the failed compiled frame and returns a `ScriptCallResult` with `success=False` and the exception populated.
+If an auto step raises an exception, the executor wraps it in an `AutoException`, records it in the executed step list, and places the compiled frame into fallback mode. The pending state becomes `PendingNLFallback`, which includes the exception details and the original NL source so the LLM can complete the task manually. Completion uses `finish_nl_script()`, which pops the failed compiled frame. If there is a parent frame with a `CallScript` as its current step, the parent is **halted** with an error `PendingLlmStep` (not advanced) — the same behavior as any other nested script failure.
 
 :::warning[Duplicate Instruction Pitfall]
 NL commands use different wording for the completion instruction: "When you have completed this **command**" (not "step"), because the LLM must complete the entire command, not just one step within it. The executor adds this instruction to the `Llm` step's prompt.
@@ -156,9 +156,29 @@ If VCR tests fail with `ValueError: VCR replay event mismatch. Expected McpToolO
 
 Claude Code represents nested commands like `/test/random` as `test:random` internally. The hook and MCP server normalize colons to slashes for filesystem lookup, but `ResolvedTarget.name` uses the canonical colon format (e.g., `test:nested`) for display in execution history and stack traces.
 
+### LLM Control Flow Warning
+
+The `start()` response always begins with a FUNDAMENTAL PRINCIPLE message:
+
+> ⚠️ **FUNDAMENTAL PRINCIPLE**: You called `mcp__mekara__start` — that means surrendering control to the mekara script runner entirely. The script runner owns ALL control flow. Every step, including manually-executed NL scripts, must advance through the script runner. You MUST NOT continue manually after any step — always call the appropriate continuation tool (`finish_nl_script` or `continue_compiled_script`).
+
+and `PendingNLScript` responses include a CRITICAL notice:
+
+> ⚠️ **CRITICAL**: Even though you execute this set of instructions manually, overall control flow is still managed by the script runner. You MUST call `finish_nl_script` when done with _this_ script — do NOT continue with remaining parts of the parent script on your own. All script execution must go through the script runner.
+
+:::warning[Why this is necessary]
+Without these warnings, LLMs sometimes make the following mistake: they receive NL script instructions (e.g., from `/merge-main` as a nested step), follow the instructions manually, and then **continue executing the parent script's remaining steps themselves** — never calling `finish_nl_script`. This abandons the script runner mid-execution.
+:::
+
 ### Error Handling
 
-All errors drop back to LLM. When an auto step fails, the executor creates an error-handling llm step with details about the failure.
+All failures halt the current (or parent) frame with an error `PendingLlmStep` via `_halt_frame_with_error()`. Three failure types use this path:
+
+- **Auto step failure** (non-zero exit code or error): halts the current frame with the step name, command, and error detail
+- **Script load failure** (`ScriptLoadError`): the parent frame is halted with the script name and load error
+- **Nested script exception fallback**: after `finish_nl_script()` completes the fallback, the parent frame is halted with the nested script name and exception
+
+In all cases, the halted frame's `current_step` is replaced with the error `Llm` step, which becomes `pending` and is surfaced to the LLM to handle.
 
 ### State Management
 
@@ -191,7 +211,7 @@ When `start()` is called while a script is already running:
 
 When a nested script completes, the executor checks the parent frame's `current_step` to determine whether the invocation was automatic or manual. Automatic invocation (via `CallScript`) results in automatic advancement of the parent's execution frame; manual invocation (via `Llm` or NL script step) requires manual advancement.
 
-The server is VCR-agnostic—it receives an `AutoExecutorProtocol` at construction time and doesn't know whether it's a `RealAutoExecutor` or `VcrAutoExecutor`. For VCR testing, `VcrMekaraServer` wraps `MekaraServer` and records/replays MCP tool inputs and outputs at the boundary.
+The server is VCR-agnostic—it receives an `AutoExecutorProtocol` at construction time and doesn't know whether it's a `AutoExecutor` or `VcrAutoExecutor`. For VCR testing, `VcrMekaraServer` wraps `MekaraServer` and records/replays MCP tool inputs and outputs at the boundary.
 
 `run_server()` checks for the `MEKARA_VCR_CASSETTE` environment variable. When set, it creates a `VcrMekaraServer` in record mode instead of a plain `MekaraServer`. This enables recording cassettes when running Claude Code with the MCP server (e.g., `MEKARA_VCR_CASSETTE=path.yaml claude`).
 

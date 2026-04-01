@@ -103,7 +103,7 @@ The MCP server (`src/mekara/mcp/server.py`) exposes four tools:
 
 Auto steps are executed through `AutoExecutorProtocol`:
 
-- `RealAutoExecutor` (`src/mekara/scripting/auto.py`) - Live execution
+- `AutoExecutor` (`src/mekara/scripting/auto.py`) - Live execution
 - `VcrAutoExecutor` (`src/mekara/vcr/auto_executor.py`) - Replay from cassette
 
 Auto steps stream output as they run, yielding `OutputChunk` events with timestamps.
@@ -128,7 +128,7 @@ src/mekara/
 ├── scripting/                 # Script primitives and execution
 │   ├── resolution.py          # Script/command resolution
 │   ├── runtime.py             # Script primitives (auto, llm, call_script)
-│   ├── auto.py                # Auto executor (RealAutoExecutor)
+│   ├── auto.py                # Auto executor (AutoExecutor)
 │   ├── loading.py             # Script loading
 │   └── nl.py                  # Natural language command prompts
 ├── utils/                     # Utility modules

@@ -23,6 +23,12 @@ When `mekara install commands` copies bundled scripts to `~/.mekara/scripts/nl/`
 - Standards are installed to `~/.mekara/standards/`
 - `@standard:name` references in commands are replaced with `@~/.mekara/standards/name.md` so Claude Code's `@` file reference mechanism can resolve them directly
 
+### Bundled Compiled Scripts
+
+For scripts listed on this page, the bundled compiled file may intentionally differ from `.mekara/scripts/compiled/` because the bundled NL source is intentionally generalized. In those bundled compiled files, the `Source:` line should point at `src/mekara/bundled/scripts/nl/...`.
+
+If a bundled NL script is _not_ intentionally generalized (i.e. it's not present on this page), the bundled compiled script should stay exactly aligned with the canonical source script, including the `Source:` line.
+
 ## Individual Scripts
 
 ### start.md

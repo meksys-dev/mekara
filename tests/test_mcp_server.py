@@ -6,6 +6,7 @@ via the start command.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any, Generator
 
@@ -14,10 +15,11 @@ import pytest
 from mekara.mcp.executor import (
     McpScriptExecutor,
     PendingLlmStep,
+    PendingNLFallback,
 )
 from mekara.mcp.server import MekaraServer
-from mekara.scripting.auto import RealAutoExecutor
-from mekara.scripting.runtime import Auto, CallScript, Llm, auto, llm
+from mekara.scripting.auto import AutoExecutionError, AutoExecutionResult, AutoExecutor
+from mekara.scripting.runtime import Auto, CallScript, Llm, auto, call_script, llm
 from tests.utils import ScriptLoaderStub
 
 
@@ -56,7 +58,7 @@ class TestMcpScriptExecutorPushScript:
                 "child": script_with_auto_only,
             },
         ).apply()
-        executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
         executor.push_script("parent", "", tmp_path)
 
         # Initial state: stack has one frame
@@ -89,7 +91,7 @@ class TestMcpScriptExecutorPushScript:
                 "child": script_with_auto_only,
             },
         ).apply()
-        executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
         executor.push_script("parent", "", tmp_path)
 
         # Run until we hit the parent's llm step
@@ -124,7 +126,7 @@ class TestMcpScriptExecutorPushScript:
                 "child": script_with_two_llm_steps,
             },
         ).apply()
-        executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
         executor.push_script("parent", "", tmp_path)
 
         # Run until we hit the parent's llm step
@@ -167,17 +169,15 @@ class TestMekaraServerNestedStart:
     async def test_start_while_script_running_pushes_to_stack(self, tmp_path: Path) -> None:
         """Calling start while a script is running should push onto stack, not replace."""
         from mekara.scripting.resolution import resolve_target
-        from mekara.utils.project import find_project_root
 
-        base_dir = find_project_root()
-        target = resolve_target("test/random", base_dir=base_dir)
+        target = resolve_target("test/random")
         assert target is not None, "test/random script not found"
 
         # Create server with a custom executor for the first script
         server = MekaraServer(working_dir=tmp_path)
 
         # Manually set up an executor in a pending llm state
-        server.executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        server.executor = McpScriptExecutor(tmp_path, AutoExecutor())
         server.executor.push_script(target.name, "", tmp_path)
 
         # Run until llm step
@@ -213,10 +213,8 @@ class TestMekaraServerNestedStart:
     ) -> None:
         """Parent script state should be preserved when nested script is pushed."""
         from mekara.scripting.resolution import resolve_target
-        from mekara.utils.project import find_project_root
 
-        base_dir = find_project_root()
-        target = resolve_target("test/random", base_dir=base_dir)
+        target = resolve_target("test/random")
         assert target is not None
 
         server = MekaraServer(working_dir=tmp_path)
@@ -229,7 +227,7 @@ class TestMekaraServerNestedStart:
                 "parent_script": script_with_llm_step,
             },
         ).apply()
-        server.executor = McpScriptExecutor(tmp_path, RealAutoExecutor())
+        server.executor = McpScriptExecutor(tmp_path, AutoExecutor())
         server.executor.push_script("parent_script", "", tmp_path)
 
         # Run until llm step
@@ -245,3 +243,104 @@ class TestMekaraServerNestedStart:
         # Stack path should show both scripts
         stack_path = server.executor.get_stack_path()
         assert "parent_script" in stack_path
+
+
+# --- Scripts for failure-handling tests ---
+
+
+def parent_calls_missing(
+    _request: str,
+) -> Generator[Auto | Llm | CallScript, Any, Any]:
+    """Parent script that calls a nonexistent nested script, then has a followup step."""
+    yield call_script("nonexistent_script")
+    yield llm("This should never be reached")
+
+
+def parent_calls_child(
+    _request: str,
+) -> Generator[Auto | Llm | CallScript, Any, Any]:
+    """Parent script that calls a child script, then has a followup step."""
+    yield call_script("child")
+    yield llm("This should never be reached after child failure")
+
+
+def child_with_auto_step(
+    _request: str,
+) -> Generator[Auto | Llm | CallScript, Any, Any]:
+    """Child script with an auto step."""
+    yield auto("echo hello", context="Child step")
+
+
+class FailingAutoExecutor:
+    """Auto executor that raises AutoExecutionError for all steps."""
+
+    async def execute(self, step: Auto, *, working_dir: Path) -> AsyncIterator[AutoExecutionResult]:
+        raise AutoExecutionError(RuntimeError("something broke"), output="partial output")
+        yield  # pragma: no cover — make this an async generator
+
+
+class TestNestedScriptFailureHaltsParent:
+    """Tests that nested script failures halt the parent instead of advancing."""
+
+    @pytest.mark.asyncio
+    async def test_call_script_to_missing_script_halts_parent(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """call_script to a missing script should halt the parent with PendingLlmStep."""
+        ScriptLoaderStub(
+            monkeypatch,
+            tmp_path,
+            {
+                "parent": parent_calls_missing,
+                # "nonexistent_script" is deliberately NOT registered
+            },
+        ).apply()
+
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
+        executor.push_script("parent", "", tmp_path)
+
+        result = await executor.run_until_llm()
+
+        # Parent should be halted with an error LLM step, NOT advanced to next step
+        assert isinstance(result.pending, PendingLlmStep)
+        assert "failed" in result.pending.step.prompt.lower()
+        assert "nonexistent_script" in result.pending.step.prompt
+        # The prompt should NOT be the next step's prompt
+        assert "This should never be reached" not in result.pending.step.prompt
+
+    @pytest.mark.asyncio
+    async def test_nested_script_auto_exception_halts_parent(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Compiled nested script that fails (auto exception) should halt parent."""
+        ScriptLoaderStub(
+            monkeypatch,
+            tmp_path,
+            {
+                "parent": parent_calls_child,
+                "child": child_with_auto_step,
+            },
+        ).apply()
+
+        # Use FailingAutoExecutor so the child's auto step raises AutoExecutionError
+        executor = McpScriptExecutor(tmp_path, FailingAutoExecutor())
+        executor.push_script("parent", "", tmp_path)
+
+        # Run — child's auto step raises AutoExecutionError → PendingNLFallback
+        result = await executor.run_until_llm()
+
+        # Child should have hit an auto exception → PendingNLFallback
+        assert isinstance(result.pending, PendingNLFallback)
+        assert result.pending.script_name == "child"
+
+        # User completes the NL fallback
+        executor.complete_nl_script()
+
+        # Now run again — parent should be halted with an error, NOT advanced
+        result2 = await executor.run_until_llm()
+
+        assert isinstance(result2.pending, PendingLlmStep)
+        assert "failed" in result2.pending.step.prompt.lower()
+        assert "child" in result2.pending.step.prompt
+        # The prompt should NOT be the next step's prompt
+        assert "This should never be reached" not in result2.pending.step.prompt

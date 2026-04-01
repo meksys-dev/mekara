@@ -4,7 +4,7 @@ Analyze a branch to identify independently extractable changes that can be split
 
 ## Process
 
-### Step 1: Gather Information
+### Step 0: Gather Information
 
 Gather the following information from the user-provided context:
 - Which branch should be analyzed (check with `git branch --show-current`)
@@ -14,7 +14,7 @@ If the branch is clear from context, proceed. If the main feature is clear from 
 
 **Always verify your understanding of the main feature with the user before proceeding with categorization.**
 
-### Step 2: Get Comprehensive Commit History
+### Step 1: Get Comprehensive Commit History
 
 ```bash
 git log main..HEAD --oneline
@@ -26,7 +26,7 @@ Review all commits to understand:
 - What documentation/tooling improvements were added
 - The chronological order of changes
 
-### Step 3: Check What's Already Been Merged to Main
+### Step 2: Check What's Already Been Merged to Main
 
 If the branch has merge commits FROM main (e.g., `Merge remote-tracking branch 'origin/main' into ...`), examine what came in via those merges. Changes that were developed on this branch but already merged to main via a separate PR are **not extractable**—they're already extracted!
 
@@ -45,7 +45,7 @@ git log main --oneline -20
 
 This prevents recommending extractions for changes that have already been merged, and ensures you don't propose changes that would override refinements made after merging to main.
 
-### Step 4: Examine Detailed Changes
+### Step 3: Examine Detailed Changes
 
 ```bash
 git log main..HEAD --stat
@@ -57,7 +57,7 @@ Identify all distinct concerns/changes in the branch:
 - What documentation/tooling improvements were added
 - Which changes touch which parts of the codebase
 
-### Step 5: Categorize Concerns by Independence
+### Step 4: Categorize Concerns by Independence
 
 Group concerns (not commits) into categories based on extractability:
 
@@ -81,7 +81,7 @@ Group concerns (not commits) into categories based on extractability:
 - Any code/config that only makes sense with the main feature
 - Stays in the original branch
 
-### Step 6: Verify Independence for Each Candidate
+### Step 5: Verify Independence for Each Candidate
 
 For each potential extraction (Categories A & B), verify:
 
@@ -101,7 +101,7 @@ For each potential extraction (Categories A & B), verify:
 - Or would it require surgical extraction because it's intertwined with other changes?
 - The ease of extraction is about feasibility, not about whether to extract
 
-### Step 7: Present Extraction Plan
+### Step 6: Present Extraction Plan
 
 For each extraction candidate, provide:
 
@@ -128,7 +128,7 @@ For each extraction candidate, provide:
 ```
 The format must be `/extract-pr <descr>\n...` so users can copy the entire block directly.
 
-### Step 8: Recommend Extraction Order (only if dependencies exist)
+### Step 7: Recommend Extraction Order (only if dependencies exist)
 
 If one extraction is a prerequisite for another (e.g., Extraction A is a refactor that Extraction B's code depends on), recommend landing A before B and explain the dependency. In general, B is dependent on A if and only if it simplifies things greatly to extract B after A.
 
@@ -154,7 +154,7 @@ For each extraction, verify:
 
 **7. Consider review complexity**: Smaller, focused PRs are easier to review and merge. If a large feature branch can be split into 2-3 clean PRs, that's often worth doing.
 
-## Common Patterns
+### Common Patterns
 
 **Pattern: State Management Refactor**
 - Branch adds feature requiring better state management

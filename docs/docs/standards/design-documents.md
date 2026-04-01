@@ -16,6 +16,12 @@ Design documents define _what should be built_ and _how it should be built_, but
 If a user asks you to follow a design workflow (for example, `/plan-design-doc` or `/plan-refactor`), produce the design artifact according to the structure below, and then **stop**.
 :::
 
+:::note[Design Docs vs. Specs]
+Design documents describe _transitions_ — how to get from state A to state B. They become obsolete once the work is done.
+
+[Specifications](./specs.md) describe _steady state_ — what a system looks like when it's done. They are living documents that stay current as the system evolves.
+:::
+
 ## Standard Structure
 
 A design document should consist of a short descriptive title, followed by the following sections:

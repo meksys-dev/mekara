@@ -10,17 +10,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import Enum
 from pathlib import Path
 from typing import Any
-
-
-class ActionType(Enum):
-    """Type of auto action."""
-
-    SHELL = "shell"
-    CALL = "call"
-
 
 # --- Auto actions ---
 
@@ -105,14 +96,6 @@ class Auto:
     context: str  # Context explaining WHY this step runs (verbatim from source)
 
     @property
-    def action_type(self) -> ActionType:
-        """The type of action."""
-        if isinstance(self.action, ShellAction):
-            return ActionType.SHELL
-        else:
-            return ActionType.CALL
-
-    @property
     def description(self) -> str:
         """Human-readable description of the action."""
         if isinstance(self.action, ShellAction):
@@ -185,9 +168,6 @@ class ScriptCallResult:
     """Result of a call_script step."""
 
     success: bool
-    summary: str
-    aborted: bool
-    steps_executed: int
     exception: Exception | None = None
 
 
