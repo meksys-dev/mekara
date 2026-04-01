@@ -37,7 +37,7 @@ def execute(request: str):
         "the user for what we're actually going to be doing.\n\n"
         "Save the ENTIRE user response verbatim (do NOT paraphrase, summarize, "
         'or extract what you think is the "core request") in a variable to use '
-        "in step 8. "
+        "in step 3. "
         'When you ask "what would you like to work on?" and the user responds '
         "with ANY text (including error messages, permission dialogs, stack "
         "traces, code snippets, or any other context), save ALL of it "
