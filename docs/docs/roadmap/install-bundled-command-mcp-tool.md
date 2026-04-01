@@ -7,12 +7,12 @@ sidebar_label: "write_bundled_command MCP Tool"
 
 ## Introduction
 
-The `install-customized-command` bundled script needs to read the source of a bundled command so the agent can customize it for a target repo. Currently the hook system can inject and execute bundled commands, but there's no way for the agent to get a bundled command's source written to disk for editing. The agent needs to work with real files, not reproduce content from memory.
+The `/customize` command needs to read the source of a bundled command so the agent can customize it for a target repo. Currently the hook system can inject and execute bundled commands, but there's no way for the agent to get a bundled command's source written to disk for editing. The agent needs to work with real files, not reproduce content from memory.
 
 ## Objectives
 
 1. Add an `write_bundled_command` MCP tool that writes a bundled command's NL source (and compiled `.py` if one exists) to the local `.mekara/scripts/` directory
-2. Update `install-customized-command.md` to instruct the agent to use this tool
+2. Update `customize.md` to instruct the agent to use this tool
 3. Register the tool in setup-mekara-mcp permissions
 
 ## Architecture
@@ -118,11 +118,11 @@ mcp.tool()(server.write_bundled_command)
 
 ### Script update
 
-**File:** `.mekara/scripts/nl/install-customized-command.md` — update Step 1 to instruct the agent to call the MCP tool:
+**File:** `.mekara/scripts/nl/customize.md` — instructs the agent to call the MCP tool in Step 1:
 
 > Call `mcp__mekara__write_bundled_command` with the command name to write the bundled source to `.mekara/scripts/nl/`. Then read the written file to understand the bundled command's structure before customizing it.
 
-Also update Step 0 to clarify that the agent should determine the command name first, then use the MCP tool.
+The script also documents the full customization workflow for agents. See [Customizing Bundled Commands](../usage/customizing-bundled-commands.md) for the user-facing documentation.
 
 ## Implementation Plan
 
@@ -140,12 +140,12 @@ Also update Step 0 to clarify that the agent should determine the command name f
 
 ### Phase 2: Update scripts and permissions
 
-**Goal:** Wire the tool into the install-customized-command workflow and permissions
+**Goal:** Wire the tool into the customize workflow and permissions
 
-**Note:** `install-customized-command.md` is currently an unstaged file. The `sync_nl.py` pre-commit hook will automatically sync it to `src/mekara/bundled/scripts/nl/` when committed.
+**Note:** `customize.md` is currently an unstaged file. The `sync_nl.py` pre-commit hook will automatically sync it to `src/mekara/bundled/scripts/nl/` when committed.
 
 **Tasks:**
 
-- [ ] Update `.mekara/scripts/nl/install-customized-command.md` to reference the MCP tool in Steps 0-1
+- [x] Update `.mekara/scripts/nl/customize.md` to reference the MCP tool in Step 1
 - [ ] Add `mcp__mekara__write_bundled_command` to permissions in `.mekara/scripts/nl/ai-tooling/setup-mekara-mcp.md`
 - [ ] Run `/mekara:generalize-bundled-script` on `ai-tooling/setup-mekara-mcp`

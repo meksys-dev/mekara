@@ -1,4 +1,4 @@
-Install a customized version of a bundled Mekara command so it matches this repository's actual structure, workflows, and conventions. Start from the generic bundled command, preserve its general method, and create a repo-local override with only the customizations this repository actually needs.
+Customize a bundled mekara command so it matches this repository's actual structure, workflows, and conventions. Start from the generic bundled command, preserve its method, and create a repo-local override with only the customizations this repository actually needs.
 
 <UserContext>$ARGUMENTS</UserContext>
 
@@ -10,9 +10,15 @@ Gather from the user-provided context which bundled command to customize.
 
 If the local override location is already obvious from the repository, use that default. If the command name or target location is unclear, ask the user.
 
-### Step 1: Read bundled and local guidance
+### Step 1: Fetch bundled command source
 
-Read the bundled command and any repository-local standards, workflow docs, or existing command or skill files that show how this repository differs from the generic Mekara defaults.
+Call `mcp__mekara__write_bundled_command` with the command name to write the bundled source to `.mekara/scripts/nl/`.
+
+Then read the written file to understand the bundled command's structure.
+
+### Step 2: Read repository guidance
+
+Read the repository-local standards, workflow docs, or existing command files that show how this repository differs from the generic mekara defaults.
 
 Focus on:
 
@@ -22,7 +28,7 @@ Focus on:
 - local toolchain assumptions
 - prior examples of customized commands or skills in this repository
 
-### Step 2: Identify repo customizations
+### Step 3: Identify repo customizations
 
 Compare the bundled command's generic assumptions against the actual repository.
 
@@ -32,17 +38,17 @@ Determine what should be customized for this repository, such as:
 - references to local standards or guidance files
 - repository-specific workflow steps
 - local documentation expectations
-- defaults that are obvious in this repository but not in generic Mekara projects
+- defaults that are obvious in this repository but not in generic mekara projects
 
 Do not change the underlying method unless the repository actually requires it.
 
-### Step 3: Write local override
+### Step 4: Customize the command
 
-Create the repo-local override using the repository's actual command or skill location.
+Edit the command file (already at `.mekara/scripts/nl/<name>.md`) with repo-specific customizations.
 
-Preserve the bundled command's general process, but replace generic assumptions with repo-specific ones where appropriate. Remove internal Mekara-repo assumptions that do not apply in the target repository instead of carrying them over into the local override.
+Preserve the bundled command's general process, but replace generic assumptions with repo-specific ones where appropriate. Remove internal mekara-repo assumptions that do not apply in the target repository instead of carrying them over into the local override.
 
-### Step 4: Verify repository fit
+### Step 5: Verify repository fit
 
 Read the customized version as if you were using it fresh in this repository.
 
@@ -54,7 +60,7 @@ Check that:
 - nothing remains that assumes Mekara's internal repository layout when that layout is absent here
 - no invented docs, paths, or workflow structure were introduced during customization
 
-### Step 5: Offer convention docs
+### Step 6: Offer convention docs
 
 Gather any repository-specific conventions you had to infer during customization that do not already appear to be documented anywhere obvious in the repository.
 

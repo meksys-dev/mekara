@@ -96,12 +96,7 @@ After installation, restart Claude Code (or reload the project) and you can run 
 
 ### MCP Server
 
-The mekara MCP server provides four tools that Claude can use:
-
-- `mcp__mekara__start` — Start executing a mekara script
-- `mcp__mekara__continue_compiled_script` — Continue compiled script execution after an llm step (pass `{}` if no outputs)
-- `mcp__mekara__finish_nl_script` — Signal completion of a natural language script
-- `mcp__mekara__status` — Check the current script execution status
+See [mekara mcp](./mcp.md) for details about the MCP server and the tools it provides.
 
 ### Hooks
 

@@ -2,6 +2,8 @@
 sidebar_position: 2
 ---
 
+import McpTools from '@site/docs/code-base/mekara/\_mcp-tools.md';
+
 # mekara mcp
 
 Run mekara as an MCP (Model Context Protocol) server for Claude Code integration.
@@ -16,12 +18,9 @@ mekara mcp
 
 Starts mekara as an MCP server that provides script execution tools to Claude Code. This command is typically not invoked directly by users—instead, it's configured in `~/.claude.json` so Claude Code launches it automatically.
 
-The MCP server provides four tools:
+For project-level customization workflows, see [Customizing Bundled Commands](../customizing-bundled-commands.md).
 
-- `mcp__mekara__start` — Start executing a mekara script
-- `mcp__mekara__continue_compiled_script` — Continue compiled script execution after an llm step
-- `mcp__mekara__finish_nl_script` — Signal completion of a natural language script
-- `mcp__mekara__status` — Check the current script execution status
+<McpTools />
 
 ## Configuration
 

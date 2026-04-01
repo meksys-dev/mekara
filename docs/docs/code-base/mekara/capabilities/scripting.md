@@ -54,7 +54,9 @@ Scripts execute via the MCP server (`src/mekara/mcp/server.py`):
 8. **Server resumes script** and runs more auto steps
 9. **Repeat** until script completes
 
-### MCP Tools
+### MCP Scripting Tools
+
+See [mekara mcp](../../../usage/commands/mcp.md) for the complete list of available MCP tools. The primary script execution tools are:
 
 | Tool                       | Purpose                                                    |
 | -------------------------- | ---------------------------------------------------------- |
