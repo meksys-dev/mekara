@@ -1,5 +1,5 @@
 initial_state:
-  working_dir: /Users/amos/Documents/real/Projects/Meksys/mek/major-refactoring
+  working_dir: /Users/amos/Documents/real/Meksys/Projects/mekara/standardize-nl-scripts
 events:
 - type: mcp_tool_input
   tool: start
@@ -8,7 +8,7 @@ events:
     arguments: ''
     working_dir: null
 - type: auto_step
-  working_dir: /Users/amos/Documents/real/Projects/Meksys/mek/major-refactoring
+  working_dir: /Users/amos/Documents/real/Meksys/Projects/mekara/standardize-nl-scripts
   inputs:
     action_type: shell
     action: shuf -i 1-100 -n 1
@@ -18,7 +18,7 @@ events:
     success: true
     exit_code: 0
     output: |
-      64
+      43
 - type: mcp_tool_output
   tool: start
   output: |-
@@ -27,14 +27,14 @@ events:
     - `test:random[0]`: ✓ `shuf -i 1-100 -n 1`
   
       <output>
-      64
+      43
       </output>
   
     ## LLM Step in `test:random` (step 1)
   
     **Stack:** `test:nested[0] > test:random[1]`
   
-    Have user guess the number. Do **NOT** guess a number on behalf of the user; you **MUST** ask the user for this number.
+    Ask the user to guess the number. Do **NOT** guess a number on behalf of the user; you **MUST** ask the user for this number.
   
     ### Expected outputs:
     - `guess`: the user's guessed number as an integer
@@ -46,11 +46,12 @@ events:
     outputs:
       guess: 99
 - type: auto_step
-  working_dir: /Users/amos/Documents/real/Projects/Meksys/mek/major-refactoring
+  working_dir: /Users/amos/Documents/real/Meksys/Projects/mekara/standardize-nl-scripts
   inputs:
     action_type: call
     action: _print_message
-    context: If the user guessed the wrong number, print out "You got it wrong!"
+    context: If the user guessed the right number, print out "You got it right!"; otherwise,
+      print out "You got it wrong!"
     kwargs:
       message: You got it wrong!
   result:
@@ -74,7 +75,7 @@ events:
   
     **Stack:** `test:nested[0] > test:random[3]`
   
-    If they lost, give them a choice insult
+    If they lost, give them a choice insult.
   
     When you have completed this step, call `continue_compiled_script` (no outputs needed).
 - type: mcp_tool_input
@@ -99,7 +100,7 @@ events:
   tool: continue_compiled_script
   input:
     outputs:
-      difference: 35
+      difference: 56
 - type: auto_step
   working_dir: /tmp
   inputs:
@@ -107,18 +108,18 @@ events:
     action: _double_or_nothing
     context: Decide randomly to either double this number or return zero.
     kwargs:
-      number: 35.0
+      number: 56.0
   result:
     type: call
     success: true
-    value: 70.0
+    value: 0
     error: null
     output: ''
 - type: auto_step
   working_dir: /tmp
   inputs:
     action_type: shell
-    action: echo 70.0 > resulting-number.txt
+    action: echo 0 > resulting-number.txt
     context: Write the result to a file called `resulting-number.txt` in the current
       directory.
   result:
@@ -127,7 +128,7 @@ events:
     exit_code: 0
     output: ''
 - type: auto_step
-  working_dir: /Users/amos/Documents/real/Projects/Meksys/mek/major-refactoring
+  working_dir: /Users/amos/Documents/real/Meksys/Projects/mekara/standardize-nl-scripts
   inputs:
     action_type: shell
     action: cat /tmp/resulting-number.txt
@@ -137,25 +138,38 @@ events:
     success: true
     exit_code: 0
     output: |
-      70.0
+      0
 - type: mcp_tool_output
   tool: continue_compiled_script
   output: |-
     ### Steps executed:
-    - `test:nested[2]`: ↪ Calling `/test/double-or-nothing 35`
-    - `test:double-or-nothing[0]`: ✓ `_double_or_nothing(number=35.0)`
-    - `test:double-or-nothing[1]`: ✓ `echo 70.0 > resulting-number.txt`
+    - `test:nested[2]`: ↪ Calling `/test/double-or-nothing 56`
+    - `test:double-or-nothing[0]`: ✓ `_double_or_nothing(number=56.0)`
+    - `test:double-or-nothing[1]`: ✓ `echo 0 > resulting-number.txt`
     - `test:nested[2]`: ✓ Returned from `test/double-or-nothing`
     - `test:nested[3]`: ✓ `cat /tmp/resulting-number.txt`
   
       <output>
-      70.0
+      0
       </output>
     - `test:nested[4]`: ↪ Calling `/test/imagine-object`
   
     ## Natural Language Command: `test:imagine-object`
   
-    0. Together with the user, pick an adjective and a noun. For example, "green clouds."
+    Pick an imaginary object together with the user.
+  
+    <UserContext></UserContext>
+  
+    ## Process
+  
+    ### Step 0: Pick an object
+  
+    Together with the user, pick an adjective and a noun. For example, "green clouds."
+  
+    ## Key Principles
+  
+    This is a relatively straightforward script that does not require key guiding principles at this time.
+  
   
     ---
   

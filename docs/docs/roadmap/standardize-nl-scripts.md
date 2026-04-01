@@ -168,14 +168,14 @@ Each commit includes all related changes together: `.mekara/scripts/nl/` edits, 
 - [x] `project/setup-docs.md` — move `## Information Needed` into Step 0; fix Path A/B structure to use standard `### Step AN:` / `### Step BN:` naming and convergence notes; add `## Key Principles`
 - [x] Run `python scripts/sync_nl.py --all`
 
-### Phase 4: Test scripts
+### Phase 4: Test scripts ✅
 
 **Goal:** Wrap test scripts in standard structure while preserving their minimal content.
 
 **Tasks:**
 
-- [ ] `test/random.md` — add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process` header; convert numbered list to `### Step N: Title`; add `## Key Principles`
-- [ ] `test/double-or-nothing.md` — replace `<UserArguments>` with `<UserContext>`; add opening description; add `## Process`; convert numbered list to `### Step N: Title`; add `## Key Principles`
-- [ ] `test/imagine-object.md` — add opening description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process`; convert to `### Step N: Title`; add `## Key Principles`
-- [ ] `test/nested.md` — add opening description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process`; convert numbered list to `### Step N: Title`; add `## Key Principles`
-- [ ] Run `python scripts/sync_nl.py --all`
+- [x] `test/random.md` — add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process` header; convert numbered list to `### Step N: Title`; add `## Key Principles`
+- [x] `test/double-or-nothing.md` — replace `<UserArguments>` with `<UserContext>`; add opening description; add `## Process`; convert numbered list to `### Step N: Title`; add `## Key Principles`
+- [x] `test/imagine-object.md` — add opening description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process`; convert to `### Step N: Title`; add `## Key Principles`
+- [x] `test/nested.md` — add opening description; add `<UserContext>$ARGUMENTS</UserContext>`; add `## Process`; convert numbered list to `### Step N: Title`; add `## Key Principles`
+- [x] Run `python scripts/sync_nl.py --all`
