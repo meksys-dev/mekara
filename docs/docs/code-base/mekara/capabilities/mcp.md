@@ -117,7 +117,7 @@ This design ensures nested NL scripts work correctly—when another script is pu
 
 For compiled scripts, the executor shows the original NL source once per script: the first time the script requires LLM interaction (an `llm` step or an exception fallback). The source is loaded from the resolved target and the first `$ARGUMENTS` is substituted, then the frame is marked as having shown context so it isn't repeated.
 
-If an auto step raises an exception, the executor wraps it in an `AutoException`, records it in the executed step list, and places the compiled frame into fallback mode. The pending state becomes `PendingNLFallback`, which includes the exception details and the original NL source so the LLM can complete the task manually. Completion uses `finish_nl_script()`, which pops the failed compiled frame and returns a `ScriptCallResult` with `success=False` and the exception populated.
+If an auto step raises an exception, the executor wraps it in an `AutoException`, records it in the executed step list, and places the compiled frame into fallback mode. The pending state becomes `PendingNLFallback`, which includes the exception details and the original NL source so the LLM can complete the task manually. Completion uses `finish_nl_script()`, which pops the failed compiled frame. If there is a parent frame with a `CallScript` as its current step, the parent is **halted** with an error `PendingLlmStep` (not advanced) — the same behavior as any other nested script failure.
 
 :::warning[Duplicate Instruction Pitfall]
 NL commands use different wording for the completion instruction: "When you have completed this **command**" (not "step"), because the LLM must complete the entire command, not just one step within it. The executor adds this instruction to the `Llm` step's prompt.
@@ -174,7 +174,13 @@ Claude Code represents nested commands like `/test/random` as `test:random` inte
 
 ### Error Handling
 
-All errors drop back to LLM. When an auto step fails, the executor creates an error-handling llm step with details about the failure.
+All failures halt the current (or parent) frame with an error `PendingLlmStep` via `_halt_frame_with_error()`. Three failure types use this path:
+
+- **Auto step failure** (non-zero exit code or error): halts the current frame with the step name, command, and error detail
+- **Script load failure** (`ScriptLoadError`): the parent frame is halted with the script name and load error
+- **Nested script exception fallback**: after `finish_nl_script()` completes the fallback, the parent frame is halted with the nested script name and exception
+
+In all cases, the halted frame's `current_step` is replaced with the error `Llm` step, which becomes `pending` and is surfaced to the LLM to handle.
 
 ### State Management
 

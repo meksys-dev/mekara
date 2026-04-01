@@ -453,8 +453,8 @@ class McpScriptExecutor:
                 # Load nested script (compiled or NL) using unified loader
                 try:
                     loaded = load_script(step.name, step.request)
-                except ScriptLoadError:
-                    # Script not found or failed to load
+                except ScriptLoadError as exc:
+                    # Script not found or failed to load — halt parent
                     result = ScriptCallResult(
                         success=False,
                     )
@@ -467,8 +467,12 @@ class McpScriptExecutor:
                             is_exit=True,
                         )
                     )
-                    self._advance_frame(frame, result)
-                    continue
+                    self._halt_frame_with_error(
+                        frame,
+                        f"The call to script `{step.name}` failed: script could not be loaded.",
+                        f"Error: {exc}",
+                    )
+                    return self._build_result(self.pending)
 
                 if isinstance(loaded, LoadedNLScript):
                     # Natural language command - push frame and set as pending
@@ -551,7 +555,6 @@ class McpScriptExecutor:
 
             # On failure, fall back to LLM for error handling
             if not result.success:
-                # Create an error-handling llm step
                 if isinstance(result, ShellResult):
                     error_detail = f"exit code {result.exit_code}"
                     if result.output:
@@ -561,16 +564,11 @@ class McpScriptExecutor:
                     if result.output:
                         error_detail += f"\n\nOutput:\n{result.output}"
 
-                error_step = Llm(
-                    f"The step `{step.context}` failed.\n\n"
-                    f"Command: `{step.description}`\n"
-                    f"{error_detail}\n\n"
-                    "Please handle this error and decide how to proceed."
+                self._halt_frame_with_error(
+                    frame,
+                    f"The step `{step.context}` failed.",
+                    f"Command: `{step.description}`\n{error_detail}",
                 )
-                # Set frame's current_step to this error llm step
-                frame.current_step = error_step
-                # Pending property will pick it up from frame
-                assert self.pending is not None
                 assert isinstance(self.pending, PendingLlmStep)
                 return self._build_result(self.pending)
 
@@ -579,6 +577,20 @@ class McpScriptExecutor:
 
         # All scripts completed
         return self._build_result(None)
+
+    def _halt_frame_with_error(
+        self, frame: CompiledScriptFrame, title: str, detail: str = ""
+    ) -> None:
+        """Halt execution by replacing the frame's current step with an error LLM step.
+
+        Used when any step fails and the LLM should handle the error:
+        auto step failures, script load failures, nested script failures.
+        """
+        parts = [title]
+        if detail:
+            parts.append(detail)
+        parts.append("Please handle this error and decide how to proceed.")
+        frame.current_step = Llm("\n\n".join(parts))
 
     def _advance_frame(self, frame: CompiledScriptFrame, result: Any) -> None:
         """Advance the current frame to the next step."""
@@ -812,7 +824,7 @@ class McpScriptExecutor:
             auto_exception = failed_frame.exception
             assert auto_exception is not None
 
-            # If there's a parent frame with a CallScript, advance it past the CallScript
+            # If there's a parent frame with a CallScript, halt it with an error
             if self.stack:
                 parent_frame = self.stack[-1]
                 if isinstance(parent_frame, CompiledScriptFrame) and isinstance(
@@ -831,7 +843,11 @@ class McpScriptExecutor:
                             is_exit=True,
                         )
                     )
-                    self._advance_frame(parent_frame, call_result)
+                    self._halt_frame_with_error(
+                        parent_frame,
+                        f"The call to script `{parent_frame.current_step.name}` failed.",
+                        f"Exception: {auto_exception.exception}",
+                    )
             return
 
         raise RuntimeError("No pending NL script to complete")
