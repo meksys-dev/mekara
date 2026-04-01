@@ -18,6 +18,8 @@ For example, if you were just asked to `/implement-spec`, then update `.mekara/s
 
 **Common mistake:** If `/systematize` created `document-implementation.md`, the command to update is `systematize.md`, not `document-implementation.md`. Always search for `<command-name>` tags first.
 
+If the feedback belongs in cross-cutting guidance rather than in a single process step, update the target script's `## Key Principles` section. If the target script does not already have `## Key Principles`, create that section only when you actually need it for the new guidance.
+
 ### Step 1: Update compiled version if applicable
 
 If the script has a compiled version in `.mekara/scripts/compiled/`, update the compiled version too. Both must stay in sync.

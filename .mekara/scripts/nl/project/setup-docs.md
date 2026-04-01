@@ -314,7 +314,3 @@ Note: Documentation updates require coordinating branches in both worktrees when
 ```
 
 Commit this README update to the main branch.
-
-## Key Principles
-
-This is a relatively straightforward script that does not require key guiding principles at this time.

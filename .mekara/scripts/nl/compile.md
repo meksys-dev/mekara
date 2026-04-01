@@ -251,7 +251,7 @@ if verify_result.value:
 
 This pattern is efficient: when the check passes (no action needed), execution continues without invoking the LLM. Only invoke the LLM when there's actual work to do.
 
-## Example
+## Examples
 
 Source (`start.md`):
 ```markdown

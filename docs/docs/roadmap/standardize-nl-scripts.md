@@ -10,12 +10,12 @@ Bring all natural language scripts in `.mekara/scripts/nl/` (and their bundled/c
 
 ## Introduction
 
-The command standard defines the required structure for all NL scripts: a plain 1-2 sentence opening description, a `<UserContext>$ARGUMENTS</UserContext>` block, a `## Process` section with `### Step N: Title` steps starting at 0, and a `## Key Principles` section. A comprehensive audit of all 47 scripts revealed 25 that deviate from this standard in various ways, ranging from missing sections to completely non-standard formats (numbered lists, `## Context` preambles, H1 headings, `<UserOverride>` instead of `<UserContext>`, etc.). Additionally, five compiled Python scripts need their `context=` strings updated to stay aligned with changes to their NL sources.
+The command standard defines the required structure for all NL scripts: a plain 1-2 sentence opening description, a `<UserContext>$ARGUMENTS</UserContext>` block, and a `## Process` section with `### Step N: Title` steps starting at 0. `## Key Principles` is optional when a script has cross-cutting guidance, and `## Examples` is an optional top-level reference section. A comprehensive audit of all 47 scripts revealed 25 that deviate from this standard in various ways, ranging from missing sections to completely non-standard formats (numbered lists, `## Context` preambles, H1 headings, `<UserOverride>` instead of `<UserContext>`, etc.). Additionally, five compiled Python scripts need their `context=` strings updated to stay aligned with changes to their NL sources.
 
 ## Objectives
 
 1. Every script in `.mekara/scripts/nl/` conforms to the command standard
-2. All non-standard extra sections are folded into standard sections
+2. All non-standard extra sections are folded into standard sections or renamed to allowed optional sections
 3. Changes propagate to `docs/wiki/` and non-generalized `src/mekara/bundled/scripts/nl/` via `sync_nl.py --all`
 4. The nine generalized bundled scripts are independently updated to match their `.mekara/` counterparts' structural fixes while preserving documented generalizations
 5. All compiled scripts (`*.py`) have `context=` strings aligned with their updated NL sources
@@ -55,7 +55,7 @@ src/mekara/bundled/scripts/compiled/ ← 4 compiled scripts updated
 - `document-complex-feature.md` — `## Process` appears AFTER `### Step 0` instead of before it
 - `extract-pr.md` — `### Step 0` appears before `## Process`
 
-**Missing `## Key Principles`**:
+**Missing `## Key Principles`** (when cross-cutting guidance is needed):
 
 - `finish.md`, `document.md`, `start.md`, `recursive-self-improvement.md`
 - `standardize.md`, `rsi-scripting.md`
@@ -69,7 +69,7 @@ src/mekara/bundled/scripts/compiled/ ← 4 compiled scripts updated
 - `analyze-branch-for-extraction.md` — steps 1–8
 - `merge-main.md` — steps 1–7
 
-**Non-standard extra sections** (sections beyond Description / UserContext / Process / Key Principles):
+**Non-standard extra sections** (sections beyond Description / UserContext / Process / optional Key Principles / optional Examples):
 
 - `analyze-branch-for-extraction.md` — `## Common Patterns` after Key Principles
 - `compile.md` — `## Instructions` (not `## Process`); no Key Principles
@@ -95,7 +95,7 @@ src/mekara/bundled/scripts/compiled/ ← 4 compiled scripts updated
 
 ### Handling of special cases
 
-**`compile.md`**: Technically a spec document rather than a user workflow, but it IS invocable as `/compile`. Changes: add `<UserContext>$ARGUMENTS</UserContext>` after the opening sentence; rename `## Instructions` to `## Process` and convert the numbered items to `### Step 0:` … `### Step 9:` headings; add `## Key Principles` inside of which we put the existing "Common mistakes to avoid" bullet list.
+**`compile.md`**: Technically a spec document rather than a user workflow, but it IS invocable as `/compile`. Changes: add `<UserContext>$ARGUMENTS</UserContext>` after the opening sentence; rename `## Instructions` to `## Process` and convert the numbered items to `### Step 0:` … `### Step 9:` headings; keep the existing guidance in `## Key Principles`; rename `## Example` to the allowed optional `## Examples` section.
 
 **`project/setup-docs.md`**: Uses the Path A/B branching structure, but it's non-standard. Fixes: move `## Information Needed` content into `### Step 0: Gather requirements` (deciding the approach is part of gathering); rename Path A/B steps to use the standard `### Step AN:` / `### Step BN:` numbering; add convergence notes; add `## Key Principles`.
 
@@ -156,7 +156,7 @@ Each commit includes all related changes together: `.mekara/scripts/nl/` edits, 
 
 **Goal:** Fully restructure scripts that use a completely non-standard format.
 
-**Note on Key Principles:** When a task says "add `## Key Principles`", only add cross-cutting principles that complement the steps — not restatements of step instructions. If the script has no cross-cutting principles yet, leave the section empty as a placeholder for `/recursive-self-improvement` to populate later.
+**Note on Key Principles:** When a task says "add `## Key Principles`", only add cross-cutting principles that complement the steps — not restatements of step instructions. If the script has no cross-cutting principles yet, do not add the section. `/recursive-self-improvement` can create it later if user feedback introduces reusable guidance.
 
 **Tasks:**
 

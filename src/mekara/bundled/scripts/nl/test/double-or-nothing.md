@@ -15,7 +15,3 @@ Decide randomly to either double this number or return zero.
 ### Step 2: Write the result
 
 Write the result to a file called `resulting-number.txt` in the current directory.
-
-## Key Principles
-
-This is a relatively straightforward script that does not require key guiding principles at this time.

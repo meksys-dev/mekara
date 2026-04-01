@@ -30,7 +30,3 @@ claude '<command>'
 where `<command>` is the properly-escaped version of the user request saved in step 0 (e.g., `claude 'add remove button to user'\''s favorites'`)
 
 **Important:** Each command must be printed on its own line (not joined with `&&`) so that the `cd` executes first and changes the terminal's working directory immediately. This allows new terminal tabs to open from the new directory location.
-
-## Key Principles
-
-This is a relatively straightforward script that does not require key guiding principles at this time.

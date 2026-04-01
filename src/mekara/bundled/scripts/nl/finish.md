@@ -101,7 +101,3 @@ If the project uses `.claude/settings.local.json` (or similar local configuratio
 ### Step 14: Tear down worktree
 
 Run `/teardown-worktree` to remove the virtual environment, delete the remote branch if it exists, and remove the worktree directory and local branch.
-
-## Key Principles
-
-This is a relatively straightforward script that does not require key guiding principles at this time.

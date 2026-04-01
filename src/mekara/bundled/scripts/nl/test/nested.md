@@ -27,7 +27,3 @@ Run /test/imagine-object to get a description of an imaginary object. For exampl
 ### Step 5: Tell the user what they owe
 
 Tell the user that they owe the "owed" number of imagined objects. For example, if that number were doubled, and we imagined blue dogs, then tell the user "You owe 8 blue dogs."
-
-## Key Principles
-
-This is a relatively straightforward script that does not require key guiding principles at this time.

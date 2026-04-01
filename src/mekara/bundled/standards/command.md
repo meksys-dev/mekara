@@ -29,7 +29,11 @@ Every command script follows this structure:
 
 ## Key Principles
 
-[Guiding principles that inform the approach]
+[Optional section - Guiding principles that inform the approach]
+
+## Examples
+
+[Optional section - Worked examples or reference material]
 ```
 
 ## Required Sections
@@ -52,13 +56,19 @@ The `$ARGUMENTS` placeholder is substituted at runtime with whatever the user pr
 
 Contains numbered steps that describe the workflow. Step numbering starts at 0.
 
+## Optional Sections
+
 ### Key Principles Section
 
-Contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps. Key Principles should complement the Process steps, not repeat them. If a principle is specific to a single step, it belongs in that step's body. If there are no cross-cutting principles to document yet, use the placeholder: "This is a relatively straightforward script that does not require key guiding principles at this time."
+When present, this section contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps. Key Principles should complement the Process steps, not repeat them. If a principle is specific to a single step, it belongs in that step's body.
 
-Key Principles may contain `### Subsection` headings to organize related content. In particular, `### Common Pitfalls` is a standard subsection for documenting specific mistakes agents have made and the concrete actions to take (or avoid) instead. When `/recursive-self-improvement` adds guidance to a script based on user feedback, Common Pitfalls is the natural home for that guidance — it captures the exact scenarios, commands, and patterns that go wrong.
+Key Principles may contain `### Subsection` headings to organize related content. In particular, `### Common Pitfalls` is a standard subsection for documenting specific mistakes agents have made and the concrete actions to take (or avoid) instead. When `/recursive-self-improvement` adds guidance to a script based on user feedback, Common Pitfalls is the natural home for that guidance when the script already has cross-cutting guidance to collect there. If the section does not exist yet and the feedback belongs there, `/recursive-self-improvement` may create it.
 
 Actionable procedures with concrete commands (e.g., rollback plans, resolution strategies) belong as Process steps, not Key Principles subsections. Key Principles is for guidance and heuristics, not procedures.
+
+### Examples Section
+
+`## Examples` is an optional top-level reference section for worked examples or reference material that does not belong in the step-by-step workflow or in Key Principles. Use `## Examples`, not `## Example`, so the section still reads naturally when only one example is present.
 
 ## Step Formatting
 

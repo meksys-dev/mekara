@@ -19,7 +19,3 @@ If the user guessed the right number, print out "You got it right!"; otherwise, 
 ### Step 3: React to the outcome
 
 If the user won, congratulate them on being such a prescient user. If they lost, give them a choice insult.
-
-## Key Principles
-
-This is a relatively straightforward script that does not require key guiding principles at this time.

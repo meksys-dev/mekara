@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .mekara/scripts/nl/start.md"""
+"""Auto-generated script. Source: src/mekara/bundled/scripts/nl/start.md"""
 
 from mekara.scripting.runtime import auto, call_script, llm
 
@@ -26,7 +26,7 @@ def execute(request: str):
     # Step 0: Get the user's request
     result = yield llm(
         f"Get the user's request for what change we're going to be working on:\n\n"
-        f"<UserArguments>{request}</UserArguments>\n\n"
+        f"<UserContext>{request}</UserContext>\n\n"
         "If the user arguments are empty, ambiguous, or otherwise unclear, ask "
         "the user for what we're actually going to be doing.\n\n"
         "Save the ENTIRE user response verbatim (do NOT paraphrase, summarize, "
