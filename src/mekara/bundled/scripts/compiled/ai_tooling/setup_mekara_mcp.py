@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .claude/commands/project/setup-mekara-mcp.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/ai-tooling/setup-mekara-mcp.md"""
 
 import json
 from pathlib import Path

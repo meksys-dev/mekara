@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .claude/commands/finish.md"""
+"""Auto-generated script. Source: src/mekara/bundled/scripts/nl/finish.md"""
 
 import json
 
@@ -30,7 +30,7 @@ def _verify_pr_merged(pr_number: str) -> None:
 def execute(request: str):
     """Script entry point.
 
-    Context: You are starting out in a Git worktree folder. Work has been completed
+    You are starting out in a Git worktree folder. Work has been completed
     and it is time to merge this work back into the `main` branch via a pull request
     (branch protection is enabled on `main`).
     """
@@ -125,7 +125,7 @@ def execute(request: str):
         "commit history)\n"
         "- Do NOT use `--fill` as it concatenates all commit messages, including those "
         "for changes already on main\n"
-        "- **Do NOT add a \"Test plan\" section** — this is a PR message that is going "
+        '- **Do NOT add a "Test plan" section** — this is a PR message that is going '
         "to be part of the Git commit history when merged. Test plans do not make any "
         "sense for a Git commit message.",
         expects={

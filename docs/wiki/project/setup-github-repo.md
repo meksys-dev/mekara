@@ -286,3 +286,9 @@ Switch back to main and pull to get the merged changes:
 ```bash
 git checkout main && git pull
 ```
+
+## Key Principles
+
+- **Pin all CI versions**: All tool versions in GitHub Actions workflows must be pinned (not `latest`). This ensures reproducible builds.
+- **Status check names include matrix suffixes**: If a workflow uses a matrix strategy, the required status check name is `<job-name> (<matrix-value>)`, not just `<job-name>`. Verify exact names before configuring branch protection.
+- **Test the workflow before locking down**: Push workflows and verify CI runs successfully before enabling branch protection—otherwise you may lock yourself out of main.

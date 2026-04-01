@@ -1,10 +1,14 @@
 You are compiling a natural language script into a Python generator function for the mekara scripting runtime.
 
-## Input Script
+<UserContext>$ARGUMENTS</UserContext>
 
-The source script is at: `$ARGUMENTS`
+## Context
 
-## Output Format
+The source script is at `$ARGUMENTS`.
+
+Use the runtime and API guidance below when translating the natural language source into a Python generator script.
+
+### Compilation Guidance
 
 Generate a Python file that:
 1. Imports `auto`, `call_script`, and `llm` from `mekara.scripting.runtime`
@@ -16,7 +20,7 @@ Generate a Python file that:
 
 The `.py` filename should match the source `.md` filename with hyphens replaced by underscores per PEP 8. Scripts can be nested in subdirectories (e.g., `.mekara/scripts/nl/git/finish.md` compiles to `.mekara/scripts/compiled/git/finish.py`).
 
-## The `auto` Primitive
+### The `auto` Primitive
 
 `auto` supports two forms and **requires a `context` parameter** that explains WHY the step runs:
 
@@ -96,7 +100,7 @@ yield llm(
 ```
 Both paragraphs belong to step 13. The context must include the indented continuation text, not just the first line.
 
-## Helper Generator Functions
+### Helper Generator Functions
 
 When you need to reuse **multiple `auto` steps** together (e.g., a sequence of shell commands), extract them into a helper generator function and call it with `yield from`:
 
@@ -127,7 +131,7 @@ Import `Auto` and `ShellResult` from `mekara.scripting.runtime`.
 yield auto(_verify_and_merge, {"pr_number": pr_number}, context="...")
 ```
 
-## Return Values
+### Return Values
 
 **`auto` returns:**
 - `ShellResult` for shell commands: `success`, `exit_code`, `output`
@@ -156,7 +160,7 @@ The `expects` dict maps output keys to descriptions. The `mekara` runtime:
 2. Validates the LLM provided all expected outputs
 3. Returns an error to the LLM if any are missing, prompting it to try again
 
-## Classification Rules
+### Classification Rules
 
 **Use `auto` for:**
 - Shell commands that don't need interpretation (explicit commands in backticks)
@@ -191,26 +195,7 @@ yield call_script("script-name", working_dir=Path("/different/directory"))  # Ov
 
 By default, nested scripts inherit the parent's working directory. Use `working_dir` to override this when the nested script needs to run in a different directory (e.g., a different worktree).
 
-**Common mistakes to avoid:**
-- Don't use `llm` for "tell the user X" when X is fully known (no synthesis of information needed) - use `auto` with a print function instead
-- Don't paraphrase or summarize prompts - preserve the original wording verbatim so the LLM gets the full context. Both the user *and* the AI agent experience should basically be the same as if they were communicating through Claude Code, it's just that these compiled agent scripts speed things up
-- Don't bundle auto- and llm-operations into one `llm` call - separate the LLM judgment (e.g., "generate branch name") from the deterministic action (e.g., `git checkout -b {branch_name}`)
-- When a step says "run X" with an explicit command, that's always `auto`, even if a previous step required `llm` to determine a value used in X
-- **Never modify explicit commands** - if the source says `gh pr create --base main --fill`, use exactly that command. Don't add flags like `--json` that aren't in the original. Not all CLI tools support all flags (e.g., `gh pr create` doesn't support `--json` even though other `gh` commands do).
-- **Don't invent output/logging** - if the source script doesn't say to print or display something, don't add it. For example, if step 9 says "Wait for CI checks with `gh pr checks --watch`", just run the command—don't add a helper function to print "Waiting for CI..." first.
-- **Check things programmatically when possible** - if the source asks the LLM to determine something that can be checked deterministically (e.g., "whether this is a new repo"), use an `auto` step with a Python function instead. For example, check if a repo exists with `gh repo view` rather than asking the LLM.
-- **Only extract values used in `auto` steps** - in the `expects` dict, only extract values that will be used in subsequent `auto` steps. Don't extract values that are only used in other LLM steps, since the LLM already has access to the full conversation history and can infer that information.
-- **Hardcode values when appropriate** - e.g. if the task is to update the project README.md, don't use an LLM step to ask for the filename to edit—simply hardcode it. If you're unsure when to generalize and when to hardcode, you can ask.
-- **Do not edit the source script** unless the user has explicitly told you to do so. The source script is authoritative even in the face of clarifications.
-- **Do not use subprocess.run** -- use `auto()` to execute shell commands. The `auto()` primitive handles execution, output capture, and error handling.
-- **Avoid unnecessary indirection** - if an LLM step extracts values (e.g., commit message parts) just to immediately assemble and use them in the next step, have the LLM do the complete operation instead. For example, instead of extracting `commit_subject` and `workflow_descriptions` to build a commit message for `git commit`, just have the LLM run `git commit` directly with the full message. (`git add -A` and `git push` can still be auto in this scenario.)
-- **Extract values when reused across multiple `auto` steps** - when the same LLM-generated values are needed in multiple subsequent `auto` steps, have the LLM produce them via `expects`, then use them in the `auto` steps. For example, if step 9 creates a PR with a title/body and step 10 needs those same values for a merge command, have the LLM produce `pr_title` and `pr_body` just once, then use them in both `gh pr create` and `gh pr merge` auto steps. This is different from "unnecessary indirection" because the values are genuinely reused.
-- **Don't add explanatory notes to LLM prompts** - don't add text like "you'll have access to the full conversation later" or "Note: you'll be doing X in a later step". The script executor will be providing all such context to the LLM during execution.
-- **Read files in separate `auto` steps** - if a specific file's contents will be needed by a subsequent LLM step, read it with `cat` so that the LLM won't have to spend an extra cycle making the read action.
-- **Define and reuse functions with parameters instead of duplicating logic** - when the same operation applies to different targets (e.g., branch protection for `main` and `docs`), define a parameterized function (e.g., with a `branch` parameter) rather than copy-pasting the auto steps and changing one value. When there are multiple shell commands to execute, do NOT use `subprocess.run` and do NOT duplicate code—use a helper generator function with `yield from` instead (see "Helper Generator Functions" above).
-- **Verify jq outputs** - jq doesn't error out when the expected keys are missing, it simply produces `null`. Simply running a jq command without consuming the output is an anti-pattern that doesn't do anything.
-
-## Extracting Values from Command Output
+### Extracting Values from Command Output
 
 When a later step needs a value from a command's output (e.g., "use `<pr-number>` from the previous step"):
 
@@ -239,7 +224,7 @@ If you're unsure whether a command supports a flag, use the command exactly as w
 - Never assume output format based on documentation alone - verify empirically
 - Never fall back to `llm` just because parsing seems uncertain - that's lazy. Test first, then write deterministic parsing code.
 
-## Checks and Comparisons
+### Checks and Comparisons
 
 When a step checks a condition to decide whether to execute subsequent steps, use `auto` with a Python function that returns a boolean, then use an `if` statement:
 ```python
@@ -268,7 +253,87 @@ if verify_result.value:
 
 This pattern is efficient: when the check passes (no action needed), execution continues without invoking the LLM. Only invoke the LLM when there's actual work to do.
 
-## Example
+### Omitted Instructions
+
+When parts of the original script instructions are intentionally omitted from the compiled output (e.g., exception handling that falls back to the LLM, or context only visible during LLM interactions), mark them with a comment:
+
+```python
+# Original instruction includes: "If X happens, do Y"
+# This exception is handled by the LLM when the command fails
+yield auto("command", context="Run the command")
+```
+
+This preserves the original context for future reference while explaining why it's not in the compiled code.
+
+## Output Specification
+
+- Produce `.mekara/scripts/compiled/<name>.py`, using underscores in the filename where the source `.md` uses hyphens.
+- Ensure the generated file exposes the standard `execute(request: str)` entry point expected by the mekara runtime.
+- Ensure the generated code preserves the source workflow in runnable compiled form.
+
+## Process
+
+### Step 0: Read the source script
+
+Read the source script.
+
+### Step 1: Analyze each step
+
+Analyze each step to determine if it's `auto` or `llm`.
+
+### Step 2: Generate Python code
+
+Generate the Python code following the format above.
+
+### Step 3: Check if the compiled script already exists
+
+**Check if the compiled script already exists** - use Read to examine the existing `.mekara/scripts/compiled/<name>.py` file (if it exists) before writing. This avoids failed write attempts and allows you to identify exactly what changed between the source and compiled versions. Only write/edit if changes are needed.
+
+### Step 4: Verify wording matches exactly
+
+**Verify wording matches exactly** - before finalizing edits, spot-check that the source `.md` and compiled `.py` contain identical wording in contexts, prompts, and helper text. Don't just assume changes are correct—read back what you edited to catch truncation, paraphrasing, or wording drift.
+
+### Step 5: Write the output
+
+Write the output to `.mekara/scripts/compiled/<name>.py` (convert hyphens to underscores per PEP 8).
+
+### Step 6: Create `__init__.py` if it doesn't exist
+
+Create `.mekara/scripts/compiled/__init__.py` if it doesn't exist.
+
+### Step 7: Update source if needed
+
+If any changes to the workflow were made during compilation (e.g., adding merge conflict handling, clarifying ambiguous steps), update the original source script in `.mekara/scripts/nl/` to match.
+
+### Step 8: Report and wait for feedback
+
+Report what was compiled and wait for user feedback. Do not proceed to the commit until the user has explicitly given the go-ahead. Do **not** call `mcp__mekara__continue` -- this is for natural-language script **completion**, not for continuing to the next step of a natural language script.
+
+### Step 9: Commit both files
+
+**Commit both the source `.md` file and the compiled `.py` file together** - when updating a mekara script, always commit the source and compiled versions in the same commit to keep them synchronized.
+
+## Key Principles
+
+- Don't use `llm` for "tell the user X" when X is fully known (no synthesis of information needed) - use `auto` with a print function instead
+- Don't paraphrase or summarize prompts - preserve the original wording verbatim so the LLM gets the full context. Both the user *and* the AI agent experience should basically be the same as if they were communicating through Claude Code, it's just that these compiled agent scripts speed things up
+- Don't bundle auto- and llm-operations into one `llm` call - separate the LLM judgment (e.g., "generate branch name") from the deterministic action (e.g., `git checkout -b {branch_name}`)
+- When a step says "run X" with an explicit command, that's always `auto`, even if a previous step required `llm` to determine a value used in X
+- **Never modify explicit commands** - if the source says `gh pr create --base main --fill`, use exactly that command. Don't add flags like `--json` that aren't in the original. Not all CLI tools support all flags (e.g., `gh pr create` doesn't support `--json` even though other `gh` commands do).
+- **Don't invent output/logging** - if the source script doesn't say to print or display something, don't add it. For example, if step 9 says "Wait for CI checks with `gh pr checks --watch`", just run the command—don't add a helper function to print "Waiting for CI..." first.
+- **Check things programmatically when possible** - if the source asks the LLM to determine something that can be checked deterministically (e.g., "whether this is a new repo"), use an `auto` step with a Python function instead. For example, check if a repo exists with `gh repo view` rather than asking the LLM.
+- **Only extract values used in `auto` steps** - in the `expects` dict, only extract values that will be used in subsequent `auto` steps. Don't extract values that are only used in other LLM steps, since the LLM already has access to the full conversation history and can infer that information.
+- **Hardcode values when appropriate** - e.g. if the task is to update the project README.md, don't use an LLM step to ask for the filename to edit—simply hardcode it. If you're unsure when to generalize and when to hardcode, you can ask.
+- **Do not edit the source script** unless the user has explicitly told you to do so. The source script is authoritative even in the face of clarifications.
+- **Do not use subprocess.run** -- use `auto()` to execute shell commands. The `auto()` primitive handles execution, output capture, and error handling.
+- **Avoid unnecessary indirection** - if an LLM step extracts values (e.g., commit message parts) just to immediately assemble and use them in the next step, have the LLM do the complete operation instead. For example, instead of extracting `commit_subject` and `workflow_descriptions` to build a commit message for `git commit`, just have the LLM run `git commit` directly with the full message. (`git add -A` and `git push` can still be auto in this scenario.)
+- **Extract values when reused across multiple `auto` steps** - when the same LLM-generated values are needed in multiple subsequent `auto` steps, have the LLM produce them via `expects`, then use them in the `auto` steps. For example, if step 9 creates a PR with a title/body and step 10 needs those same values for a merge command, have the LLM produce `pr_title` and `pr_body` just once, then use them in both `gh pr create` and `gh pr merge` auto steps. This is different from "unnecessary indirection" because the values are genuinely reused.
+- **Don't add explanatory notes to LLM prompts** - don't add text like "you'll have access to the full conversation later" or "Note: you'll be doing X in a later step". The script executor will be providing all such context to the LLM during execution.
+- **Read files in separate `auto` steps** - if a specific file's contents will be needed by a subsequent LLM step, read it with `cat` so that the LLM won't have to spend an extra cycle making the read action.
+- **Define and reuse functions with parameters instead of duplicating logic** - when the same operation applies to different targets (e.g., branch protection for `main` and `docs`), define a parameterized function (e.g., with a `branch` parameter) rather than copy-pasting the auto steps and changing one value. When there are multiple shell commands to execute, do NOT use `subprocess.run` and do NOT duplicate code—use a helper generator function with `yield from` instead (see "Helper Generator Functions" above).
+- **Verify jq outputs** - jq doesn't error out when the expected keys are missing, it simply produces `null`. Simply running a jq command without consuming the output is an anti-pattern that doesn't do anything.
+
+## Examples
 
 Source (`start.md`):
 ```markdown
@@ -299,28 +364,3 @@ def execute(request: str):
     yield llm("Tell the user the final instructions for starting work")
     yield call_script("finish", request="Summarize the changes")
 ```
-
-## Instructions
-
-1. Read the source script
-2. Analyze each step to determine if it's `auto` or `llm`
-3. Generate the Python code following the format above
-4. **Check if the compiled script already exists** - use Read to examine the existing `.mekara/scripts/compiled/<name>.py` file (if it exists) before writing. This avoids failed write attempts and allows you to identify exactly what changed between the source and compiled versions. Only write/edit if changes are needed.
-5. **Verify wording matches exactly** - before finalizing edits, spot-check that the source `.md` and compiled `.py` contain identical wording in contexts, prompts, and helper text. Don't just assume changes are correct—read back what you edited to catch truncation, paraphrasing, or wording drift.
-6. Write the output to `.mekara/scripts/compiled/<name>.py` (convert hyphens to underscores per PEP 8)
-7. Create `.mekara/scripts/compiled/__init__.py` if it doesn't exist
-8. If any changes to the workflow were made during compilation (e.g., adding merge conflict handling, clarifying ambiguous steps), update the original source script in `.mekara/scripts/nl/` to match
-9. Report what was compiled and wait for user feedback. Do not proceed to the commit until the user has explicitly given the go-ahead. Do **not** call `mcp__mekara__continue` -- this is for natural-language script **completion**, not for continuing to the next step of a natural language script.
-10. **Commit both the source `.md` file and the compiled `.py` file together** - when updating a mekara script, always commit the source and compiled versions in the same commit to keep them synchronized
-
-## Omitted Instructions
-
-When parts of the original script instructions are intentionally omitted from the compiled output (e.g., exception handling that falls back to the LLM, or context only visible during LLM interactions), mark them with a comment:
-
-```python
-# Original instruction includes: "If X happens, do Y"
-# This exception is handled by the LLM when the command fails
-yield auto("command", context="Run the command")
-```
-
-This preserves the original context for future reference while explaining why it's not in the compiled code.

@@ -30,14 +30,14 @@ def _verify_pr_merged(pr_number: str) -> None:
 def execute(request: str):
     """Script entry point.
 
-    Context: You are starting out in a Git worktree folder. Work has been completed
+    You are starting out in a Git worktree folder. Work has been completed
     and it is time to merge this work back into the `main` branch via a pull request
     (branch protection is enabled on `main`).
     """
     # Step 0: Fetch and merge from main
     yield call_script("merge-main")
 
-    # Step 2: Install any new dependencies from the merge
+    # Step 1: Install dependencies
     # Note: Main is guaranteed to be in a good state, so if checks fail due to missing
     # dependencies after the merge, it's because you need to install from the lockfile -
     # NOT because dependencies need to be added.
@@ -50,7 +50,7 @@ def execute(request: str):
     yield auto("poetry install --with dev", context=deps_context)
     yield auto("pnpm --dir docs/ install --frozen-lockfile", context=deps_context)
 
-    # Step 3: Make sure all checks pass locally
+    # Step 2: Run all CI checks
     yield llm(
         "Make sure all checks that would normally pass on CI pass locally. This means "
         "making sure pre-commit checks succeed on all files, and all tests pass.\n"
@@ -67,7 +67,7 @@ def execute(request: str):
         "if need be, and **COMMIT ANY CHANGES YOU MAKE**."
     )
 
-    # Step 3: Verify working state is clean
+    # Step 3: Verify clean working state
     yield llm(
         "Verify that the working state is completely clean (all work committed, "
         "nothing staged or unstaged). If there are uncommitted changes:\n"

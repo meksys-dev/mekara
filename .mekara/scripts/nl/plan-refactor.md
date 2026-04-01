@@ -1,12 +1,20 @@
-# Plan Incremental Architectural Refactor
-
 Generate a refactor plan that can be implemented as a series of small commits, where **every commit is mergeable**, passes **all tests**, and **preserves behavior**.
 
 <UserContext>$ARGUMENTS</UserContext>
 
 Refactor plan documents must follow the standard structure in @docs/docs/standards/design-documents.md
 
-## Ground Rules (non-negotiable)
+## Process
+
+### Step 0: Extract Requirements From Context
+
+From the user context + conversation, write down:
+
+- **What's the actual pain?** (e.g., "`run_chat_loop` is a giant function; hard to persist state")
+- **Hard constraints** (invariants that must remain true)
+- **What must remain true after refactor** (interrupt behavior, VCR, banners, prompts, resume rules, etc.)
+
+Also establish these non-negotiable constraints for the plan:
 
 - **Planning only.** While running `/plan-refactor`, write the plan document and stop. Do not start implementing refactor commits until the user explicitly asks for implementation after reviewing the plan.
 - **No behavior changes.** Same UX, same outputs, same interrupt/resume semantics, same tool availability.
@@ -14,22 +22,12 @@ Refactor plan documents must follow the standard structure in @docs/docs/standar
 - **New code must be exercised.** If you add code that nothing calls, you have zero confidence it works.
 - **Delete replaced code immediately.** No "temporary wrappers for compatibility." If code is replaced, delete it in the same commit.
 
----
-
-### Step 0: Extract Requirements From Context
-
-From the user context + conversation, write down:
-- **What's the actual pain?** (e.g., "`run_chat_loop` is a giant function; hard to persist state")
-- **Hard constraints** (invariants that must remain true)
-- **What must remain true after refactor** (interrupt behavior, VCR, banners, prompts, resume rules, etc.)
-
 If any of these are unclear, ask the user *now*.
-
----
 
 ### Step 1: Find the Actual Control Flow (read-only, factual)
 
 Do not design off vibes. Locate the actual code:
+
 - the interactive loop
 - the session wrapper(s)
 - where interrupts/resume are handled
@@ -37,8 +35,6 @@ Do not design off vibes. Locate the actual code:
 - who calls what
 
 Deliverable: a "Current Architecture" map with file references.
-
----
 
 ### Step 2: Write the Introduction and Objectives sections (end state + context)
 
@@ -57,8 +53,6 @@ Do this *before* outlining phases. These sections should include:
 
 This section should look like a spec someone could implement from.
 
----
-
 ### Step 3: Plan Implementation Phases
 
 Work backwards from the end state. Each phase should be a focused unit of work with checkbox tasks.
@@ -66,8 +60,6 @@ Work backwards from the end state. Each phase should be a focused unit of work w
 Follow the structure in @docs/docs/standards/design-documents.md
 
 Prioritize removing the problematic code early. The first phase should be the highest-leverage refactor that changes structure without changing behavior.
-
----
 
 ### Step 4: Write the Plan File
 
@@ -167,9 +159,7 @@ Does NOT own: [Explicit exclusions]
 - Deferred for later work: **[Extension 1]** — [Why deferred]
 ```
 
----
-
-## Notes
+## Key Principles
 
 - The plan should read like: "Here's the target shape, here's why, here's the commits, every step is mergeable."
 - When in doubt: **delete early, not late**. Don't accumulate wrappers.

@@ -62,3 +62,8 @@ Summarize:
 - Any intentionally script-specific deviations
 
 Ask the user if they want to commit. If yes, use the committer agent to stage and commit **all** related changes (do not stage manually unless you are Codex).
+
+## Key Principles
+
+- **Define before applying**: Do not modify the target scripts until the standard is written down and the user has approved it. Applying a half-baked standard wastes effort and creates inconsistency.
+- **Standards need a canonical home**: The standard must be a durable artifact that can be explicitly referenced. Without a home, the standard only exists for the duration of the conversation.

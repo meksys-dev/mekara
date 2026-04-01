@@ -20,6 +20,14 @@ Every command script follows this structure:
 
 <UserContext>$ARGUMENTS</UserContext>
 
+## Context
+
+[Optional section - Background information, APIs, constraints, or domain knowledge needed to execute the command]
+
+## Output Specification
+
+[Optional section - Requirements the produced artifact or outcome must satisfy]
+
 ## Process
 
 ### Step 0: [Descriptive title (2-5 words)]
@@ -36,7 +44,11 @@ Every command script follows this structure:
 
 ## Key Principles
 
-[Guiding principles that inform the approach]
+[Optional section - Guiding principles that inform the approach]
+
+## Examples
+
+[Optional section - Worked examples or reference material]
 ```
 
 ## Required Sections
@@ -59,9 +71,33 @@ The `$ARGUMENTS` placeholder is substituted at runtime with whatever the user pr
 
 Contains numbered steps that describe the workflow. Step numbering starts at 0.
 
+## Optional Sections
+
+### Context Section
+
+When present, this section contains prerequisite information the agent needs in order to carry out the command correctly. Use it for APIs, constraints, domain knowledge, evaluation criteria, or any other context-dependent information that enables the process but is not itself a step in the workflow.
+
+### Output Specification Section
+
+When present, this section defines what the command's output must satisfy. Use it when the command produces an artifact or transformation that needs to conform to a contract, format, or external standard.
+
+Do not move prerequisite or execution-enabling information here just because it influences the output. If the information helps the agent perform the process, it belongs in `## Context`; if it defines the required properties of the final artifact or outcome, it belongs in `## Output Specification`.
+
+If the command references another standard, put that requirement here rather than as free-floating text before `## Process`.
+
+When later steps or principles need to refer back to that requirement, point to the Output Specification rather than repeating the standard reference again.
+
 ### Key Principles Section
 
-Contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps.
+When present, this section contains guiding principles that inform the approach—patterns, best practices, and decision-making guidelines that help agents understand the intent behind the steps. Key Principles should complement the Process steps, not repeat them. If a principle is specific to a single step, it belongs in that step's body.
+
+Key Principles may contain `### Subsection` headings to organize related content. In particular, `### Common Pitfalls` is a standard subsection for documenting specific mistakes agents have made and the concrete actions to take (or avoid) instead. When `/recursive-self-improvement` adds guidance to a script based on user feedback, Common Pitfalls is the natural home for that guidance when the script already has cross-cutting guidance to collect there. If the section does not exist yet and the feedback belongs there, `/recursive-self-improvement` may create it.
+
+Actionable procedures with concrete commands (e.g., rollback plans, resolution strategies) belong as Process steps, not Key Principles subsections. Key Principles is for guidance and heuristics, not procedures.
+
+### Examples Section
+
+`## Examples` is an optional top-level reference section for worked examples or reference material that does not belong in the step-by-step workflow or in Key Principles. Use `## Examples`, not `## Example`, so the section still reads naturally when only one example is present.
 
 ## Step Formatting
 
@@ -101,6 +137,10 @@ Titles should be 2-5 words and clearly describe the action or purpose.
 ### No Nested Numbered Lists
 
 Never use numbered sublists within a step. If a step has multiple substeps, flatten them into separate `### Step N:` sections.
+
+### No Verification Checklists
+
+Do not add `## Verification Checklist` sections that repeat what the Process steps already cover. If Step 5 says "run tests" and Step 6 says "check for conflict markers", a checklist restating those same items adds nothing. Verification belongs in the steps themselves.
 
 ## Branching Structure
 

@@ -80,7 +80,7 @@ tar -tzf dist/*.tar.gz | grep "bundled/scripts/nl.*\.md" | wc -l
 tar -tzf dist/*.tar.gz | grep -E "docs/|tests/" && echo "Found excluded files (unexpected)" || echo "No excluded files (correct)"
 ```
 
-### Step 5: Provide publishing instructions
+### Step 6: Provide publishing instructions
 
 Tell the user the package is ready and provide these instructions:
 

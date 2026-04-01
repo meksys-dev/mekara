@@ -7,7 +7,7 @@ def execute(request: str):
     """Script entry point."""
     branch = request.strip()
 
-    # Step 1: Create worktree
+    # Step 0: Create worktree
     # Original instruction includes: "If the branch already exists (error: "a branch named
     # 'mekara/<branch-name>' already exists"), choose a different branch name."
     # This exception is handled by the LLM when the command fails.
@@ -20,19 +20,19 @@ def execute(request: str):
         ),
     )
 
-    # Step 2: Install Python dev dependencies
+    # Step 1: Install Python dev dependencies
     yield auto(
         f"cd ../{branch} && poetry install --with dev",
         context="Install Python dev dependencies with `poetry install --with dev`",
     )
 
-    # Step 3: Install docs dependencies
+    # Step 2: Install docs dependencies
     yield auto(
         f"cd ../{branch} && pnpm --dir docs/ i --frozen-lockfile",
         context="Install `docs/` dependencies with `pnpm --dir docs/ i --frozen-lockfile`",
     )
 
-    # Step 4: Copy settings
+    # Step 3: Copy settings
     yield auto(
         f"cp .claude/settings.local.json ../{branch}/.claude/settings.local.json",
         context=(

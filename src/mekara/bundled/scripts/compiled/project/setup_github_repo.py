@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .claude/commands/project/setup-github-repo.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/project/setup-github-repo.md"""
 
 import json
 from typing import Generator

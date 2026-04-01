@@ -67,15 +67,17 @@ def extract_frontmatter(content: str) -> tuple[str, str]:
     if end_idx == -1:
         return "", content
 
-    frontmatter = content[:end_idx + 5]  # Include the closing ---\n
-    body = content[end_idx + 5:]
+    frontmatter = content[: end_idx + 5]  # Include the closing ---\n
+    body = content[end_idx + 5 :]
     # Strip leading blank line (required after frontmatter in wiki files)
     if body.startswith("\n"):
         body = body[1:]
     return frontmatter, body
 
 
-def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]) -> int:
+def sync_to_docs(
+    mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]
+) -> int:
     """Sync from .mekara/scripts/nl/ to docs/wiki/ and bundled/scripts/.
 
     Skips scripts that have been intentionally generalized (listed in
@@ -121,7 +123,9 @@ def sync_to_docs(mekara_root: Path, wiki_root: Path, bundled_root: Path, general
     return 0
 
 
-def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]) -> int:
+def sync_to_mekara(
+    mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]
+) -> int:
     """Sync from docs/wiki/ to .mekara/scripts/nl/ and bundled/scripts/.
 
     The wiki holds the generic version of scripts. Always syncs to bundled.
@@ -167,7 +171,9 @@ def sync_to_mekara(mekara_root: Path, wiki_root: Path, bundled_root: Path, gener
     return 0
 
 
-def sync_from_bundled(mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]) -> int:
+def sync_from_bundled(
+    mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]
+) -> int:
     """Sync from src/mekara/bundled/scripts/nl/ to docs/wiki/ and .mekara/scripts/nl/.
 
     Skips syncing to .mekara/scripts/nl/ for generalized scripts (intentional overrides).
@@ -219,6 +225,36 @@ def _staged_files() -> set[str]:
     return set(_git("diff", "--cached", "--name-only").splitlines())
 
 
+def _compiled_to_nl_relative(compiled_relative: str) -> str:
+    return compiled_relative.removesuffix(".py").replace("_", "-") + ".md"
+
+
+def _check_non_generalized_compiled_match(repo_root: Path, generalized: set[str]) -> int:
+    """Ensure bundled compiled scripts match local compiled scripts unless generalized."""
+    local_root = repo_root / ".mekara" / "scripts" / "compiled"
+    bundled_root = repo_root / "src" / "mekara" / "bundled" / "scripts" / "compiled"
+
+    mismatches: list[str] = []
+    for bundled_file in sorted(bundled_root.rglob("*.py")):
+        relative = bundled_file.relative_to(bundled_root).as_posix()
+        local_file = local_root / relative
+        if not local_file.exists():
+            continue
+        if _compiled_to_nl_relative(relative) in generalized:
+            continue
+        if bundled_file.read_text() != local_file.read_text():
+            mismatches.append(relative)
+
+    if mismatches:
+        print("Error: Non-generalized bundled compiled scripts differ from local compiled scripts.")
+        print(
+            "These compiled pairs must be exactly identical unless the script is listed in bundled-script-generalization.md:"
+        )
+        for path in mismatches:
+            print(f"  - {path}")
+        return 1
+    return 0
+
 
 def _check_sync_conflict(changed: set[str], repo_root: Path, generalized: set[str]) -> int:
     """Flag conflict only if same script is staged in both sources with differing content,
@@ -249,7 +285,9 @@ def _check_sync_conflict(changed: set[str], repo_root: Path, generalized: set[st
             conflicts.append(relative)
 
     if conflicts:
-        print("Error: Both .mekara/scripts/nl/ and docs/wiki/ were modified with differing content.")
+        print(
+            "Error: Both .mekara/scripts/nl/ and docs/wiki/ were modified with differing content."
+        )
         print("Please commit changes to only one source at a time.")
         print("Conflicting scripts:")
         for path in conflicts:
@@ -276,20 +314,28 @@ def _run_sync(direction: SyncDirection, repo_root: Path, generalized: set[str]) 
 
 
 def _check_bundled_nl_compiled(changed: set[str], repo_root: Path) -> int:
-    """If bundled NL changed, corresponding compiled file must also change."""
+    """Require bundled compiled changes only for independently maintained scripts."""
     bundled_nl = [f for f in changed if f.startswith("src/mekara/bundled/scripts/nl/")]
     missing: list[str] = []
+    generalized = load_generalized_scripts(repo_root)
     for nl_file in bundled_nl:
+        relative = nl_file.removeprefix("src/mekara/bundled/scripts/nl/")
+        if relative not in generalized:
+            continue
         compiled = nl_file.replace("/nl/", "/compiled/", 1).removesuffix(".md") + ".py"
         if (repo_root / compiled).exists() and compiled not in changed:
             missing.append(compiled)
     if missing:
-        print("Error: Bundled natural language scripts changed without corresponding compiled scripts.")
+        print(
+            "Error: Bundled natural language scripts changed without corresponding compiled scripts."
+        )
         print("The following compiled scripts must also be updated:")
         for path in missing:
             print(f"  - {path}")
         print()
-        print("When editing bundled scripts, update both the .md and .py versions together.")
+        print(
+            "When editing generalized bundled scripts, update both the .md and .py versions together."
+        )
         return 1
     return 0
 
@@ -315,7 +361,9 @@ def _warn_sync_mismatch(changed: set[str], repo_root: Path) -> None:
         for bundled_file in changed:
             if not bundled_file.startswith("src/mekara/bundled/scripts/nl/"):
                 continue
-            mekara = bundled_file.replace("src/mekara/bundled/scripts/nl/", ".mekara/scripts/nl/", 1)
+            mekara = bundled_file.replace(
+                "src/mekara/bundled/scripts/nl/", ".mekara/scripts/nl/", 1
+            )
             if (repo_root / mekara).exists():
                 print()
                 print("Warning: Bundled scripts changed but .mekara/scripts/nl/ didn't.")
@@ -359,6 +407,9 @@ def main() -> int:
     if bundled_nl_changed:
         if _check_bundled_nl_compiled(changed, repo_root) != 0:
             return 1
+
+    if _check_non_generalized_compiled_match(repo_root, generalized) != 0:
+        return 1
 
     _warn_sync_mismatch(changed, repo_root)
     return 0

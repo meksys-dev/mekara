@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: .claude/commands/test/double-or-nothing.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/test/double-or-nothing.md"""
 
 import random
 

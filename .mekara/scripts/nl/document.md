@@ -1,4 +1,8 @@
-Context: Changes have been made to the project (or are about to be), and these changes need to be synced over to the documentation.
+Changes have been made to the project (or are about to be), and these changes need to be synced over to the documentation.
+
+<UserContext>$ARGUMENTS</UserContext>
+
+## Process
 
 ### Step 0: Take stock of the changes to document
 
@@ -22,3 +26,7 @@ Make the corresponding changes to the Docusaurus documentation inside @docs/docs
 ### Step 2: Commit your changes after confirming with the user
 
 Commit your changes after confirming with the user.
+
+## Key Principles
+
+- The documentation should be updated so that whoever implements this project again in the future will not have to rediscover this detail on their own. The documentation is a living specification of all human thought that went into shaping the project the way it is now.

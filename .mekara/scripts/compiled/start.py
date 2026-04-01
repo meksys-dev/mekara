@@ -29,15 +29,15 @@ def _print_instructions(branch: str, user_request: str) -> None:
 
 def execute(request: str):
     """Script entry point."""
-    # Step 1: Get the user's request for what change we're going to be working on
+    # Step 0: Get the user's request
     result = yield llm(
         f"Get the user's request for what change we're going to be working on:\n\n"
-        f"<UserArguments>{request}</UserArguments>\n\n"
+        f"<UserContext>{request}</UserContext>\n\n"
         "If the user arguments are empty, ambiguous, or otherwise unclear, ask "
         "the user for what we're actually going to be doing.\n\n"
         "Save the ENTIRE user response verbatim (do NOT paraphrase, summarize, "
         'or extract what you think is the "core request") in a variable to use '
-        "in step 8. "
+        "in step 3. "
         'When you ask "what would you like to work on?" and the user responds '
         "with ANY text (including error messages, permission dialogs, stack "
         "traces, code snippets, or any other context), save ALL of it "
@@ -61,7 +61,7 @@ def execute(request: str):
     )
     user_request = result.outputs["user_request"]
 
-    # Step 2: Generate branch name
+    # Step 1: Generate branch name
     result = yield llm(
         "Come up with a suitably short branch name (2 to 3 words) based on the "
         "user's request. Generate the branch name from the request text itself—do NOT "
@@ -70,10 +70,10 @@ def execute(request: str):
     )
     branch = result.outputs["branch"]
 
-    # Step 3: Set up worktree
+    # Step 2: Set up worktree
     yield call_script("setup-worktree", request=branch)
 
-    # Step 4: Print final instructions
+    # Step 3: Tell the user to start working
     yield auto(
         _print_instructions,
         {"branch": branch, "user_request": user_request},
@@ -90,7 +90,7 @@ def execute(request: str):
             "  claude '<command>'\n"
             "  ```\n"
             "  where `<command>` is the properly-escaped version of the user request "
-            "saved in step 1 (e.g., `claude 'add remove button to user'\\''s favorites'`)\n\n"
+            "saved in step 0 (e.g., `claude 'add remove button to user'\\''s favorites'`)\n\n"
             "**Important:** Each command must be printed on its own line "
             "(not joined with `&&`) so that "
             "the `cd` executes first and changes the terminal's working directory immediately. "
