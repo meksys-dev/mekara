@@ -122,7 +122,7 @@ mcp.tool()(server.write_bundled_command)
 
 > Call `mcp__mekara__write_bundled_command` with the command name to write the bundled source to `.mekara/scripts/nl/`. Then read the written file to understand the bundled command's structure before customizing it.
 
-The script also documents the full customization workflow for agents. See [Customizing Bundled Commands](../usage/customizing-bundled-commands.md) for the user-facing documentation.
+The script also documents the full customization workflow for agents. See [Customizing Bundled Content](../usage/customizing-bundled-content.md) for the user-facing documentation.
 
 ## Implementation Plan
 

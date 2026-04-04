@@ -44,6 +44,16 @@ Re-record VCR cassettes when:
 - VCR format changes
 - MCP server behavior changes
 
+**Regenerating write-bundled.yaml:**
+
+To regenerate the `write-bundled.yaml` cassette, run the recording script directly:
+
+```bash
+poetry run python tests/record_write_bundled_cassette.py
+```
+
+Re-run this script when `write_bundled` behavior intentionally changes (e.g., new file paths, changed output format, new bundled files added to the session).
+
 **Regenerating mcp-nested.yaml:**
 
 To regenerate the `mcp-nested.yaml` cassette, you need to record a live interaction with Claude Code:

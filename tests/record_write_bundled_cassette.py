@@ -1,11 +1,11 @@
-"""Recording script for write_bundled_command VCR cassette.
+"""Recording script for write_bundled VCR cassette.
 
-Run this script manually to regenerate tests/cassettes/write-bundled-command.yaml:
+Run this script manually to regenerate tests/cassettes/write-bundled.yaml:
 
-    poetry run python tests/record_write_bundled_command_cassette.py
+    poetry run python tests/record_write_bundled_cassette.py
 
 This is NOT a test — it produces the static cassette that the replay test reads.
-Re-run only when write_bundled_command behavior intentionally changes.
+Re-run only when write_bundled behavior intentionally changes.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pathlib import Path
 from mekara.vcr.cassette import VCRCassette
 from mekara.vcr.mcp_server import VcrMekaraServer
 
-CASSETTE_PATH = Path(__file__).parent / "cassettes" / "write-bundled-command.yaml"
+CASSETTE_PATH = Path(__file__).parent / "cassettes" / "write-bundled.yaml"
 
 
 def main() -> None:
@@ -28,7 +28,8 @@ def main() -> None:
             initial_state={"working_dir": str(working_dir)},
         )
         server = VcrMekaraServer(cassette, working_dir=working_dir)
-        server.write_bundled_command("finish")
+        server.write_bundled("finish")
+        server.write_bundled("standard:command")
         cassette.save()
 
     print(f"Recorded to {CASSETTE_PATH}")

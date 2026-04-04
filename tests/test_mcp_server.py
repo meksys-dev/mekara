@@ -347,11 +347,11 @@ class TestNestedScriptFailureHaltsParent:
         assert "This should never be reached" not in result2.pending.step.prompt
 
 
-class TestWriteBundledCommand:
-    """Tests for MekaraServer.write_bundled_command."""
+class TestWriteBundled:
+    """Tests for MekaraServer.write_bundled."""
 
     def test_write_bundled_command_happy_path(self, tmp_path: Path) -> None:
-        """write_bundled_command should copy bundled NL source to local .mekara/scripts/."""
+        """write_bundled should copy bundled NL source to local .mekara/scripts/."""
         from mekara.mcp.server import MekaraServer
         from mekara.utils.project import bundled_commands_dir
 
@@ -359,7 +359,7 @@ class TestWriteBundledCommand:
         server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Use "finish" which exists in bundled
-        response = server.write_bundled_command("finish")
+        response = server.write_bundled("finish")
 
         # Should succeed
         assert "Wrote bundled command" in response
@@ -374,14 +374,14 @@ class TestWriteBundledCommand:
         assert nl_file.read_text() == bundled_nl.read_text()
 
     def test_write_bundled_command_with_compiled(self, tmp_path: Path) -> None:
-        """write_bundled_command should also copy compiled .py if it exists."""
+        """write_bundled should also copy compiled .py if it exists."""
         from mekara.mcp.server import MekaraServer
         from mekara.utils.project import bundled_scripts_dir
 
         server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Use "finish" which has a compiled version
-        response = server.write_bundled_command("finish")
+        response = server.write_bundled("finish")
 
         # Check that both files were written
         nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish.md"
@@ -397,42 +397,41 @@ class TestWriteBundledCommand:
             assert "finish.py" in response
 
     def test_write_bundled_command_not_found(self, tmp_path: Path) -> None:
-        """write_bundled_command should error if bundled command not found."""
+        """write_bundled should error if name matches neither a command nor a standard."""
         from mekara.mcp.server import MekaraServer
 
         server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
-        # Use a non-existent command
-        response = server.write_bundled_command("nonexistent_command")
+        response = server.write_bundled("nonexistent_command")
 
         assert "Error" in response
-        assert "No bundled command found" in response
+        assert "No bundled command or standard found" in response
         assert "nonexistent_command" in response
 
     def test_write_bundled_command_already_exists_without_force(self, tmp_path: Path) -> None:
-        """write_bundled_command should error if local file exists without force=True."""
+        """write_bundled should error if local file exists without force=True."""
         from mekara.mcp.server import MekaraServer
 
         server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # First write: should succeed
-        response1 = server.write_bundled_command("finish")
+        response1 = server.write_bundled("finish")
         assert "Wrote bundled command" in response1
 
         # Second write without force: should fail
-        response2 = server.write_bundled_command("finish", force=False)
+        response2 = server.write_bundled("finish", force=False)
         assert "Error" in response2
         assert "Local override already exists" in response2
         assert "force=True" in response2
 
     def test_write_bundled_command_force_overwrite(self, tmp_path: Path) -> None:
-        """write_bundled_command should overwrite local file with force=True."""
+        """write_bundled should overwrite local file with force=True."""
         from mekara.mcp.server import MekaraServer
 
         server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # First write
-        response1 = server.write_bundled_command("finish")
+        response1 = server.write_bundled("finish")
         assert "Wrote bundled command" in response1
 
         # Modify the local file
@@ -441,14 +440,14 @@ class TestWriteBundledCommand:
         nl_file.write_text("MODIFIED CONTENT")
 
         # Second write with force=True: should succeed
-        response2 = server.write_bundled_command("finish", force=True)
+        response2 = server.write_bundled("finish", force=True)
         assert "Wrote bundled command" in response2
 
         # File should be restored to original
         assert nl_file.read_text() == original_content
 
     def test_write_bundled_command_with_nested_path(self, tmp_path: Path) -> None:
-        """write_bundled_command should handle nested paths with colons."""
+        """write_bundled should handle nested command paths with colons."""
         from mekara.mcp.server import MekaraServer
 
         server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
@@ -470,7 +469,7 @@ class TestWriteBundledCommand:
                 # Convert to colon-based name
                 colon_name = f"{nested_dir_name}:{nested_name}"
 
-                response = server.write_bundled_command(colon_name)
+                response = server.write_bundled(colon_name)
                 assert "Wrote bundled command" in response
 
                 # Check that nested directory structure was created
@@ -478,3 +477,45 @@ class TestWriteBundledCommand:
                     tmp_path / ".mekara" / "scripts" / "nl" / nested_dir_name / f"{nested_name}.md"
                 )
                 assert nl_file.exists()
+
+    def test_write_bundled_standard_with_prefix(self, tmp_path: Path) -> None:
+        """write_bundled should write a standard when given 'standard:' prefix."""
+        from mekara.mcp.server import MekaraServer
+        from mekara.utils.project import bundled_standards_dir
+
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
+
+        response = server.write_bundled("standard:command")
+
+        assert "Wrote bundled standard" in response
+        assert "command" in response
+
+        std_file = tmp_path / ".mekara" / "standards" / "command.md"
+        assert std_file.exists(), f"Expected file {std_file} to be written"
+
+        bundled_std = bundled_standards_dir() / "command.md"
+        assert std_file.read_text() == bundled_std.read_text()
+
+    def test_write_bundled_standard_auto_detect(self, tmp_path: Path) -> None:
+        """write_bundled should auto-detect a standard when name matches only standards."""
+        from mekara.mcp.server import MekaraServer
+
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
+
+        # "workflow" exists as a standard but not as a command
+        response = server.write_bundled("workflow")
+
+        assert "Wrote bundled standard" in response
+        std_file = tmp_path / ".mekara" / "standards" / "workflow.md"
+        assert std_file.exists()
+
+    def test_write_bundled_standard_not_found(self, tmp_path: Path) -> None:
+        """write_bundled should error with explicit standard: prefix for missing standard."""
+        from mekara.mcp.server import MekaraServer
+
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
+
+        response = server.write_bundled("standard:nonexistent")
+
+        assert "Error" in response
+        assert "No bundled standard found" in response

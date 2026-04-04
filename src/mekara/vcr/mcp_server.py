@@ -24,7 +24,7 @@ from mekara.vcr.events import (
     McpStartInputEvent,
     McpStatusInputEvent,
     McpToolOutputEvent,
-    McpWriteBundledCommandInputEvent,
+    McpWriteBundledInputEvent,
     ReadDiskEvent,
     WriteDiskEvent,
 )
@@ -236,29 +236,27 @@ class VcrMekaraServer:
         """Deprecated: Use finish_nl_script instead."""
         return await self.finish_nl_script()
 
-    def write_bundled_command(self, name: str, force: bool = False) -> str:
-        """Write a bundled command's NL source to disk with VCR recording.
+    def write_bundled(self, name: str, force: bool = False) -> str:
+        """Write a bundled command or standard to disk with VCR recording.
 
         VCR handles filesystem events at the FilesystemAccess boundary.
         This just records MCP-level events.
         """
         if self._cassette.mode == "record":
-            self._cassette.record_event(McpWriteBundledCommandInputEvent(name=name, force=force))
-            response = self._inner.write_bundled_command(name, force)
-            self._cassette.record_event(
-                McpToolOutputEvent(tool="write_bundled_command", output=response)
-            )
+            self._cassette.record_event(McpWriteBundledInputEvent(name=name, force=force))
+            response = self._inner.write_bundled(name, force)
+            self._cassette.record_event(McpToolOutputEvent(tool="write_bundled", output=response))
             self._cassette.save()
             return response
         else:
             # Replay: run real application code
-            response = self._inner.write_bundled_command(name, force)
+            response = self._inner.write_bundled(name, force)
 
             # Consume and verify MCP output
             output_event = self._cassette.consume_event(McpToolOutputEvent)
             if response != output_event.output:
                 raise ValueError(
-                    f"VCR replay error: write_bundled_command() output mismatch.\n"
+                    f"VCR replay error: write_bundled() output mismatch.\n"
                     f"Expected: {output_event.output!r}\n"
                     f"Got: {response!r}\n"
                     "Re-record the cassette if outputs have changed."

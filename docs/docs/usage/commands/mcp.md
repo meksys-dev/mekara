@@ -18,7 +18,7 @@ mekara mcp
 
 Starts mekara as an MCP server that provides script execution tools to Claude Code. This command is typically not invoked directly by users—instead, it's configured in `~/.claude.json` so Claude Code launches it automatically.
 
-For project-level customization workflows, see [Customizing Bundled Commands](../customizing-bundled-commands.md).
+For project-level customization workflows, see [Customizing Bundled Content](../customizing-bundled-content.md).
 
 <McpTools />
 

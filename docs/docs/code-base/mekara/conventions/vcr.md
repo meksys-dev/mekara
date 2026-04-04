@@ -309,7 +309,7 @@ No `set_initial_state()` method exists. Initial state is set once during cassett
 
 **Tools with LLM steps** require a human to drive the interaction. Ask the user to record the cassette themselves by running the MCP server live.
 
-**Tools with no LLM steps** (e.g. `write_bundled_command`) can be recorded fully automatically. Write a standalone recording script in `tests/` — not a test file — that runs once manually to produce the cassette:
+**Tools with no LLM steps** (e.g. `write_bundled`) can be recorded fully automatically. Write a standalone recording script in `tests/` — not a test file — that runs once manually to produce the cassette:
 
 ```python
 # tests/record_<tool>_cassette.py
@@ -351,7 +351,7 @@ Re-run the recording script only when the tool's behavior intentionally changes.
 ```python
 @pytest.mark.parametrize("cassette_name", [
     "mcp-nested",
-    "write-bundled-command",
+    "write-bundled",
     "your-new-tool",   # <-- just add this
 ])
 async def test_replay_cassette(self, cassette_name: str) -> None:

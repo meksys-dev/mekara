@@ -1,4 +1,4 @@
-Customize a bundled mekara command so it matches this repository's actual structure, workflows, and conventions. Start from the generic bundled command, preserve its method, and create a repo-local override with only the customizations this repository actually needs.
+Customize a bundled mekara command or standard so it matches this repository's actual structure, workflows, and conventions. Start from the generic bundled source, preserve its method, and create a repo-local override with only the customizations this repository actually needs.
 
 <UserContext>$ARGUMENTS</UserContext>
 
@@ -6,15 +6,22 @@ Customize a bundled mekara command so it matches this repository's actual struct
 
 ### Step 0: Gather information
 
-Gather from the user-provided context which bundled command to customize.
+Gather from the user-provided context what to customize: a bundled command or a bundled standard.
 
-If the local override location is already obvious from the repository, use that default. If the command name or target location is unclear, ask the user.
+Commands are invoked as `/command-name` and live in `.mekara/scripts/nl/`. Standards are referenced by scripts using `@standard:name` syntax and live in `.mekara/standards/`.
 
-### Step 1: Fetch bundled command source
+If the target is a standard, use the `standard:` prefix when calling the MCP tool (e.g., `standard:command`). The prefix is optional if the name is unambiguous — the tool will auto-detect.
 
-Call `mcp__mekara__write_bundled_command` with the command name to write the bundled source to `.mekara/scripts/nl/`.
+If the name or target type is unclear, ask the user.
 
-Then read the written file to understand the bundled command's structure.
+### Step 1: Fetch bundled source
+
+Call `mcp__mekara__write_bundled` with the name to write the bundled source to disk:
+
+- Commands are written to `.mekara/scripts/nl/<name>.md`
+- Standards are written to `.mekara/standards/<name>.md`
+
+Then read the written file to understand the bundled source's structure.
 
 ### Step 2: Read repository guidance
 
@@ -30,7 +37,7 @@ Focus on:
 
 ### Step 3: Identify repo customizations
 
-Compare the bundled command's generic assumptions against the actual repository.
+Compare the bundled source's generic assumptions against the actual repository.
 
 Determine what should be customized for this repository, such as:
 
@@ -42,11 +49,11 @@ Determine what should be customized for this repository, such as:
 
 Do not change the underlying method unless the repository actually requires it.
 
-### Step 4: Customize the command
+### Step 4: Customize the file
 
-Edit the command file (already at `.mekara/scripts/nl/<name>.md`) with repo-specific customizations.
+Edit the file (already written to `.mekara/scripts/nl/<name>.md` or `.mekara/standards/<name>.md`) with repo-specific customizations.
 
-Preserve the bundled command's general process, but replace generic assumptions with repo-specific ones where appropriate. Remove internal mekara-repo assumptions that do not apply in the target repository instead of carrying them over into the local override.
+Preserve the bundled source's general process, but replace generic assumptions with repo-specific ones where appropriate. Remove internal mekara-repo assumptions that do not apply in the target repository instead of carrying them over into the local override.
 
 ### Step 5: Verify repository fit
 
@@ -68,8 +75,8 @@ Offer to document them for the user so future customization work has a clearer l
 
 ## Key Principles
 
-- **Bundled command is the base** - Start from the generic bundled command and customize only what this repository actually needs.
-- **Local override owns local assumptions** - Repo-specific paths, docs, workflows, and defaults belong in the local override, not in the bundled command.
+- **Bundled source is the base** - Start from the generic bundled source and customize only what this repository actually needs.
+- **Local override owns local assumptions** - Repo-specific paths, docs, workflows, and defaults belong in the local override, not in the bundled source.
 - **Preserve the method** - Customize environment-specific details without rewriting the successful general problem-solving pattern.
 - **Use local evidence** - Only introduce repo-specific instructions that are supported by files, workflows, or conventions actually present in the repository.
 - **Do not invent structure** - If this repository lacks a docs tree, workflow index, or standard location, do not reference one.

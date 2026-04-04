@@ -225,7 +225,7 @@ class TestMcpSessionReplay:
     """Tests for replaying full MCP sessions from cassettes."""
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("cassette_name", ["mcp-nested", "write-bundled-command"])
+    @pytest.mark.parametrize("cassette_name", ["mcp-nested", "write-bundled"])
     async def test_replay_cassette(self, cassette_name: str) -> None:
         """Replay a static cassette and verify all recorded events match.
 

@@ -103,8 +103,8 @@ class McpFinishNLScriptInputEvent:
 
 
 @dataclass(frozen=True)
-class McpWriteBundledCommandInputEvent:
-    """Inbound 'write_bundled_command' tool call to write a bundled command to disk."""
+class McpWriteBundledInputEvent:
+    """Inbound 'write_bundled' tool call to write a bundled command or standard to disk."""
 
     name: str
     force: bool
@@ -112,7 +112,7 @@ class McpWriteBundledCommandInputEvent:
     def to_dict(self) -> dict[str, Any]:
         return {
             "type": "mcp_tool_input",
-            "tool": "write_bundled_command",
+            "tool": "write_bundled",
             "input": {
                 "name": self.name,
                 "force": self.force,
@@ -120,10 +120,10 @@ class McpWriteBundledCommandInputEvent:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> McpWriteBundledCommandInputEvent:
-        _check_keys(data, {"type", "tool", "input"}, "McpWriteBundledCommandInputEvent")
+    def from_dict(cls, data: dict[str, Any]) -> McpWriteBundledInputEvent:
+        _check_keys(data, {"type", "tool", "input"}, "McpWriteBundledInputEvent")
         input_data = data.get("input", {})
-        _check_keys(input_data, {"name", "force"}, "McpWriteBundledCommandInputEvent.input")
+        _check_keys(input_data, {"name", "force"}, "McpWriteBundledInputEvent.input")
         return cls(
             name=input_data["name"],
             force=input_data.get("force", False),
@@ -136,7 +136,7 @@ McpInputEvent = (
     | McpContinueCompiledScriptInputEvent
     | McpStatusInputEvent
     | McpFinishNLScriptInputEvent
-    | McpWriteBundledCommandInputEvent
+    | McpWriteBundledInputEvent
 )
 
 # Registry for MCP input events by tool name
@@ -145,7 +145,7 @@ _MCP_INPUT_TYPES: dict[str, type[McpInputEvent]] = {
     "continue_compiled_script": McpContinueCompiledScriptInputEvent,
     "status": McpStatusInputEvent,
     "finish_nl_script": McpFinishNLScriptInputEvent,
-    "write_bundled_command": McpWriteBundledCommandInputEvent,
+    "write_bundled": McpWriteBundledInputEvent,
 }
 
 

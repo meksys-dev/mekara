@@ -22,4 +22,4 @@ we separate the two actions into two very clearly separate domains.
 
 **Project customization:**
 
-- **`write_bundled_command(name, force)`** - Write a bundled command's NL source (and compiled `.py` if one exists) to the local `.mekara/scripts/` directory for project-level customization. Used by the `/customize` command to get bundled source on disk for editing. See [Customizing Bundled Commands](../../usage/customizing-bundled-commands.md) for the full workflow. Errors if a local override already exists (unless `force=True`).
+- **`write_bundled(name, force)`** - Write a bundled command or standard to the local `.mekara/` directory for project-level customization. Auto-detects whether `name` refers to a command (written to `.mekara/scripts/nl/`) or a standard (written to `.mekara/standards/`). Use the `standard:` prefix to force standard lookup when the name is ambiguous. Used by the `/customize` command to get bundled source on disk for editing. See [Customizing Bundled Content](../../usage/customizing-bundled-content.md) for the full workflow. Errors if a local override already exists (unless `force=True`).
