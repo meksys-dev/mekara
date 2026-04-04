@@ -12,6 +12,7 @@ from typing import Any, Generator
 
 import pytest
 
+from mekara.mcp.disk import RealFilesystemAccess
 from mekara.mcp.executor import (
     McpScriptExecutor,
     PendingLlmStep,
@@ -174,7 +175,7 @@ class TestMekaraServerNestedStart:
         assert target is not None, "test/random script not found"
 
         # Create server with a custom executor for the first script
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Manually set up an executor in a pending llm state
         server.executor = McpScriptExecutor(tmp_path, AutoExecutor())
@@ -198,7 +199,7 @@ class TestMekaraServerNestedStart:
     @pytest.mark.asyncio
     async def test_start_without_running_script_pushes_to_executor(self, tmp_path: Path) -> None:
         """Calling start without a running script should push onto the executor stack."""
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
         assert server.executor.stack == []
 
         # Start a script
@@ -217,7 +218,7 @@ class TestMekaraServerNestedStart:
         target = resolve_target("test/random")
         assert target is not None
 
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Start first script manually to control state
         ScriptLoaderStub(
@@ -355,7 +356,7 @@ class TestWriteBundledCommand:
         from mekara.utils.project import bundled_commands_dir
 
         # Create the MekaraServer
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Use "finish" which exists in bundled
         response = server.write_bundled_command("finish")
@@ -377,7 +378,7 @@ class TestWriteBundledCommand:
         from mekara.mcp.server import MekaraServer
         from mekara.utils.project import bundled_scripts_dir
 
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Use "finish" which has a compiled version
         response = server.write_bundled_command("finish")
@@ -399,7 +400,7 @@ class TestWriteBundledCommand:
         """write_bundled_command should error if bundled command not found."""
         from mekara.mcp.server import MekaraServer
 
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Use a non-existent command
         response = server.write_bundled_command("nonexistent_command")
@@ -412,7 +413,7 @@ class TestWriteBundledCommand:
         """write_bundled_command should error if local file exists without force=True."""
         from mekara.mcp.server import MekaraServer
 
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # First write: should succeed
         response1 = server.write_bundled_command("finish")
@@ -428,7 +429,7 @@ class TestWriteBundledCommand:
         """write_bundled_command should overwrite local file with force=True."""
         from mekara.mcp.server import MekaraServer
 
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # First write
         response1 = server.write_bundled_command("finish")
@@ -450,7 +451,7 @@ class TestWriteBundledCommand:
         """write_bundled_command should handle nested paths with colons."""
         from mekara.mcp.server import MekaraServer
 
-        server = MekaraServer(working_dir=tmp_path)
+        server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Use a nested command (project:release or similar)
         # First verify it exists

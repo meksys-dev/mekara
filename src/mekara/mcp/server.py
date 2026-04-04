@@ -19,6 +19,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from mekara.mcp.disk import FilesystemAccess, RealFilesystemAccess
 from mekara.mcp.executor import (
     AutoExecutorProtocol,
     ExecutedStep,
@@ -102,6 +103,7 @@ class MekaraServer:
 
     def __init__(
         self,
+        fs_access: FilesystemAccess,
         auto_executor: AutoExecutorProtocol | None = None,
         working_dir: Path | None = None,
     ) -> None:
@@ -112,6 +114,7 @@ class MekaraServer:
         resolved_auto_executor = auto_executor if auto_executor is not None else AutoExecutor()
 
         self.executor = McpScriptExecutor(resolved_working_dir, resolved_auto_executor)
+        self.fs_access = fs_access
 
     def _handle_run_result(self, result: RunResult) -> str:
         """Handle the result of run_until_llm.
@@ -292,13 +295,9 @@ class MekaraServer:
                 f"Error: Local override already exists at {rel_path}. Use force=True to overwrite."
             )
 
-        # Create parent directories
-        local_nl_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Copy bundled NL source to local
-        import shutil
-
-        shutil.copy2(bundled_nl_path, local_nl_path)
+        # Copy bundled NL source to local using fs_access
+        nl_content = self.fs_access.read_file(bundled_nl_path)
+        self.fs_access.write_file(local_nl_path, nl_content)
         written_files = [str(local_nl_path.relative_to(self.executor.working_dir))]
 
         # Check if bundled compiled version exists and copy it
@@ -310,8 +309,8 @@ class MekaraServer:
             local_compiled_path = (
                 self.executor.working_dir / ".mekara" / "scripts" / "compiled" / f"{name}.py"
             )
-            local_compiled_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(bundled_compiled_path, local_compiled_path)
+            compiled_content = self.fs_access.read_file(bundled_compiled_path)
+            self.fs_access.write_file(local_compiled_path, compiled_content)
             written_files.append(str(local_compiled_path.relative_to(self.executor.working_dir)))
 
         # Return success message
@@ -339,7 +338,7 @@ def run_server() -> None:
         )
         server = VcrMekaraServer(cassette, working_dir=working_dir)
     else:
-        server = MekaraServer()
+        server = MekaraServer(fs_access=RealFilesystemAccess())
 
     # Register tools with bound methods
     mcp.tool()(server.start)

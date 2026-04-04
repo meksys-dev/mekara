@@ -17,6 +17,7 @@ from mekara.utils.project import find_project_root
 from mekara.vcr import VcrAutoExecutor
 from mekara.vcr.cassette import VCRCassette
 from tests.utils import ScriptLoaderStub
+from tests.vcr_test_driver import MekaraServerTestDriver
 
 # Get project root for script resolution
 _base_dir = find_project_root()
@@ -224,30 +225,15 @@ class TestMcpSessionReplay:
     """Tests for replaying full MCP sessions from cassettes."""
 
     @pytest.mark.asyncio
-    async def test_replay_mcp_nested_session(self) -> None:
-        """Replay the mcp-nested cassette using MekaraServerTestDriver.
-
-        This test exercises the full VCR replay architecture:
-        - MekaraServerTestDriver consumes mcp_tool_input events and calls VcrMekaraServer
-        - VcrMekaraServer consumes mcp_tool_output events and verifies outputs match
-        - Real MekaraServer runs, calling VcrAutoExecutor
-        - VcrAutoExecutor consumes auto_step events
+    @pytest.mark.parametrize("cassette_name", ["mcp-nested", "write-bundled-command"])
+    async def test_replay_cassette(self, cassette_name: str) -> None:
+        """Replay a static cassette and verify all recorded events match.
 
         If no exception is thrown, all events were consumed and verified correctly.
         """
-        from tests.vcr_test_driver import MekaraServerTestDriver
-
-        cassette_path = Path(__file__).parent / "cassettes" / "mcp-nested.yaml"
-        assert cassette_path.exists(), f"Cassette not found: {cassette_path}"
-
-        # Load cassette in replay mode
+        cassette_path = Path(__file__).parent / "cassettes" / f"{cassette_name}.yaml"
         cassette = VCRCassette(cassette_path, mode="replay")
-
-        # Create test driver - it consumes mcp_tool_input, VcrMekaraServer consumes mcp_tool_output
-        driver = MekaraServerTestDriver(cassette)
-
-        # Replay all events - driver and VcrMekaraServer verify everything internally
-        await driver.run()
+        await MekaraServerTestDriver(cassette).run()
 
     @pytest.mark.asyncio
     async def test_full_session_record_and_replay(self, tmp_path: Path) -> None:
@@ -258,7 +244,6 @@ class TestMcpSessionReplay:
         and calls VcrMekaraServer, which verifies outputs match.
         """
         from mekara.vcr.mcp_server import VcrMekaraServer
-        from tests.vcr_test_driver import MekaraServerTestDriver
 
         cassette_path = tmp_path / "session.yaml"
 

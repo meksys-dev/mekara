@@ -180,6 +180,46 @@ class McpToolOutputEvent:
 
 
 @dataclass(frozen=True)
+class ReadDiskEvent:
+    """Record file reads from disk by any tool.
+
+    Captures filesystem input so VCR can verify that reads return
+    identical content in replay mode.
+    """
+
+    path: str  # relative path
+    content: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "read_disk", "path": self.path, "content": self.content}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ReadDiskEvent:
+        _check_keys(data, {"type", "path", "content"}, "ReadDiskEvent")
+        return cls(path=data["path"], content=data["content"])
+
+
+@dataclass(frozen=True)
+class WriteDiskEvent:
+    """Record a file written to disk by any tool.
+
+    Captures filesystem output so VCR can verify the same file is written
+    with identical content in replay mode.
+    """
+
+    path: str
+    content: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "write_disk", "path": self.path, "content": self.content}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> WriteDiskEvent:
+        _check_keys(data, {"type", "path", "content"}, "WriteDiskEvent")
+        return cls(path=data["path"], content=data["content"])
+
+
+@dataclass(frozen=True)
 class AutoStepInputs:
     """Recorded inputs for an auto step execution.
 
@@ -375,7 +415,7 @@ class AutoStepEvent:
 
 
 # Union of all VCR event types
-VcrEvent = McpInputEvent | McpToolOutputEvent | AutoStepEvent
+VcrEvent = McpInputEvent | McpToolOutputEvent | ReadDiskEvent | WriteDiskEvent | AutoStepEvent
 
 
 def event_from_dict(data: dict[str, Any]) -> VcrEvent:
@@ -385,6 +425,10 @@ def event_from_dict(data: dict[str, Any]) -> VcrEvent:
         return mcp_input_from_dict(data)
     if event_type == "mcp_tool_output":
         return McpToolOutputEvent.from_dict(data)
+    if event_type == "read_disk":
+        return ReadDiskEvent.from_dict(data)
+    if event_type == "write_disk":
+        return WriteDiskEvent.from_dict(data)
     if event_type == "auto_step":
         return AutoStepEvent.from_dict(data)
     raise ValueError(f"Unknown event type: {event_type!r}")

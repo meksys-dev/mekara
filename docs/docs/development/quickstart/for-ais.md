@@ -55,6 +55,7 @@ title: For AIs
 ## Code Quality
 
 - **Be conservative with `__init__.py` exports**: Only add imports to `__init__.py` files when there's a clear need for package-level re-exports. Importing modules in `__init__.py` causes them to load when the package is imported, which can create circular import chains. Prefer letting callers import directly from submodules (e.g., `from mekara.scripting.auto import ScriptExecutor` rather than `from mekara.scripting import ScriptExecutor`).
+- **Never use local imports to avoid hypothetical circular imports**: Only use local (inside-function) imports when a circular import actually occurs and breaks at runtime. Do not preemptively move imports inside functions "just in case" — it hides dependencies, hurts readability, and is never necessary in tests.
 - **Never duplicate code**: When implementing new functionality, always check if similar code already exists. Refactor to extract shared utilities rather than copy-pasting. If you find yourself writing the same logic twice, stop and create a shared function.
 - **Never add test-only runtime code paths**: Do not introduce special behavior in production code just to satisfy tests. If tests need a seam, add a real interface or dependency boundary that production also uses.
 - **Script execution via MCP**: Scripts are executed by the MCP server (`src/mekara/mcp/server.py`) using `McpScriptExecutor` (`src/mekara/mcp/executor.py`). The executor handles auto steps (shell commands) and pauses at llm steps for Claude to handle.

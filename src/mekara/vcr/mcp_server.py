@@ -13,6 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from mekara.mcp.disk import FilesystemAccess, RealFilesystemAccess
 from mekara.mcp.server import MekaraServer
 from mekara.scripting.auto import AutoExecutor
 from mekara.vcr import VcrAutoExecutor
@@ -24,7 +25,54 @@ from mekara.vcr.events import (
     McpStatusInputEvent,
     McpToolOutputEvent,
     McpWriteBundledCommandInputEvent,
+    ReadDiskEvent,
+    WriteDiskEvent,
 )
+
+
+class VcrFilesystemAccess:
+    """VCR wrapper for filesystem access (reads and writes).
+
+    Record mode: wraps real fs access, delegates to it, records events.
+    Replay mode: no inner - returns recorded file content for reads, verifies
+                 content for writes without touching disk.
+    """
+
+    def __init__(self, cassette: VCRCassette, inner: FilesystemAccess | None = None) -> None:
+        self._cassette = cassette
+        if cassette.mode == "record":
+            if inner is None:
+                raise ValueError("Record mode requires inner filesystem access")
+            self._inner: FilesystemAccess = inner
+        else:
+            if inner is not None:
+                raise ValueError("Replay mode must not have inner filesystem access")
+
+    def read_file(self, path: Path) -> str:
+        """Read file with VCR recording/replay."""
+        if self._cassette.mode == "record":
+            content = self._inner.read_file(path)
+            self._cassette.record_event(ReadDiskEvent(path=str(path), content=content))
+            self._cassette.save()
+            return content
+        else:
+            # Replay: return recorded content — no disk read
+            recorded_event = self._cassette.consume_event(ReadDiskEvent)
+            return recorded_event.content
+
+    def write_file(self, path: Path, content: str) -> None:
+        """Write file with VCR recording/replay."""
+        if self._cassette.mode == "record":
+            self._inner.write_file(path, content)
+            self._cassette.record_event(WriteDiskEvent(path=str(path), content=content))
+            self._cassette.save()
+        else:
+            # Replay: verify content matches — no disk write
+            recorded_event = self._cassette.consume_event(WriteDiskEvent)
+            if recorded_event.path != str(path):
+                raise ValueError(f"VCR replay error: unexpected write to {path}")
+            if recorded_event.content != content:
+                raise ValueError(f"VCR replay error: file write mismatch for {path}")
 
 
 class VcrMekaraServer:
@@ -44,13 +92,26 @@ class VcrMekaraServer:
             # AutoExecutor is stateless - just need one instance
             real_executor = AutoExecutor()
             vcr_executor = VcrAutoExecutor(cassette=cassette, inner=real_executor)
-            self._inner = MekaraServer(auto_executor=vcr_executor, working_dir=working_dir)
+            # Filesystem access for recording
+            real_fs = RealFilesystemAccess()
+            vcr_fs = VcrFilesystemAccess(cassette=cassette, inner=real_fs)
+            self._inner = MekaraServer(
+                fs_access=vcr_fs,
+                auto_executor=vcr_executor,
+                working_dir=working_dir,
+            )
         else:
             # Replay mode: STILL use real MekaraServer with VcrAutoExecutor (no inner)
             # Real code runs, VcrAutoExecutor returns recorded auto_step results
             vcr_executor = VcrAutoExecutor(cassette=cassette)
+            # Filesystem access for replay - no inner, VcrFilesystemAccess handles verification
+            vcr_fs = VcrFilesystemAccess(cassette=cassette, inner=None)
             replay_working_dir = cassette.get_working_dir()
-            self._inner = MekaraServer(auto_executor=vcr_executor, working_dir=replay_working_dir)
+            self._inner = MekaraServer(
+                fs_access=vcr_fs,
+                auto_executor=vcr_executor,
+                working_dir=replay_working_dir,
+            )
 
     async def start(self, name: str, arguments: str = "", working_dir: str | None = None) -> str:
         """Start executing a mekara script with VCR recording.
@@ -178,8 +239,8 @@ class VcrMekaraServer:
     def write_bundled_command(self, name: str, force: bool = False) -> str:
         """Write a bundled command's NL source to disk with VCR recording.
 
-        In replay mode, inputs come from the test driver (which consumed mcp_tool_input).
-        VcrMekaraServer only consumes mcp_tool_output to verify output matches.
+        VCR handles filesystem events at the FilesystemAccess boundary.
+        This just records MCP-level events.
         """
         if self._cassette.mode == "record":
             self._cassette.record_event(McpWriteBundledCommandInputEvent(name=name, force=force))
@@ -191,10 +252,9 @@ class VcrMekaraServer:
             return response
         else:
             # Replay: run real application code
-            # Inputs came from test driver which consumed mcp_tool_input
             response = self._inner.write_bundled_command(name, force)
 
-            # Consume mcp_tool_output and verify output matches recorded
+            # Consume and verify MCP output
             output_event = self._cassette.consume_event(McpToolOutputEvent)
             if response != output_event.output:
                 raise ValueError(
@@ -203,4 +263,5 @@ class VcrMekaraServer:
                     f"Got: {response!r}\n"
                     "Re-record the cassette if outputs have changed."
                 )
+
             return response
