@@ -27,25 +27,9 @@ src/mekara/mcp/
 └── executor.py      # Pull-based execution with stack for nested scripts
 ```
 
-### MCP Tools
+import McpTools from '@site/docs/code-base/mekara/\_mcp-tools.md';
 
-The server exposes four tools via FastMCP:
-
-- **`start(name, arguments)`** - Start executing a script. Runs auto steps until first LLM step, NL script, or completion.
-- **`continue_compiled_script(outputs)`** - Continue after completing an LLM step in a compiled script. Pass an empty dict when no outputs are expected. Errors if an NL script is pending.
-- **`finish_nl_script()`** - Signal completion of a natural language script. Errors if an LLM step (not NL script) is pending.
-- **`status()`** - Get current execution state including pending step info (uses the pending step's `format()` method for display).
-
-:::info[Why Separate Tools for Compiled vs NL Scripts?]
-
-LLMs often get confused when executing an NL script, and will call `continue_script` after completing a single step of the NL script instead of only calling it to signal completion. As such, in order to:
-
-1. ensure that LLMs are aware of the different semantics around continuing versus completing scripts, and
-2. ensure a clean mental model for the humans maintaining the code
-
-we separate the two actions into two very clearly separate domains.
-
-:::
+<McpTools />
 
 ### Pull-Based Executor with Stack
 

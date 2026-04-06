@@ -7,7 +7,34 @@ Events serialize to/from YAML dictionaries for cassette storage.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Literal
+
+
+class PathAnchor(Enum):
+    """Identifies which root a relative filesystem path is anchored to."""
+
+    MEKARA = "mekara"  # relative to the mekara package root (src/mekara/)
+    PROJECT = "project"  # relative to the cassette working_dir
+
+
+@dataclass(frozen=True)
+class RelativePath:
+    """A filesystem path expressed relative to a known anchor.
+
+    Used in disk events so cassettes are portable across machines.
+    """
+
+    anchor: PathAnchor
+    path: str  # relative portion only
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"anchor": self.anchor.value, "path": self.path}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> RelativePath:
+        _check_keys(data, {"anchor", "path"}, "RelativePath")
+        return cls(anchor=PathAnchor(data["anchor"]), path=data["path"])
 
 
 def _check_keys(data: dict[str, Any], expected: set[str], context: str) -> None:
@@ -102,12 +129,41 @@ class McpFinishNLScriptInputEvent:
         return cls()
 
 
+@dataclass(frozen=True)
+class McpWriteBundledInputEvent:
+    """Inbound 'write_bundled' tool call to write a bundled command or standard to disk."""
+
+    name: str
+    force: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "type": "mcp_tool_input",
+            "tool": "write_bundled",
+            "input": {
+                "name": self.name,
+                "force": self.force,
+            },
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> McpWriteBundledInputEvent:
+        _check_keys(data, {"type", "tool", "input"}, "McpWriteBundledInputEvent")
+        input_data = data.get("input", {})
+        _check_keys(input_data, {"name", "force"}, "McpWriteBundledInputEvent.input")
+        return cls(
+            name=input_data["name"],
+            force=input_data.get("force", False),
+        )
+
+
 # Union of all MCP input event types
 McpInputEvent = (
     McpStartInputEvent
     | McpContinueCompiledScriptInputEvent
     | McpStatusInputEvent
     | McpFinishNLScriptInputEvent
+    | McpWriteBundledInputEvent
 )
 
 # Registry for MCP input events by tool name
@@ -116,6 +172,7 @@ _MCP_INPUT_TYPES: dict[str, type[McpInputEvent]] = {
     "continue_compiled_script": McpContinueCompiledScriptInputEvent,
     "status": McpStatusInputEvent,
     "finish_nl_script": McpFinishNLScriptInputEvent,
+    "write_bundled": McpWriteBundledInputEvent,
 }
 
 
@@ -147,6 +204,65 @@ class McpToolOutputEvent:
     def from_dict(cls, data: dict[str, Any]) -> McpToolOutputEvent:
         _check_keys(data, {"type", "tool", "output"}, "McpToolOutputEvent")
         return cls(tool=data["tool"], output=data["output"])
+
+
+@dataclass(frozen=True)
+class ReadDiskEvent:
+    """Record a file read from disk.
+
+    Inbound: VCR returns recorded content in replay (no disk read).
+    Path is verified to ensure the correct file is being read.
+    """
+
+    path: RelativePath
+    content: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "read_disk", "path": self.path.to_dict(), "content": self.content}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ReadDiskEvent:
+        _check_keys(data, {"type", "path", "content"}, "ReadDiskEvent")
+        return cls(path=RelativePath.from_dict(data["path"]), content=data["content"])
+
+
+@dataclass(frozen=True)
+class WriteDiskEvent:
+    """Record a file written to disk.
+
+    Outbound: VCR verifies path and content match in replay (no disk write).
+    """
+
+    path: RelativePath
+    content: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "write_disk", "path": self.path.to_dict(), "content": self.content}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> WriteDiskEvent:
+        _check_keys(data, {"type", "path", "content"}, "WriteDiskEvent")
+        return cls(path=RelativePath.from_dict(data["path"]), content=data["content"])
+
+
+@dataclass(frozen=True)
+class PathExistsEvent:
+    """Record a filesystem existence check.
+
+    Outbound: path being queried (verified in replay).
+    Inbound: recorded result returned in replay (no disk check).
+    """
+
+    path: RelativePath
+    exists: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "path_exists", "path": self.path.to_dict(), "exists": self.exists}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> PathExistsEvent:
+        _check_keys(data, {"type", "path", "exists"}, "PathExistsEvent")
+        return cls(path=RelativePath.from_dict(data["path"]), exists=data["exists"])
 
 
 @dataclass(frozen=True)
@@ -345,7 +461,14 @@ class AutoStepEvent:
 
 
 # Union of all VCR event types
-VcrEvent = McpInputEvent | McpToolOutputEvent | AutoStepEvent
+VcrEvent = (
+    McpInputEvent
+    | McpToolOutputEvent
+    | ReadDiskEvent
+    | WriteDiskEvent
+    | PathExistsEvent
+    | AutoStepEvent
+)
 
 
 def event_from_dict(data: dict[str, Any]) -> VcrEvent:
@@ -355,6 +478,12 @@ def event_from_dict(data: dict[str, Any]) -> VcrEvent:
         return mcp_input_from_dict(data)
     if event_type == "mcp_tool_output":
         return McpToolOutputEvent.from_dict(data)
+    if event_type == "read_disk":
+        return ReadDiskEvent.from_dict(data)
+    if event_type == "write_disk":
+        return WriteDiskEvent.from_dict(data)
+    if event_type == "path_exists":
+        return PathExistsEvent.from_dict(data)
     if event_type == "auto_step":
         return AutoStepEvent.from_dict(data)
     raise ValueError(f"Unknown event type: {event_type!r}")

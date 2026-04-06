@@ -164,6 +164,7 @@ flowchart TB
     workflow["/&lt;command&gt;"] --> claude["Claude Code"] --> rsi["/recursive-self-improvement"]
     claude --> rsi_doc["/rsi-documentation"]
     claude --> rsi_script["/rsi-scripting"]
+    claude --> add_feedback["/collect-my-feedback"]
 
     style claude fill:#bff7f9,color:#000
 ```
@@ -171,6 +172,7 @@ flowchart TB
 - `/recursive-self-improvement` may be run at any time to get the agent to improve its own workings based on the mistakes encountered and user guidance you gave it during your interactive session invoking a previous command. This command may even be run on itself, if mekara is not recursively improving itself correctly.
 - `/rsi-documentation` may be run when you provide feedback about documentation organization or formatting during a session. It captures the latest guidance into [documentation conventions](../code-base/documentation/conventions.md) so future work follows the same patterns.
 - `/rsi-scripting` may be run when you establish new conventions or patterns for natural language scripts during a session. It updates `/systematize` to teach future agents these conventions.
+- `/collect-my-feedback` may be run at the end of a session to document all coding mistakes the human corrected. It drafts entries for all mistakes, confirms each description with the user (agents often mischaracterize their own mistakes), and appends them to the project's coding standards file.
 
 :::info
 

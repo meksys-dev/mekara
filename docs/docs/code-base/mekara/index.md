@@ -20,3 +20,4 @@ This section covers the structure of the `mekara` Python MCP server package.
 - [Code Conventions](./conventions/) – Critical architectural decisions and conventions that must be preserved.
 - [Scripts](./scripts.md) – Utility scripts for development and documentation maintenance.
 - [Refactoring Patterns](./refactoring.md) – Lessons learned: code smells, unnecessary indirection, and when to simplify.
+- [Coding Standards](./coding-standards.md) – Concrete mistakes and their fixes: duplication, naming, imports.

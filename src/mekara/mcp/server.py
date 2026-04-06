@@ -19,6 +19,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from mekara.mcp.disk import FilesystemAccess, RealFilesystemAccess
 from mekara.mcp.executor import (
     AutoExecutorProtocol,
     ExecutedStep,
@@ -30,7 +31,12 @@ from mekara.mcp.executor import (
 )
 from mekara.scripting.loading import ScriptLoadError
 from mekara.scripting.runtime import Auto, AutoException, CallScript
-from mekara.utils.project import find_project_root
+from mekara.utils.project import (
+    bundled_commands_dir,
+    bundled_scripts_dir,
+    bundled_standards_dir,
+    find_project_root,
+)
 
 
 def _format_executed_steps(executed_steps: list[ExecutedStep]) -> str:
@@ -102,6 +108,7 @@ class MekaraServer:
 
     def __init__(
         self,
+        fs_access: FilesystemAccess,
         auto_executor: AutoExecutorProtocol | None = None,
         working_dir: Path | None = None,
     ) -> None:
@@ -112,6 +119,7 @@ class MekaraServer:
         resolved_auto_executor = auto_executor if auto_executor is not None else AutoExecutor()
 
         self.executor = McpScriptExecutor(resolved_working_dir, resolved_auto_executor)
+        self.fs_access = fs_access
 
     def _handle_run_result(self, result: RunResult) -> str:
         """Handle the result of run_until_llm.
@@ -253,6 +261,97 @@ class MekaraServer:
 
         return "\n".join(lines)
 
+    def write_bundled(self, name: str, force: bool = False) -> str:
+        """Write a bundled command or standard to the local .mekara/ directory.
+
+        Detects whether `name` refers to a command or standard automatically.
+        Use the "standard:" prefix to explicitly target a standard (e.g.,
+        "standard:command"), which is useful when both a command and a standard
+        share the same name.
+
+        Args:
+            name: Command name (e.g., "finish", "project:release") or standard name
+                with optional "standard:" prefix (e.g., "standard:command", "workflow").
+                Colons in command names become path separators.
+            force: If True, overwrite existing local files. Default False.
+
+        Returns:
+            Message listing the written file paths, or an error message.
+        """
+        # Explicit standard: prefix — skip command lookup
+        if name.startswith("standard:"):
+            return self._write_bundled_standard(name[len("standard:") :], force)
+
+        # Auto-detect: check both command and standard locations
+        cmd_name = name.replace(":", "/")
+        cmd_name_underscored = cmd_name.replace("-", "_")
+        bundled_commands = bundled_commands_dir()
+
+        bundled_nl_path: Path | None = bundled_commands / f"{cmd_name}.md"
+        if not self.fs_access.path_exists(bundled_nl_path):
+            alt = bundled_commands / f"{cmd_name_underscored}.md"
+            bundled_nl_path = alt if self.fs_access.path_exists(alt) else None
+
+        bundled_std_path = bundled_standards_dir() / f"{name}.md"
+        is_standard = self.fs_access.path_exists(bundled_std_path)
+
+        if bundled_nl_path is not None and is_standard:
+            return (
+                f"Error: '{name}' exists as both a command and a standard. "
+                f"Use 'standard:{name}' to target the standard."
+            )
+        if bundled_nl_path is not None:
+            return self._write_bundled_command(cmd_name, bundled_nl_path, force)
+        if is_standard:
+            return self._write_bundled_standard(name, force)
+        return f"Error: No bundled command or standard found for '{name}'"
+
+    def _copy_bundled_file(self, src: Path, dst: Path, force: bool) -> str | None:
+        """Copy src to dst via fs_access.
+
+        Returns an error string if dst exists and force is False, else None.
+        """
+        if self.fs_access.path_exists(dst) and not force:
+            rel = dst.relative_to(self.executor.working_dir)
+            return f"Error: Local override already exists at {rel}. Use force=True to overwrite."
+        self.fs_access.write_file(dst, self.fs_access.read_file(src))
+        return None
+
+    def _write_bundled_command(self, name: str, bundled_nl_path: Path, force: bool) -> str:
+        """Copy bundled command NL source (and compiled .py if present) to .mekara/scripts/."""
+        local_nl_path = self.executor.working_dir / ".mekara" / "scripts" / "nl" / f"{name}.md"
+        if error := self._copy_bundled_file(bundled_nl_path, local_nl_path, force):
+            return error
+        written_files = [str(local_nl_path.relative_to(self.executor.working_dir))]
+
+        name_underscored = name.replace("-", "_")
+        bundled_scripts = bundled_scripts_dir()
+        bundled_compiled_path = bundled_scripts / f"{name}.py"
+        if not self.fs_access.path_exists(bundled_compiled_path):
+            bundled_compiled_path = bundled_scripts / f"{name_underscored}.py"
+
+        if self.fs_access.path_exists(bundled_compiled_path):
+            local_compiled_path = (
+                self.executor.working_dir / ".mekara" / "scripts" / "compiled" / f"{name}.py"
+            )
+            self._copy_bundled_file(bundled_compiled_path, local_compiled_path, force=True)
+            written_files.append(str(local_compiled_path.relative_to(self.executor.working_dir)))
+
+        files_str = "\n".join(f"- `{f}`" for f in written_files)
+        return f"Wrote bundled command `{name}` to disk:\n\n{files_str}"
+
+    def _write_bundled_standard(self, name: str, force: bool) -> str:
+        """Copy bundled standard to .mekara/standards/."""
+        bundled_std_path = bundled_standards_dir() / f"{name}.md"
+        if not self.fs_access.path_exists(bundled_std_path):
+            return f"Error: No bundled standard found for '{name}'"
+
+        local_std_path = self.executor.working_dir / ".mekara" / "standards" / f"{name}.md"
+        if error := self._copy_bundled_file(bundled_std_path, local_std_path, force):
+            return error
+        rel_path = local_std_path.relative_to(self.executor.working_dir)
+        return f"Wrote bundled standard `{name}` to disk:\n\n- `{rel_path}`"
+
 
 def run_server() -> None:
     """Run the MCP server with stdio transport."""
@@ -274,13 +373,14 @@ def run_server() -> None:
         )
         server = VcrMekaraServer(cassette, working_dir=working_dir)
     else:
-        server = MekaraServer()
+        server = MekaraServer(fs_access=RealFilesystemAccess())
 
     # Register tools with bound methods
     mcp.tool()(server.start)
     mcp.tool()(server.continue_compiled_script)
     mcp.tool()(server.finish_nl_script)
     mcp.tool()(server.status)
+    mcp.tool()(server.write_bundled)
 
     mcp.run(transport="stdio")
 

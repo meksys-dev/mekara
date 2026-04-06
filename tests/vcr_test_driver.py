@@ -17,6 +17,7 @@ from mekara.vcr.events import (
     McpFinishNLScriptInputEvent,
     McpStartInputEvent,
     McpStatusInputEvent,
+    McpWriteBundledInputEvent,
 )
 from mekara.vcr.mcp_server import VcrMekaraServer
 
@@ -57,5 +58,7 @@ class MekaraServerTestDriver:
                 await self._server.finish_nl_script()
             elif isinstance(event, McpStatusInputEvent):
                 self._server.status()
+            elif isinstance(event, McpWriteBundledInputEvent):
+                self._server.write_bundled(name=event.name, force=event.force)
             else:
                 raise ValueError(f"Unexpected event type: {type(event).__name__}")

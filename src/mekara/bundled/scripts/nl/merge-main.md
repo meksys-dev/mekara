@@ -13,51 +13,38 @@ git merge origin/main
 
 If there are no conflicts, you're done! If there are conflicts, continue with the steps below.
 
-### Step 1: Understand Main's Intentions
-
-Review what changed in main since we branched off. Look at the **pull requests merged into main**, not just individual file diffs.
-
-```bash
-# See commits in main that we don't have
-git log HEAD..origin/main --oneline
-
-# For each commit/PR, understand what it was trying to accomplish
-git show <commit-hash>
-```
-
-**For each PR merged to main:**
-- What problem was it solving?
-- What files did it change and why?
-- What was the intended outcome?
-
-**If any intentions are unclear, ask the user before proceeding.**
-
-### Step 2: Understand Our Intentions
-
-Review what we've changed since branching off from main. Look at the **overall diff**, not individual commits (our commits may be in rough/non-working states).
-
-```bash
-# See the complete diff of our changes since branching
-git diff origin/main...HEAD
-
-# Also list our commits for context
-git log origin/main..HEAD --oneline
-```
-
-**For all our changes combined:**
-- What problem were we solving?
-- What files did we change and why?
-- What was the intended outcome?
-
-**If any intentions are unclear, ask the user before proceeding.**
-
-### Step 3: Identify Conflicted Files
+### Step 1: Identify Conflicted Files
 
 ```bash
 git diff --name-only --diff-filter=U
 ```
 
-### Step 4: Resolve Each Conflict
+### Step 2: Understand Main's Intentions
+
+List the commits in main that touched the conflicted files:
+
+```bash
+git log HEAD..origin/main -- <conflicted-file>
+```
+
+Explore main's commits and diffs as needed to understand **for each PR that touches a conflicted file:**
+- What problem was it solving?
+- What was the intended outcome?
+- Why did that result in those specific changes to the conflicting files?
+
+**If any intentions are unclear, ask the user before proceeding.**
+
+### Step 3: Understand Our Intentions
+
+Review what we've changed since branching off from main. Explore our commits and diffs as well to understand:
+
+- What problem were we solving?
+- What was the intended outcome?
+- Why did that result in those specific changes to the conflicting files?
+
+**If any intentions are unclear, ask the user before proceeding.**
+
+### Step 4: Resolve Conflicts
 
 For each conflicted file, **understand WHY there's a conflict:**
 
@@ -149,6 +136,7 @@ git commit
 - **Review PRs, not diffs** - Understanding the "why" prevents wrong resolutions
 - **Our architecture is valuable** - If we refactored, apply main's changes to our structure
 - **Merge only, don't add** - A merge should only combine existing code from both sides. Never add new parameters, new abstractions, or new functionality that didn't exist on either branch. If you think something new is needed to reconcile the two sides, ask the user first.
+- **A conflict means both sides changed the file** - A merge conflict only appears when both branches modified the same file. If there's a conflict, both main and our branch touched it. Don't assume one side didn't change something just because you didn't notice it at first glance.
 
 ### Example: Understanding a Conflict
 
