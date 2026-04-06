@@ -104,6 +104,18 @@ rm -rf /tmp/test-mekara
 poetry publish
 ```
 
+### Step 7: Create GitHub release
+
+After the user confirms the package installs and runs correctly from PyPI, create a git tag and GitHub release:
+
+```bash
+git tag v<target-version>
+git push origin v<target-version>
+gh release create v<target-version> --title "v<target-version>" --generate-notes
+```
+
+Wait for the user to confirm successful install before creating the release.
+
 ## Key Principles
 
 - **Verify before publishing**: Always build and verify the package contents before handing off to the user for publishing
