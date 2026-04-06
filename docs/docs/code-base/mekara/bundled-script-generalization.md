@@ -144,6 +144,16 @@ If a bundled NL script is _not_ intentionally generalized (i.e. it's not present
 
 - All workflow structure and standardization principles
 
+### collect-my-feedback.md
+
+**Changed:**
+
+- `docs/docs/code-base/mekara/coding-standards.md` (mekara-specific path) → `docs/code-base/<project>/coding-standards.md` (generic path per the standard project layout)
+
+**Kept:**
+
+- All workflow structure, confirmation step, and entry format
+
 ### recursive-self-improvement.md
 
 **Removed:**

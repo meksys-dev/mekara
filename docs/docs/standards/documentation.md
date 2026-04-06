@@ -23,6 +23,7 @@ docs/
 ├── code-base/
 │   ├── index.md
 │   ├── <project-name>/      # main project implementation details
+│   │   └── coding-standards.md  # accumulated coding mistakes and fixes
 │   ├── documentation/       # documentation site implementation
 │   └── ...                  # other subsystems as needed
 ├── dependencies/            # optional
@@ -113,6 +114,7 @@ Navigation guide to the codebase as a static entity: implementation details, got
 **Update when:** You add new modules, change architecture, or discover important implementation details that future maintainers need to know.
 
 - **After refactoring**: Update `code-base/` with patterns learned during the refactoring session. Document code smells you encountered, why they were problematic, and the better pattern you applied. This helps future developers recognize and avoid similar issues.
+- **`coding-standards.md`**: Each `<project-name>/` folder should have a `coding-standards.md` that accumulates concrete coding mistakes and their fixes over time. See the [standard workflow](./workflow.md#accelerate) for how this file gets updated via `/collect-my-feedback`.
 - **Does not include**: The actual code (readers can look at that directly), active workflows or commands (that's development/), or UI details already in `usage/`
 
 **Clarification: Consumer vs Maintainer**
