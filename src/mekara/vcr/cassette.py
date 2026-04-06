@@ -19,6 +19,7 @@ from mekara.vcr.events import (
     McpStartInputEvent,
     McpStatusInputEvent,
     McpToolOutputEvent,
+    PathExistsEvent,
     ReadDiskEvent,
     VcrEvent,
     WriteDiskEvent,
@@ -47,6 +48,7 @@ T = TypeVar(
     AutoStepEvent,
     ReadDiskEvent,
     WriteDiskEvent,
+    PathExistsEvent,
 )
 
 

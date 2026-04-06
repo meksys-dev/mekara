@@ -25,7 +25,7 @@ Record mode:
 Replay mode:
   VcrMekaraServer
     └─> MekaraServer (SAME real app code - fully exercised)
-         ├─> VcrFilesystemAccess (no inner; returns recorded reads, asserts writes)
+         ├─> VcrFilesystemAccess (no inner; returns recorded reads/exists, asserts writes)
          └─> VcrAutoExecutor (no inner; returns recorded outputs, asserts inputs)
 ```
 
@@ -73,11 +73,25 @@ All VCR events are strongly typed dataclasses defined in `mekara.vcr.events`. Ea
 
 - `ReadDiskEvent(path, content)` - inbound: file content read from disk (returned to system in replay)
 - `WriteDiskEvent(path, content)` - outbound: file written to disk (verified in replay, NOT re-written)
+- `PathExistsEvent(path, exists)` - both: path checked for existence (outbound: path verified; inbound: `exists` bool returned)
 
 :::warning
 Event schemas must mirror the granularity of the boundary method they record. If a method is called once per operation, the event represents one operation — never aggregate multiple calls into a single event or use a collection field when the schema is one-to-one with calls.
 
 For example: `write_file` is called once per file, so `WriteDiskEvent` has a single `path` and `content` — not a `files` dict.
+:::
+
+**Portable path storage in disk events:**
+
+Disk event `path` fields are stored as `RelativePath(anchor, path)` — not as absolute strings — so cassettes are portable across machines. `anchor` is a `PathAnchor` enum value:
+
+- `PathAnchor.MEKARA` — relative to the mekara package root (`src/mekara/`). Used for bundled scripts, standards, and compiled files.
+- `PathAnchor.PROJECT` — relative to the cassette's `working_dir`. Used for local project files written to `.mekara/`.
+
+`VcrFilesystemAccess` converts absolute paths to `RelativePath` at the VCR boundary using `_relativize()`. Application code always works with absolute `Path` objects and never sees `RelativePath`.
+
+:::warning[All path.exists() calls must route through fs_access]
+Application code must call `self.fs_access.path_exists(path)` instead of `path.exists()` directly. A bare `path.exists()` call bypasses VCR entirely — in replay mode the temp `working_dir` doesn't exist, so it would always return `False` for project paths and live-check the filesystem for bundled paths.
 :::
 
 **Type-safe consumption:**
@@ -142,6 +156,7 @@ The `execute()` method signature is: `execute(step: Auto, *, working_dir: Path) 
 | `auto_step`       | both      | `VcrAutoExecutor`        | Asserts inputs, returns outputs                 |
 | `read_disk`       | inbound   | `VcrFilesystemAccess`    | Returns recorded file content (no disk read)    |
 | `write_disk`      | outbound  | `VcrFilesystemAccess`    | Asserts written content matches (no disk write) |
+| `path_exists`     | both      | `VcrFilesystemAccess`    | Asserts path matches; returns recorded bool     |
 
 VCR wrappers may be nested (e.g., `VcrMekaraServer` → `MekaraServer` → `VcrAutoExecutor`). During recording, all boundaries record events to the same cassette. During replay:
 
@@ -339,8 +354,8 @@ if __name__ == "__main__":
 Use `tempfile.TemporaryDirectory()` for the working dir so:
 
 - The cassette's `working_dir` is a unique path that won't exist on other machines
-- In replay, `MekaraServer` computes paths under a non-existent dir, so `local_path.exists()` returns False and the write logic proceeds normally
-- `VcrFilesystemAccess` never touches disk in replay anyway — the temp dir is only needed to construct paths during recording
+- In replay, `MekaraServer` computes paths under a non-existent dir — but since all `path.exists()` calls route through `self.fs_access.path_exists()`, the result is always the recorded bool, never a live filesystem check
+- `VcrFilesystemAccess` never touches disk in replay anyway — the temp dir is only needed to construct relative paths during recording
 
 Re-run the recording script only when the tool's behavior intentionally changes. The cassette is the source of truth; never edit it by hand.
 

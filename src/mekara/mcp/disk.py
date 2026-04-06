@@ -38,6 +38,17 @@ class FilesystemAccess(Protocol):
         """
         ...
 
+    def path_exists(self, path: Path) -> bool:
+        """Check whether a path exists on the filesystem.
+
+        Args:
+            path: File path to check.
+
+        Returns:
+            True if the path exists.
+        """
+        ...
+
 
 class RealFilesystemAccess:
     """Real filesystem access that reads/writes actual files."""
@@ -50,3 +61,7 @@ class RealFilesystemAccess:
         """Write content to disk."""
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
+
+    def path_exists(self, path: Path) -> bool:
+        """Check whether a path exists on disk."""
+        return path.exists()

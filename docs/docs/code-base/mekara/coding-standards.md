@@ -80,6 +80,31 @@ def _write_bundled_standard(self, name: str, force: bool) -> str:
     ...
 ```
 
+## Use constructors directly, not factory functions
+
+### Example: `make_vcr_filesystem` wrapping `VcrFilesystemAccess.__init__`
+
+**Agent's solution:** Created a standalone factory function to construct a `VcrFilesystemAccess`:
+
+```python
+def make_vcr_filesystem(cassette: VCRCassette, working_dir: Path) -> VcrFilesystemAccess:
+    if cassette.mode == "record":
+        return VcrFilesystemAccess(cassette, working_dir, inner=RealFilesystemAccess())
+    return VcrFilesystemAccess(cassette, working_dir)
+```
+
+**Why this is wrong:** The constructor is already the right place to construct a class. A factory function that just calls the constructor adds indirection for no gain — callers now have to know about `make_vcr_filesystem` instead of just using `VcrFilesystemAccess(...)`. The constructor exists precisely to handle this.
+
+**Human-provided fix:** Remove the factory function and call the constructor directly at each call site:
+
+```python
+# Record mode
+vcr_fs = VcrFilesystemAccess(cassette, working_dir, inner=RealFilesystemAccess())
+
+# Replay mode
+vcr_fs = VcrFilesystemAccess(cassette, replay_working_dir)
+```
+
 ## No defensive local imports
 
 ### Example: `from mekara.utils.project import ...` inside method bodies

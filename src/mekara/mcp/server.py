@@ -288,12 +288,12 @@ class MekaraServer:
         bundled_commands = bundled_commands_dir()
 
         bundled_nl_path: Path | None = bundled_commands / f"{cmd_name}.md"
-        if not bundled_nl_path.exists():
+        if not self.fs_access.path_exists(bundled_nl_path):
             alt = bundled_commands / f"{cmd_name_underscored}.md"
-            bundled_nl_path = alt if alt.exists() else None
+            bundled_nl_path = alt if self.fs_access.path_exists(alt) else None
 
         bundled_std_path = bundled_standards_dir() / f"{name}.md"
-        is_standard = bundled_std_path.exists()
+        is_standard = self.fs_access.path_exists(bundled_std_path)
 
         if bundled_nl_path is not None and is_standard:
             return (
@@ -311,7 +311,7 @@ class MekaraServer:
 
         Returns an error string if dst exists and force is False, else None.
         """
-        if dst.exists() and not force:
+        if self.fs_access.path_exists(dst) and not force:
             rel = dst.relative_to(self.executor.working_dir)
             return f"Error: Local override already exists at {rel}. Use force=True to overwrite."
         self.fs_access.write_file(dst, self.fs_access.read_file(src))
@@ -327,10 +327,10 @@ class MekaraServer:
         name_underscored = name.replace("-", "_")
         bundled_scripts = bundled_scripts_dir()
         bundled_compiled_path = bundled_scripts / f"{name}.py"
-        if not bundled_compiled_path.exists():
+        if not self.fs_access.path_exists(bundled_compiled_path):
             bundled_compiled_path = bundled_scripts / f"{name_underscored}.py"
 
-        if bundled_compiled_path.exists():
+        if self.fs_access.path_exists(bundled_compiled_path):
             local_compiled_path = (
                 self.executor.working_dir / ".mekara" / "scripts" / "compiled" / f"{name}.py"
             )
@@ -343,7 +343,7 @@ class MekaraServer:
     def _write_bundled_standard(self, name: str, force: bool) -> str:
         """Copy bundled standard to .mekara/standards/."""
         bundled_std_path = bundled_standards_dir() / f"{name}.md"
-        if not bundled_std_path.exists():
+        if not self.fs_access.path_exists(bundled_std_path):
             return f"Error: No bundled standard found for '{name}'"
 
         local_std_path = self.executor.working_dir / ".mekara" / "standards" / f"{name}.md"
