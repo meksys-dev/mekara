@@ -28,6 +28,8 @@ docs/
 │   ├── code-base/
 │   │   ├── index.md
 │   │   ├── mekara/
+│   │   │   ├── modules/
+│   │   │   │   └── vcr.md
 │   │   │   ├── vcr-agent-recordings/
 │   │   └── documentation/
 │   │       ├── index.md

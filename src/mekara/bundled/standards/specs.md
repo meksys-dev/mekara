@@ -109,6 +109,7 @@ The architecture section describes the module's **public contract** — everythi
 - Public functions with their signatures and behavior
 - Data flow showing how pieces connect (Mermaid diagrams are encouraged)
 - Invariants that constrain the public contract (e.g., "these are distinct types, not subtypes" or "this field is always present")
+- **Patterns and anti-patterns** (optional) — usage patterns or mistakes that apply to the public contract, independent of any specific implementation
 
 **What does NOT belong in Architecture:**
 
@@ -170,6 +171,7 @@ Contents:
 - **Design choices** — language-specific decisions (e.g., "frozen dataclasses for immutability", "importlib for module loading")
 - **Internal types** — types that consumers never see (constants, private helpers, internal enums)
 - **Algorithms** — step-by-step logic for non-trivial operations, including edge cases and fallback behavior
+- **Patterns and anti-patterns** (optional) — implementation-specific patterns or mistakes that apply only in the context of this stack or language
 
 This is the most detailed section. The "reconstruct from spec" test applies here: given only this section and the sections above, an implementer should be able to produce code that passes all tests and satisfies all requirements, with differences limited to local variable names, formatting, and other trivial choices.
 
