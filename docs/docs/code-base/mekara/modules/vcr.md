@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# VCR Module Spec
+# VCR Module
 
 ## Purpose
 
@@ -66,8 +66,14 @@ Cassettes are YAML files containing initial state and an ordered event list. Mul
 
 **Construction:**
 
-- **Record mode:** `VCRCassette(path, mode="record", initial_state={"working_dir": str(cwd)})` — creates an empty cassette ready to receive events. `initial_state` is required.
-- **Replay mode:** `VCRCassette(path, mode="replay")` — loads events from the YAML file. `initial_state` is loaded from the file; passing it to the constructor is an error.
+- **Record mode:** Creates an empty cassette ready to receive events. The initial state is passed in as a required argument.
+- **Replay mode:** The initial state is loaded from the file; passing it to the constructor is an error.
+
+**`VCRCassette` initial state:**
+
+| Field         | Type  | Description                                        |
+| ------------- | ----- | -------------------------------------------------- |
+| `working_dir` | `str` | Working directory used to relativize project paths |
 
 **`VCRCassette`:**
 
@@ -110,27 +116,79 @@ execute(step, working_dir)
 
 Implements `AutoExecutorProtocol`: `execute(step: Auto, *, working_dir: Path) -> AsyncIterator[AutoExecutionResult]`
 
+| Method signature                            | Behavior                               | VCR event(s) produced / consumed |
+| ------------------------------------------- | -------------------------------------- | -------------------------------- |
+| `execute(step: Auto, *, working_dir: Path)` | Execute one auto step in `working_dir` | `AutoStepEvent`                  |
+
+| Event           | Fields                                                                 | VCR verifies               | VCR provides     |
+| --------------- | ---------------------------------------------------------------------- | -------------------------- | ---------------- |
+| `AutoStepEvent` | `working_dir: str`, `inputs: AutoStepInputs`, `result: AutoStepResult` | `inputs` and `working_dir` | execution result |
+
+`AutoStepInputs` captures the exact step VCR is replaying at the shell boundary:
+
+- what kind of action it was (`shell` or `call`)
+- what command or callable name was requested
+- the optional human-readable context string
+- any structured keyword arguments needed to reproduce the call.
+
+`AutoStepResult` captures how the shell or Python call resolved. Every variant records:
+
+- whether execution succeeded
+- the output shown to the user
+- outcome-specific metadata:
+  - exit code for shell commands
+  - returned value or error for Python calls
+  - exception details for failures that abort the step
+
+| Type                | Fields                                                                    |
+| ------------------- | ------------------------------------------------------------------------- |
+| `ShellResultData`   | `success: bool`, `exit_code: int`, `output: str`                          |
+| `CallResultData`    | `success: bool`, `value: Any`, `error: str \| None`, `output: str`        |
+| `AutoExceptionData` | `success: bool`, `exception: str`, `step_description: str`, `output: str` |
+
 #### VcrFilesystemAccess
 
-Wraps `RealFilesystemAccess` at the filesystem boundary.
+Wraps `FilesystemAccess` at the filesystem boundary.
 
 **`VcrFilesystemAccess`:**
 
-| Parameter     | Type                       | Description                               |
-| ------------- | -------------------------- | ----------------------------------------- |
-| `cassette`    | `VCRCassette`              | Shared cassette instance                  |
-| `working_dir` | `Path`                     | Working directory for path relativization |
-| `inner`       | `FilesystemAccess \| None` | Real fs (record) or None (replay)         |
+| Parameter     | Type                               | Description                               |
+| ------------- | ---------------------------------- | ----------------------------------------- |
+| `cassette`    | `VCRCassette`                      | Shared cassette instance                  |
+| `working_dir` | `Path`                             | Working directory for path relativization |
+| `inner`       | `FilesystemAccessProtocol \| None` | Real fs (record) or None (replay)         |
 
-Implements `FilesystemAccess` protocol:
+Implements `FilesystemAccessProtocol`:
 
-| Method                      | Record behavior                           | Replay behavior                                      |
-| --------------------------- | ----------------------------------------- | ---------------------------------------------------- |
-| `read_file(path) -> str`    | Read via inner, record `ReadDiskEvent`    | Consume `ReadDiskEvent`, verify path, return content |
-| `write_file(path, content)` | Write via inner, record `WriteDiskEvent`  | Consume `WriteDiskEvent`, verify path AND content    |
-| `path_exists(path) -> bool` | Check via inner, record `PathExistsEvent` | Consume `PathExistsEvent`, verify path, return bool  |
+| Method signature            | Behavior                      | VCR event(s) produced / consumed |
+| --------------------------- | ----------------------------- | -------------------------------- |
+| `read_file(path) -> str`    | Read file content from `path` | `ReadDiskEvent`                  |
+| `write_file(path, content)` | Write `content` to `path`     | `WriteDiskEvent`                 |
+| `path_exists(path) -> bool` | Check whether `path` exists   | `PathExistsEvent`                |
 
 Paths are converted to `RelativePath` at the VCR boundary. Application code always works with absolute `Path` objects.
+
+| Event             | Fields                               | VCR verifies         | VCR provides  |
+| ----------------- | ------------------------------------ | -------------------- | ------------- |
+| `ReadDiskEvent`   | `path: RelativePath`, `content: str` | `path`               | file content  |
+| `WriteDiskEvent`  | `path: RelativePath`, `content: str` | `path` and `content` | —             |
+| `PathExistsEvent` | `path: RelativePath`, `exists: bool` | `path`               | `exists` bool |
+
+`RelativePath` stores a filesystem location in portable form:
+
+- `anchor` says which stable base directory the path is relative to
+- `path` stores the relative location under that base
+
+`PathAnchor` identifies the base used to make a path portable:
+
+- `MEKARA` means the path is relative to `src/mekara/`
+- `PROJECT` means it is relative to the cassette's recorded `working_dir`
+
+The filesystem-specific event payloads still carry the path data VCR needs to match disk access:
+
+- `ReadDiskEvent` stores a `RelativePath` plus recorded file content
+- `WriteDiskEvent` stores a `RelativePath` plus the content that must be written
+- `PathExistsEvent` stores a `RelativePath` plus the recorded existence result
 
 :::warning[All path.exists() calls must route through fs_access]
 Application code must call `self.fs_access.path_exists(path)` instead of `path.exists()` directly. A bare `path.exists()` bypasses VCR — in replay mode the temp `working_dir` doesn't exist, so it returns `False` for project paths and live-checks the filesystem for bundled paths.
@@ -142,7 +200,7 @@ Wraps `MekaraServer` at the MCP boundary. Unlike the other wrappers, this one al
 
 **Record mode construction:**
 
-1. Create real `AutoExecutor` and `RealFilesystemAccess`
+1. Create real `AutoExecutor` and `FilesystemAccess`
 2. Wrap each in its VCR wrapper with the shared cassette
 3. Pass VCR-wrapped dependencies to `MekaraServer`
 
@@ -158,7 +216,7 @@ Wraps `MekaraServer` at the MCP boundary. Unlike the other wrappers, this one al
 VcrMekaraServer
   └─> MekaraServer (real application code, always runs)
        ├─> VcrFilesystemAccess
-       │    └─> RealFilesystemAccess (record) or nothing (replay)
+       │    └─> FilesystemAccess (record) or nothing (replay)
        └─> VcrAutoExecutor
             └─> AutoExecutor (record) or nothing (replay)
 ```
@@ -169,6 +227,23 @@ VcrMekaraServer
 - Replay: call inner server (real code runs with VCR boundaries) → consume `McpToolOutputEvent` → assert output matches
 
 Note: In replay mode, `VcrMekaraServer` does not consume input events — those are consumed by the test driver (see below).
+
+| Method signature                                                         | Behavior                                                                | VCR event(s) produced / consumed                            |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `start(name: str, arguments: str = "", working_dir: str \| None = None)` | Start executing a script                                                | `McpStartInputEvent`, `McpToolOutputEvent`                  |
+| `continue_compiled_script(outputs: dict[str, Any])`                      | Continue a compiled script after an llm step                            | `McpContinueCompiledScriptInputEvent`, `McpToolOutputEvent` |
+| `finish_nl_script()`                                                     | Mark a natural-language script as complete                              | `McpFinishNLScriptInputEvent`, `McpToolOutputEvent`         |
+| `status()`                                                               | Return the current script execution state                               | `McpStatusInputEvent`, `McpToolOutputEvent`                 |
+| `write_bundled(name: str, force: bool = False)`                          | Write a bundled command or standard into the local `.mekara/` directory | `McpWriteBundledInputEvent`, `McpToolOutputEvent`           |
+
+| Event                                 | Fields                                                    | VCR verifies | VCR provides                            |
+| ------------------------------------- | --------------------------------------------------------- | ------------ | --------------------------------------- |
+| `McpStartInputEvent`                  | `name: str`, `arguments: str`, `working_dir: str \| None` | —            | arguments to `start`                    |
+| `McpContinueCompiledScriptInputEvent` | `outputs: dict[str, Any]`                                 | —            | arguments to `continue_compiled_script` |
+| `McpFinishNLScriptInputEvent`         | _(no fields)_                                             | —            | arguments to `finish_nl_script`         |
+| `McpStatusInputEvent`                 | _(no fields)_                                             | —            | arguments to `status`                   |
+| `McpWriteBundledInputEvent`           | `name: str`, `force: bool`                                | —            | arguments to `write_bundled`            |
+| `McpToolOutputEvent`                  | `tool: str`, `output: str`                                | `output`     | —                                       |
 
 ### MekaraServerTestDriver
 
@@ -187,80 +262,49 @@ The driver loops while `cassette.has_remaining_events()`:
 
 This split is necessary because `MekaraServer` is a push-based entrypoint — something external must drive the tool calls.
 
+### Architecture patterns
+
+**Protocol and implementation pairs:** Public wrappers depend on protocols, not concrete classes. `VcrAutoExecutor` implements `AutoExecutorProtocol` and wraps `AutoExecutor`; `VcrFilesystemAccess` implements `FilesystemAccessProtocol` and wraps `FilesystemAccess`. This keeps the VCR layer substitutable while still allowing the real implementations to stay simple and stateless.
+
+**Shared cassette across boundaries:** The MCP wrapper, shell wrapper, filesystem wrapper, and test driver all operate on one ordered `VCRCassette`. That single stream is the architectural mechanism that lets VCR verify cross-boundary interleaving instead of replaying each boundary independently.
+
 ### Event types
 
 All events are frozen dataclasses with `to_dict()` / `from_dict()` for YAML serialization. All `from_dict()` methods reject unexpected keys.
 
-#### MCP input events (Claude Code → system)
-
-| Event                                 | Fields                                                    |
-| ------------------------------------- | --------------------------------------------------------- |
-| `McpStartInputEvent`                  | `name: str`, `arguments: str`, `working_dir: str \| None` |
-| `McpContinueCompiledScriptInputEvent` | `outputs: dict[str, Any]`                                 |
-| `McpFinishNLScriptInputEvent`         | _(no fields)_                                             |
-| `McpStatusInputEvent`                 | _(no fields)_                                             |
-| `McpWriteBundledInputEvent`           | `name: str`, `force: bool`                                |
-
-#### MCP output event (system → Claude Code)
-
-| Event                | Fields                     |
-| -------------------- | -------------------------- |
-| `McpToolOutputEvent` | `tool: str`, `output: str` |
-
-#### Auto step event (shell boundary)
-
-| Event           | Fields                                                                 |
-| --------------- | ---------------------------------------------------------------------- |
-| `AutoStepEvent` | `working_dir: str`, `inputs: AutoStepInputs`, `result: AutoStepResult` |
-
-**`AutoStepInputs`:** `action_type: Literal["shell", "call"]`, `action: str`, `context: str | None`, `kwargs: dict[str, Any] | None`
-
-**`AutoStepResult`** is one of:
-
-| Type                | Fields                                                                    |
-| ------------------- | ------------------------------------------------------------------------- |
-| `ShellResultData`   | `success: bool`, `exit_code: int`, `output: str`                          |
-| `CallResultData`    | `success: bool`, `value: Any`, `error: str \| None`, `output: str`        |
-| `AutoExceptionData` | `success: bool`, `exception: str`, `step_description: str`, `output: str` |
-
-#### Filesystem events
-
-| Event             | Direction | Fields                               |
-| ----------------- | --------- | ------------------------------------ |
-| `ReadDiskEvent`   | inbound   | `path: RelativePath`, `content: str` |
-| `WriteDiskEvent`  | outbound  | `path: RelativePath`, `content: str` |
-| `PathExistsEvent` | both      | `path: RelativePath`, `exists: bool` |
-
-**`RelativePath`:** `anchor: PathAnchor`, `path: str`
-
-**`PathAnchor`** enum: `MEKARA` (relative to `src/mekara/`), `PROJECT` (relative to cassette `working_dir`)
-
 #### Type unions
+
+`McpInputEvent` is any MCP tool invocation that enters the system from Claude Code. The specific variant tells VCR which server method to call and what arguments to supply.
 
 ```
 McpInputEvent = McpStartInputEvent | McpContinueCompiledScriptInputEvent
               | McpStatusInputEvent | McpFinishNLScriptInputEvent
               | McpWriteBundledInputEvent
+```
 
+`AutoStepResult` is any recorded outcome of an auto step:
+
+- `ShellResultData` records shell command completion
+- `CallResultData` records Python-call completion
+- `AutoExceptionData` records step termination by exception
+
+```
 AutoStepResult = ShellResultData | CallResultData | AutoExceptionData
+```
 
+`VcrEvent` is any event VCR records at a system boundary:
+
+- MCP invocation events
+- shell execution events
+- filesystem access events
+
+The ordered cassette stream is a sequence of all these events:
+
+```
 VcrEvent = McpInputEvent | McpToolOutputEvent
          | ReadDiskEvent | WriteDiskEvent | PathExistsEvent
          | AutoStepEvent
 ```
-
-### Event consumption by boundary
-
-| Event type           | Direction | Consumer                 | Action                                   |
-| -------------------- | --------- | ------------------------ | ---------------------------------------- |
-| `McpInputEvent`\*    | inbound   | `MekaraServerTestDriver` | Provides args to `VcrMekaraServer`       |
-| `McpToolOutputEvent` | outbound  | `VcrMekaraServer`        | Asserts actual output matches recorded   |
-| `AutoStepEvent`      | both      | `VcrAutoExecutor`        | Asserts inputs, returns recorded result  |
-| `ReadDiskEvent`      | inbound   | `VcrFilesystemAccess`    | Returns recorded file content            |
-| `WriteDiskEvent`     | outbound  | `VcrFilesystemAccess`    | Asserts written content matches recorded |
-| `PathExistsEvent`    | both      | `VcrFilesystemAccess`    | Asserts path, returns recorded bool      |
-
-\*All five `McpInputEvent` subtypes.
 
 ### Error handling
 
@@ -268,7 +312,7 @@ VcrEvent = McpInputEvent | McpToolOutputEvent
 
 ## Implementation
 
-### File layout
+### File Layout
 
 ```
 src/mekara/vcr/
@@ -371,7 +415,7 @@ events:
 
 ### Recording cassettes
 
-**Tools with LLM steps** require a human to drive the interaction. The user records the cassette by running the MCP server live with `MEKARA_VCR_CASSETTE` set.
+**Tools with LLM steps** require a human to drive the interaction. The user records the cassette by running the MCP server live with `MEKARA_VCR_CASSETTE` set, not by editing the cassette file manually.
 
 **Tools with no LLM steps** can be recorded automatically via standalone scripts in `tests/`:
 
@@ -404,7 +448,7 @@ async def test_replay_cassette(self, cassette_name: str) -> None:
     await MekaraServerTestDriver(cassette).run()
 ```
 
-### Anti-patterns
+### Implementation anti-patterns
 
 **Asserting cassette existence in tests:** `VCRCassette` already raises if the file is missing. Don't add redundant guards.
 

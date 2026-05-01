@@ -75,7 +75,7 @@ What the module is responsible for and, critically, what it is NOT responsible f
 
 Requirements describe the **actions** the module performs, organized as prose subsections. Each requirement names an action ("resolves names", "loads scripts", "models primitives") with constraints and details hanging off it. Even pure data modeling is an action ("models the step types that scripts are built from").
 
-Use prose for the main description of each requirement. Use bullet points only for lists of constraints or enumerated items within a requirement — not as the primary format for requirements themselves.
+Use prose for the main description of each requirement. Use bullet points only for lists of constraints, enumerated items, or nested structure within a requirement — not as the primary format for requirements themselves.
 
 **Example:**
 
@@ -229,8 +229,12 @@ src/mekara/scripting/
 
 ### Writing Guidelines
 
+- **Do not put "Spec" in the title.** This is obviously the spec for a module. Simply state the module name without "Spec."
 - **A spec covers exactly one module — nothing more.** Do not spec out types, functions, or behaviors from other modules, even if those modules interact closely with the one being specced. If a neighboring module's interface matters, reference it by name; don't reproduce its contents.
 - **Don't spec types this module doesn't use.** If a type is defined in this module but only raised or used by another module (never by this module itself), it's misplaced code — flag it for relocation, don't include it in the spec.
+- **Keep related contract details together.** When a type, event, or method needs multiple columns to explain its role, keep those columns in one table instead of splitting closely related information across separate tables.
+- **Document data in the context where they are best understood.** Suppose you have a centralized list of all variants in a closed type, but each of these variants is specific to a subsystem and completely unrelated to the other variants. (For example, logging events where each event type is only defined meaningfully in relation to the module it is emitted from.) In such cases, the substantive details for these variant types should be documented next to the capability that uses it. The main list should then be a summary, not where the main explanation lives.
+  - This does not apply to cases where the variant types are better understood together as a group. Think: what context is needed to understand the meaning of this variant? If the context is the other variant types, then obviously type definitions should be grouped together, and other references to the types should link back to the main list for more details. If the context is instead other subsystems, then type definitions should be fleshed out in the context of those subsystems, and the main list should refer to those subsystems for more details.
 - **Every piece of data must have a clear job.** For every type, field, and function in Architecture, you should be able to articulate when a consumer encounters it and why they need it. If you can't, it probably doesn't belong. Writing the spec is an opportunity to identify dead code, redundant fields, and misplaced types.
 - **No redundancy between sections.** Each piece of information should live in exactly one place in the hierarchy. If a requirement is restated as an invariant, one of them is wrong — either the requirement is incomplete (add the detail there) or the invariant is redundant (remove it).
 - **Update the spec when the code changes.** The spec is the source of truth. If you change the code without updating the spec, the spec becomes a lie and loses its value. Treat spec-code divergence as a bug.
