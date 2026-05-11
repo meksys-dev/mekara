@@ -1,9 +1,9 @@
 ---
 name: new-repo-init
-description: Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, and tracked .mekara/scripts/nl/ and .mekara/scripts/compiled/ directories so mekara can later add scripts.
+description: Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, canonical .agents/skills/ sources, symlinked tool-specific skill directories, and .mekara/scripts/compiled/ storage so mekara can later add scripts.
 ---
 
-Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, and tracked `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` directories so mekara can later add scripts.
+Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, canonical `.agents/skills/` sources, symlinked tool-specific skill directories, and `.mekara/scripts/compiled/` storage so mekara can later add scripts.
 
 <UserContext>$ARGUMENTS</UserContext>
 
@@ -148,4 +148,4 @@ Use the committer agent to commit _all_ changes.
 - Prefer a tiny, deterministic entrypoint over a “real” app: the purpose is stable output and fast iteration.
 - Capture “source of truth” output in the README by running the “hello world” command, not by hand-editing.
 - Keep checks minimal and fast so the repo is safe to use in recorded demos and repeated replays.
-- Track `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` (even empty) so mekara can treat the repo as a project root later.
+- Track `.agents/skills/` and `.mekara/scripts/compiled/` (even empty) so mekara can treat the repo as a project root later; `.mekara/scripts/nl/` and `.claude/skills/` should be symlinks to `.agents/skills/`.
