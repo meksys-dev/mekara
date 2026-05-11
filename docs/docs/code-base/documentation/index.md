@@ -28,7 +28,9 @@ docs/
 │   ├── code-base/
 │   │   ├── index.md
 │   │   ├── mekara/
-│   │   │   ├── vcr-agent-recordings/
+│   │   │   ├── modules/
+│   │   │   │   └── vcr.md
+│   │   │   ├── testing/
 │   │   └── documentation/
 │   │       ├── index.md
 │   │       ├── conventions.md
