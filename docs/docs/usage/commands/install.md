@@ -35,16 +35,16 @@ Sets up MCP server and hook integration by creating or updating:
 
 ### `mekara install commands`
 
-Installs bundled components to `~/.mekara/`:
+Installs bundled components to `~/.mekara/` and `~/.agents/`:
 
 - **Compiled scripts** → `~/.mekara/scripts/compiled/`
-- **Natural language commands** → `~/.mekara/scripts/nl/`
+- **Natural language commands** → `~/.agents/skills/`
 - **Standards** → `~/.mekara/standards/`
 
-Also sets up the symlink relationship between `~/.mekara/scripts/nl/` and `~/.claude/commands/`, making mekara's bundled commands available globally.
+Also sets up symlinks from `~/.mekara/scripts/nl/` and `~/.claude/skills/` to `~/.agents/skills/`, making mekara's bundled commands available globally.
 
 :::note[Why compiled scripts must be installed]
-The script resolution algorithm finds NL sources first, then looks for compiled versions at the same precedence level or higher. When user-level NL commands exist (in `~/.mekara/scripts/nl/`), bundled compiled scripts won't be found unless user-level compiled scripts also exist. Installing compiled scripts ensures commands like `ai-tooling/setup-mekara-mcp` can run automatically via the CLI.
+The script resolution algorithm finds NL sources first, then looks for compiled versions at the same precedence level or higher. When user-level NL commands exist (via `~/.mekara/scripts/nl/`), bundled compiled scripts won't be found unless user-level compiled scripts also exist. Installing compiled scripts ensures commands like `ai-tooling/setup-mekara-mcp` can run automatically via the CLI.
 :::
 
 **Standards installation:**
@@ -53,10 +53,11 @@ Standards are installed to `~/.mekara/standards/`. Commands that reference stand
 
 **Symlink behavior:**
 
-- If `~/.claude/commands/` doesn't exist: `~/.mekara/scripts/nl/` becomes the canonical directory, and `~/.claude/commands/` is created as a symlink to it
-- If `~/.claude/commands/` already exists: `~/.mekara/scripts/nl/` is created as a symlink to `~/.claude/commands/`
+- `~/.agents/skills/` is the canonical directory
+- `~/.mekara/scripts/nl/` is a symlink to `~/.agents/skills/`
+- `~/.claude/skills/` is a symlink to `~/.agents/skills/`
 
-This matches the [standard project convention](../../standards/project.md) where either directory can be canonical.
+This matches the [standard project convention](../../standards/project.md) where the generic Agent Skills directory is canonical.
 
 **File handling:**
 

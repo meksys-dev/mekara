@@ -104,9 +104,9 @@ Script resolution (`src/mekara/scripting/resolution.py`) uses a two-phase algori
 ### Precedence Levels
 
 1. Local compiled: `.mekara/scripts/compiled/<name>.py`
-2. Local NL: `.mekara/scripts/nl/<name>.md` (canonical; symlinked as `.claude/commands/<name>.md`)
+2. Local NL: `.mekara/scripts/nl/<name>/SKILL.md` (symlinked from canonical `.agents/skills/<name>/SKILL.md`)
 3. User compiled: `~/.mekara/scripts/compiled/<name>.py`
-4. User NL: `~/.mekara/scripts/nl/<name>.md` (canonical; symlinked as `~/.claude/commands/<name>.md`)
+4. User NL: `~/.mekara/scripts/nl/<name>/SKILL.md` (symlinked from canonical `~/.agents/skills/<name>/SKILL.md`)
 5. Bundled compiled: `bundled/scripts/compiled/<name>.py`
 6. Bundled NL: `bundled/scripts/nl/<name>.md`
 
