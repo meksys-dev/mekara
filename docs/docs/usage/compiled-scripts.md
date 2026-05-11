@@ -31,7 +31,7 @@ For compilation instructions and detailed rules, run `/compile` in Claude Code.
 Every compiled script follows this structure:
 
 ```python
-"""Auto-generated script. Source: .mekara/scripts/nl/example.md"""
+"""Auto-generated script. Source: .agents/skills/example/SKILL.md"""
 
 from mekara.scripting.runtime import auto, call_script, llm
 
@@ -126,7 +126,7 @@ yield auto(f"git checkout {result.outputs['branch']}", context="Switch to target
 
 ## Example: Complete Script
 
-Source (`.mekara/scripts/nl/example.md`):
+Source (`.agents/skills/example/SKILL.md`):
 
 ```markdown
 1. Parse the request to determine the feature name
@@ -138,7 +138,7 @@ Source (`.mekara/scripts/nl/example.md`):
 Compiled (`.mekara/scripts/compiled/example.py`):
 
 ```python
-"""Auto-generated script. Source: .mekara/scripts/nl/example.md"""
+"""Auto-generated script. Source: .agents/skills/example/SKILL.md"""
 
 from mekara.scripting.runtime import auto, call_script, llm
 

@@ -15,7 +15,7 @@ mekara provides automation scripts that run inside Claude Code via MCP:
 
 :::info
 
-**Accessing Commands Without Installing Bundled Scripts**: If you've installed the mekara hooks but haven't installed the bundled commands to `~/.mekara/scripts/nl/` (symlinked as `~/.claude/commands/`, or vice versa), you can still access all mekara commands by using the double-slash syntax (`//command-name` instead of `/command-name`). The mekara hook will inject the bundled command content directly into the conversation. This allows you to try mekara workflows before committing to a full installation.
+**Accessing Commands Without Installing Bundled Scripts**: If you've installed the mekara hooks but haven't installed the bundled commands to `~/.agents/skills/` (symlinked as `~/.mekara/scripts/nl/` and `~/.claude/skills/`), you can still access all mekara commands by using the double-slash syntax (`//command-name` instead of `/command-name`). The mekara hook will inject the bundled command content directly into the conversation. This allows you to try mekara workflows before committing to a full installation.
 
 :::
 

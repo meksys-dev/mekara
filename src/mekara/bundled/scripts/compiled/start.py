@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: src/mekara/bundled/scripts/nl/start.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/start.md"""
 
 from mekara.scripting.runtime import auto, call_script, llm
 
@@ -14,7 +14,13 @@ def _print_instructions(branch: str, user_request: str) -> None:
     escaped_request = user_request.replace("'", "'\\''")
     claude_command = f"claude '{escaped_request}'"
 
-    print(f"""Run the following command to start working in the new worktree:
+    print(f"""Run these commands in two separate terminals:
+- First terminal: starts the documentation server
+  ```
+  cd ../{branch}
+  pnpm --dir docs/ start
+  ```
+- Second terminal: starts the actual implementation
   ```
   cd ../{branch}
   {claude_command}
@@ -72,7 +78,13 @@ def execute(request: str):
         _print_instructions,
         {"branch": branch, "user_request": user_request},
         context=(
-            "Tell the user to run the following command to start working in the new worktree:\n"
+            "Tell the user to run these commands in two separate terminals:\n"
+            "- First terminal: starts the documentation server\n"
+            "  ```\n"
+            "  cd ../<branch-name>\n"
+            "  pnpm --dir docs/ start\n"
+            "  ```\n"
+            "- Second terminal: starts the actual implementation\n"
             "  ```\n"
             "  cd ../<branch-name>\n"
             "  claude '<command>'\n"

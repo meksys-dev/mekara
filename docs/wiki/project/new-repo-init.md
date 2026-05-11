@@ -57,13 +57,14 @@ If the scaffolding command can't express required version/toolchain constraints,
 
 ### Step 3: Add a tracked mekara root
 
-Ensure `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` exist (tracked) so mekara can treat the repo as a project root later. Create `.claude/commands/` as a symlink to `.mekara/scripts/nl/` for backward compatibility:
+Ensure `.agents/skills/`, `.mekara/scripts/nl/`, `.claude/skills/`, and `.mekara/scripts/compiled/` exist so mekara can treat the repo as a project root later. `.agents/skills/` is canonical; the tool-specific directories are symlinks to it:
 
 ```bash
 cd "<repo-dir>"
-mkdir -p ".mekara/scripts/nl" ".mekara/scripts/compiled"
-touch ".mekara/scripts/nl/.gitkeep" ".mekara/scripts/compiled/.gitkeep"
-ln -s "../.mekara/scripts/nl" ".claude/commands"
+mkdir -p ".agents/skills" ".mekara/scripts" ".mekara/scripts/compiled" ".claude"
+touch ".agents/skills/.gitkeep" ".mekara/scripts/compiled/.gitkeep"
+ln -s "../../.agents/skills" ".mekara/scripts/nl"
+ln -s "../.agents/skills" ".claude/skills"
 ```
 
 ### Step 4: Implement the minimal entrypoint

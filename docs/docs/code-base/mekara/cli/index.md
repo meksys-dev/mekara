@@ -75,7 +75,7 @@ Sets up MCP server and hook integration by running the bundled `ai-tooling/setup
 
 Copies all bundled natural language commands from `bundled/scripts/nl/` to `~/.mekara/scripts/nl/`:
 
-- Preserves directory structure (e.g., `project/setup-docs.md` → `~/.mekara/scripts/nl/project/setup-docs.md`)
+- Preserves directory structure (e.g., `project/setup-docs/SKILL.md` → `~/.agents/skills/project/setup-docs/SKILL.md`)
 - Skips files that already have identical content
 - Updates files that have different content
 
@@ -130,7 +130,7 @@ This means a local NL command (level 2) will NOT use a bundled compiled version 
 
 Script names use hyphens (e.g., `ai-tooling/setup-mekara-mcp`), but compiled Python files require valid Python module names (underscores). The resolution system handles this automatically:
 
-1. **NL sources** use hyphens: `.mekara/scripts/nl/ai-tooling/setup-mekara-mcp.md`
+1. **NL sources** use hyphens: `.agents/skills/ai-tooling/setup-mekara-mcp/SKILL.md`
 2. **Compiled scripts** use underscores: `.mekara/scripts/compiled/ai_tooling/setup_mekara_mcp.py`
 
 When resolving a script, the system tries both forms:

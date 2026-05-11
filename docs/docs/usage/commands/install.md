@@ -87,7 +87,7 @@ mekara install
 # Setting up mekara MCP integration...
 # Done.
 # Installed 12 compiled scripts to /Users/you/.mekara/scripts/compiled
-# Created symlink: /Users/you/.claude/commands -> /Users/you/.mekara/scripts/nl
+# Created symlink: /Users/you/.claude/skills -> /Users/you/.agents/skills
 # Installed 35 commands to /Users/you/.mekara/scripts/nl
 ```
 

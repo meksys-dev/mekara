@@ -73,7 +73,7 @@ repos:
         entry: poetry run python3 scripts/sync_nl.py
         language: system
         pass_filenames: false
-        files: ^(\.mekara/scripts/nl/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/|docs/wiki/)
+        files: ^(\.agents/skills/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/|docs/wiki/)
       - id: skill-frontmatter
         name: Skill frontmatter validation
         entry: poetry run python scripts/hooks/check_skill_frontmatter.py

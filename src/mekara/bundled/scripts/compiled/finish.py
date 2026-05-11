@@ -1,4 +1,4 @@
-"""Auto-generated script. Source: src/mekara/bundled/scripts/nl/finish.md"""
+"""Auto-generated script. Source: .mekara/scripts/nl/finish.md"""
 
 import json
 
@@ -37,39 +37,43 @@ def execute(request: str):
     # Step 0: Fetch and merge from main
     yield call_script("merge-main")
 
-    # Step 1: Install any new dependencies from the merge
+    # Step 1: Install dependencies
     # Note: Main is guaranteed to be in a good state, so if checks fail due to missing
     # dependencies after the merge, it's because you need to install from the lockfile -
     # NOT because dependencies need to be added.
-    yield llm(
-        "If the project uses a package manager with a lockfile, install any new "
-        "dependencies from the merge. Main is guaranteed to be in a good state, so if "
-        "checks fail due to missing dependencies after the merge, it's because you need "
-        "to install from the lockfile - NOT because dependencies need to be added.\n\n"
-        "Examples:\n"
-        "- Python/Poetry: `poetry install --with dev`\n"
-        "- Python/pip: `pip install -e .`\n"
-        "- Node/npm: `npm ci`\n"
-        "- Node/pnpm: `pnpm install --frozen-lockfile`\n"
-        "- Rust/Cargo: `cargo build`"
+    deps_context = (
+        "Install any new dependencies from the merge. Main is guaranteed to be in a "
+        "good state, so if checks fail due to missing dependencies after the merge, "
+        "it's because you need to install from the lockfile - NOT because "
+        "dependencies need to be added."
     )
+    yield auto("poetry install --with dev", context=deps_context)
+    yield auto("pnpm --dir docs/ install --frozen-lockfile", context=deps_context)
 
     # Step 2: Run all CI checks
     yield llm(
-        "Make sure all checks that would normally pass on CI pass locally. This "
-        "typically includes:\n"
-        "- Running the formatter/linter (if configured)\n"
-        "- Running the test suite\n"
-        "- Any other checks defined in the CI workflow\n\n"
-        "Fix things if need be, and **COMMIT ANY CHANGES YOU MAKE**."
+        "Make sure all checks that would normally pass on CI pass locally. This means "
+        "making sure pre-commit checks succeed on all files, and all tests pass.\n"
+        "- **Run tests from the project root directory** (not from `docs/`), as that's "
+        "where pyproject.toml and the tests directory are located. Exit code 5 (no "
+        "tests collected) is NOT acceptable - if you see this, you are likely in the "
+        "wrong directory.\n"
+        "- If tests fail due to import errors referencing a different worktree path "
+        "(e.g., you're in `finish-pr-workflow` but errors show `fix-cli-streaming`), "
+        "poetry environments are leaking between worktrees. This happens when VSCode "
+        "activates a shared terminal environment. To fix: set "
+        "`python.terminal.activateEnvironment` to `false` in VSCode settings to ensure "
+        "poetry environments in different worktrees are hermetically sealed. Fix things "
+        "if need be, and **COMMIT ANY CHANGES YOU MAKE**."
     )
 
-    # Step 3: Verify working state is clean
+    # Step 3: Verify clean working state
     yield llm(
         "Verify that the working state is completely clean (all work committed, "
         "nothing staged or unstaged). If there are uncommitted changes:\n"
         "- Stage and commit them with a descriptive message\n"
-        "- Re-run all CI checks since local checks are much cheaper than remote CI\n"
+        "- Re-run all CI checks (pre-commit and tests) since local checks are much "
+        "cheaper than remote CI\n"
         "- Repeat until the working state is clean and all checks pass"
     )
 
@@ -124,10 +128,7 @@ def execute(request: str):
         "- The body should describe what's actually changing (based on the diff, not the "
         "commit history)\n"
         "- Do NOT use `--fill` as it concatenates all commit messages, including those "
-        "for changes already on main\n"
-        '- **Do NOT add a "Test plan" section** — this is a PR message that is going '
-        "to be part of the Git commit history when merged. Test plans do not make any "
-        "sense for a Git commit message.",
+        "for changes already on main",
         expects={
             "pr_title": "concise PR title summarizing the feature/fix",
             "pr_body": "PR body describing what's actually changing",
@@ -178,9 +179,8 @@ def execute(request: str):
             '- **"unstable status" error**: Account might not support branch protection. '
             "Continue to the next step.\n"
             "- **auto-merge disabled**: Enable it first with "
-            "`gh api repos/<owner>/<repo> --method PATCH --field allow_auto_merge=true`, "
-            "then retry. Replace `<owner>/<repo>` with your repository's owner and name "
-            "(e.g., `myorg/myproject`)."
+            "`gh api repos/meksys-dev/mekara --method PATCH --field allow_auto_merge=true`, "
+            "then retry."
         ),
     )
 
@@ -213,23 +213,21 @@ def execute(request: str):
     )
 
     # Step 12: Update dependencies on main after the merge
-    yield llm(
-        "If the project uses a package manager, update dependencies on main after the "
-        "merge. This ensures the main environment is in sync with any new dependencies "
-        "that were added during this PR.\n\n"
-        "Examples:\n"
-        "- Python/Poetry: `cd ../main && poetry install --with dev`\n"
-        "- Python/pip: `cd ../main && pip install -e .`\n"
-        "- Node/npm: `cd ../main && npm ci`\n"
-        "- Node/pnpm: `cd ../main && pnpm install --frozen-lockfile`\n"
-        "- Rust/Cargo: `cd ../main && cargo build`"
+    main_deps_context = (
+        "Update dependencies on main after the merge: run `cd ../main && poetry install "
+        "--with dev` and `cd ../main && pnpm --dir docs/ install --frozen-lockfile`. "
+        "This ensures the main environment is in sync with any new dependencies that "
+        "were added during this PR."
+    )
+    yield auto("cd ../main && poetry install --with dev", context=main_deps_context)
+    yield auto(
+        "cd ../main && pnpm --dir docs/ install --frozen-lockfile", context=main_deps_context
     )
 
     # Step 13: Sync local settings
     yield llm(
-        "If the project uses `.claude/settings.local.json` (or similar local "
-        "configuration), read the worktree's version and manually update "
-        "`../main/.claude/settings.local.json` with any new permissions or settings. "
+        "If everything was successful, read `.claude/settings.local.json` and manually "
+        "update `../main/.claude/settings.local.json` with any new permissions. "
         "**Do NOT use `cp`** as this would overwrite settings that may have been added "
         "in other worktree branches."
     )

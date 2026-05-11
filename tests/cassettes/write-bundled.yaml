@@ -1,5 +1,5 @@
 initial_state:
-  working_dir: /var/folders/3n/23b4t33d07s0c_5thq3gqt4h0000gn/T/tmp8zc8zbon
+  working_dir: /var/folders/3n/23b4t33d07s0c_5thq3gqt4h0000gn/T/tmp4ui3dwyp
 events:
 - type: mcp_tool_input
   tool: write_bundled
@@ -9,7 +9,7 @@ events:
 - type: path_exists
   path:
     anchor: mekara
-    path: bundled/scripts/nl/finish.md
+    path: bundled/scripts/nl/finish/SKILL.md
   exists: true
 - type: path_exists
   path:
@@ -19,13 +19,18 @@ events:
 - type: path_exists
   path:
     anchor: project
-    path: .mekara/scripts/nl/finish.md
+    path: .mekara/scripts/nl/finish/SKILL.md
   exists: false
 - type: read_disk
   path:
     anchor: mekara
-    path: bundled/scripts/nl/finish.md
+    path: bundled/scripts/nl/finish/SKILL.md
   content: |
+    ---
+    name: finish
+    description: Merges completed work back to main through a protected-branch pull request workflow.
+    ---
+  
     You are starting out in a Git worktree folder. Work has been completed and it is time to merge this work back into the `main` branch via a pull request (branch protection is enabled on `main`).
   
     <UserContext>$ARGUMENTS</UserContext>
@@ -132,8 +137,13 @@ events:
 - type: write_disk
   path:
     anchor: project
-    path: .mekara/scripts/nl/finish.md
+    path: .mekara/scripts/nl/finish/SKILL.md
   content: |
+    ---
+    name: finish
+    description: Merges completed work back to main through a protected-branch pull request workflow.
+    ---
+  
     You are starting out in a Git worktree folder. Work has been completed and it is time to merge this work back into the `main` branch via a pull request (branch protection is enabled on `main`).
   
     <UserContext>$ARGUMENTS</UserContext>
@@ -743,7 +753,7 @@ events:
   output: |-
     Wrote bundled command `finish` to disk:
   
-    - `.mekara/scripts/nl/finish.md`
+    - `.mekara/scripts/nl/finish/SKILL.md`
     - `.mekara/scripts/compiled/finish.py`
 - type: mcp_tool_input
   tool: write_bundled
@@ -767,7 +777,7 @@ events:
   content: |
     # Standard Mekara Command
   
-    This page documents the standard structure for mekara <Version /> natural language command scripts. All scripts in `.mekara/scripts/nl/` should follow this structure.
+    This page documents the standard structure for mekara <Version /> natural language command scripts. All scripts in `.agents/skills/` should follow this structure.
   
     The clearly delineated step structure enables clean compilation to executable Python scripts via `/compile`.
   
@@ -956,7 +966,7 @@ events:
   content: |
     # Standard Mekara Command
   
-    This page documents the standard structure for mekara <Version /> natural language command scripts. All scripts in `.mekara/scripts/nl/` should follow this structure.
+    This page documents the standard structure for mekara <Version /> natural language command scripts. All scripts in `.agents/skills/` should follow this structure.
   
     The clearly delineated step structure enables clean compilation to executable Python scripts via `/compile`.
   

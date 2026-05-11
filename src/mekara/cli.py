@@ -372,7 +372,7 @@ def install_hooks_cmd() -> None:
 
 @install.command("commands")
 def install_commands_cmd() -> None:
-    """Install bundled commands to ~/.mekara/scripts/nl/."""
+    """Install bundled commands to ~/.agents/skills/."""
     result = _install_commands()
     sys.exit(result)
 
@@ -459,7 +459,7 @@ def _install_commands() -> int:
     """Install bundled commands, scripts, and standards to ~/.mekara/.
 
     Copies:
-    - Bundled NL commands to ~/.mekara/scripts/nl/
+    - Bundled NL commands to ~/.agents/skills/
     - Bundled compiled scripts to ~/.mekara/scripts/compiled/
     - Bundled standards to ~/.mekara/standards/
 
@@ -467,11 +467,8 @@ def _install_commands() -> int:
     @~/.mekara/standards/name.md so Claude Code's file reference mechanism
     can resolve them.
 
-    The symlink relationship between ~/.claude/commands/ and ~/.mekara/scripts/nl/
-    is established based on which directory exists first:
-    - If ~/.claude/commands/ doesn't exist: ~/.mekara/scripts/nl/ is canonical,
-      and ~/.claude/commands/ symlinks to it
-    - If ~/.claude/commands/ exists: ~/.mekara/scripts/nl/ symlinks to it
+    ~/.agents/skills/ is canonical. ~/.mekara/scripts/nl/ and ~/.claude/skills/
+    are symlinks to it.
     """
     from pathlib import Path
 
@@ -482,10 +479,11 @@ def _install_commands() -> int:
     )
 
     home = Path.home()
+    agents_skills_dir = home / ".agents" / "skills"
     mekara_nl_dir = home / ".mekara" / "scripts" / "nl"
     mekara_compiled_dir = home / ".mekara" / "scripts" / "compiled"
     mekara_standards_dir = home / ".mekara" / "standards"
-    claude_commands_dir = home / ".claude" / "commands"
+    claude_skills_dir = home / ".claude" / "skills"
 
     # Install standards first
     standards_source = bundled_standards_dir()
@@ -536,43 +534,30 @@ def _install_commands() -> int:
         print(f"Error: bundled commands directory not found: {commands_source}", file=sys.stderr)
         return 1
 
-    # Determine symlink direction based on what already exists
-    # (check for real directory, not symlink)
-    claude_exists = claude_commands_dir.exists() and not claude_commands_dir.is_symlink()
-    mekara_exists = mekara_nl_dir.exists() and not mekara_nl_dir.is_symlink()
-
-    if claude_exists and not mekara_exists:
-        # ~/.claude/commands/ is canonical, symlink ~/.mekara/scripts/nl/ to it
-        canonical_dir = claude_commands_dir
-        symlink_path = mekara_nl_dir
-        symlink_target = claude_commands_dir
-    else:
-        # ~/.mekara/scripts/nl/ is canonical (either it exists, or neither exists)
-        canonical_dir = mekara_nl_dir
-        symlink_path = claude_commands_dir
-        symlink_target = mekara_nl_dir
-
-    # Create canonical directory if needed
-    canonical_dir.mkdir(parents=True, exist_ok=True)
-
-    # Set up symlink if it doesn't exist (or is a broken symlink)
-    if not symlink_path.exists():
-        # Create parent directory for symlink if needed
+    agents_skills_dir.mkdir(parents=True, exist_ok=True)
+    for symlink_path in (mekara_nl_dir, claude_skills_dir):
         symlink_path.parent.mkdir(parents=True, exist_ok=True)
-        # Remove broken symlink if present
         if symlink_path.is_symlink():
+            if symlink_path.resolve() == agents_skills_dir.resolve():
+                continue
             symlink_path.unlink()
-        symlink_path.symlink_to(symlink_target)
-        print(f"Created symlink: {symlink_path} -> {symlink_target}")
+        elif symlink_path.exists():
+            print(
+                f"Error: expected {symlink_path} to be a symlink to {agents_skills_dir}",
+                file=sys.stderr,
+            )
+            return 1
+        symlink_path.symlink_to(agents_skills_dir)
+        print(f"Created symlink: {symlink_path} -> {agents_skills_dir}")
 
     # Copy all .md files to the canonical directory, preserving directory structure
     # Replace @standard:name with @~/.mekara/standards/name.md for Claude Code resolution
     copied_count = 0
     skipped_count = 0
 
-    for source_file in commands_source.rglob("*.md"):
+    for source_file in commands_source.rglob("SKILL.md"):
         relative_path = source_file.relative_to(commands_source)
-        target_file = canonical_dir / relative_path
+        target_file = agents_skills_dir / relative_path
 
         # Create parent directories if needed
         target_file.parent.mkdir(parents=True, exist_ok=True)
@@ -596,7 +581,7 @@ def _install_commands() -> int:
         target_file.write_text(content)
         copied_count += 1
 
-    print(f"Installed {copied_count} commands to {canonical_dir}")
+    print(f"Installed {copied_count} commands to {agents_skills_dir}")
     if skipped_count > 0:
         print(f"  ({skipped_count} already up to date)")
 

@@ -69,7 +69,7 @@ def commands_dir(base_dir: Path | None = None) -> Path:
         base_dir: Base directory (if None, will find project root from cwd)
 
     Returns:
-        Path to .mekara/scripts/nl directory
+        Path to .mekara/scripts/nl symlink to .agents/skills
 
     Raises:
         RuntimeError: If project root cannot be found
@@ -99,7 +99,7 @@ def bundled_commands_dir() -> Path:
     """Get the bundled natural language commands directory from the installed package.
 
     Returns:
-        Path to bundled/scripts/nl/ in the installed mekara package
+        Path to bundled/scripts/nl/ Agent Skills in the installed mekara package
     """
     # Go up from utils/ to mekara/ to find bundled/scripts/
     return Path(__file__).parent.parent / "bundled" / "scripts" / "nl"
@@ -118,7 +118,7 @@ def user_commands_dir() -> Path:
     """Get the user-installed natural language commands directory in the home directory.
 
     Returns:
-        Path to ~/.mekara/scripts/nl/
+        Path to ~/.mekara/scripts/nl/ symlink to ~/.agents/skills/
     """
     return Path.home() / ".mekara" / "scripts" / "nl"
 
