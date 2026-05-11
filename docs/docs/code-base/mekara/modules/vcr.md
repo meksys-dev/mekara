@@ -346,7 +346,7 @@ src/mekara/vcr/
 ├── auto_steps.py        # Helpers: build event from step, reconstruct result from event
 ├── filesystem.py        # VcrFilesystemAccess, RelativePath, PathAnchor
 ├── mcp_server.py        # VcrMekaraServer, MekaraServerTestDriver
-└── errors.py            # VcrReplayMismatchError (if separate; may be in cassette.py)
+└── errors.py            # VcrReplayMismatchError
 ```
 
 ### Design choices
@@ -401,7 +401,6 @@ events:
       action_type: shell
       action: "shuf -i 1-100 -n 1"
       context: "Generate random number"
-      kwargs: null
     result:
       type: shell
       success: true
