@@ -30,7 +30,7 @@ docs/
 │   │   ├── mekara/
 │   │   │   ├── modules/
 │   │   │   │   └── vcr.md
-│   │   │   ├── vcr-agent-recordings/
+│   │   │   ├── testing/
 │   │   └── documentation/
 │   │       ├── index.md
 │   │       ├── conventions.md

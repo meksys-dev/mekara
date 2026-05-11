@@ -54,9 +54,17 @@ All VCR components share one cassette instance per session. Events are recorded 
 
 Application classes (`MekaraServer`, `AutoExecutor`, `FilesystemAccess`) have zero VCR knowledge — no VCR-specific parameters, fields, or logic. VCR wrappers implement the same interface as the real classes, allowing transparent substitution. The application cannot tell whether it is running with real or VCR-wrapped dependencies.
 
+Replay runs the same real application code as record mode. Only the interactions with the environment are virtualized. This is the core rule that makes replay useful: it exercises real logic while replacing shell, filesystem, and MCP environment interactions with recorded data.
+
 ### Stores cassettes as portable YAML
 
 Cassettes are YAML files containing initial state and an ordered event list. Multi-line strings use literal block scalar format (`|`) for readability. Filesystem paths are stored as relative paths with named anchors so cassettes work across machines without path rewriting.
+
+### Models boundary events one call at a time
+
+Each event schema mirrors exactly one boundary method call. If a boundary method is called once per operation, the event records one operation rather than an aggregate collection.
+
+For example, `write_file(path, content)` records one `WriteDiskEvent` with one `path` and one `content`. It does not batch multiple writes into one event.
 
 ## Architecture
 
@@ -96,6 +104,14 @@ All wrappers enforce the record/replay boundary in their constructor:
 
 - Record mode requires an inner component (raises `ValueError` if missing)
 - Replay mode must not have an inner component (raises `ValueError` if present)
+
+VCR wrappers contain no state and no application logic. Their job is limited to three operations:
+
+1. Record both inbound and outbound events in record mode.
+2. Pass in recorded inbound MCP requests and environmental responses during replay.
+3. Verify recorded outbound MCP responses and environmental requests during replay.
+
+Any state transition or business rule that would need to be duplicated inside a wrapper belongs in the real application layer instead.
 
 #### VcrAutoExecutor
 
@@ -145,6 +161,8 @@ Implements `AutoExecutorProtocol`: `execute(step: Auto, *, working_dir: Path) ->
 | `ShellResultData`   | `success: bool`, `exit_code: int`, `output: str`                          |
 | `CallResultData`    | `success: bool`, `value: Any`, `error: str \| None`, `output: str`        |
 | `AutoExceptionData` | `success: bool`, `exception: str`, `step_description: str`, `output: str` |
+
+For shell commands, `output` stores combined stdout and stderr in arrival order. For Python calls, stdout and stderr are concatenated because Python's capture mechanism does not preserve interleaving.
 
 #### VcrFilesystemAccess
 
@@ -266,7 +284,11 @@ This split is necessary because `MekaraServer` is a push-based entrypoint — so
 
 **Protocol and implementation pairs:** Public wrappers depend on protocols, not concrete classes. `VcrAutoExecutor` implements `AutoExecutorProtocol` and wraps `AutoExecutor`; `VcrFilesystemAccess` implements `FilesystemAccessProtocol` and wraps `FilesystemAccess`. This keeps the VCR layer substitutable while still allowing the real implementations to stay simple and stateless.
 
+**Exact interface matching:** VCR wrappers must expose the same method signatures as the real implementations they replace. Callers talk to the protocol, not to a special VCR-only interface.
+
 **Shared cassette across boundaries:** The MCP wrapper, shell wrapper, filesystem wrapper, and test driver all operate on one ordered `VCRCassette`. That single stream is the architectural mechanism that lets VCR verify cross-boundary interleaving instead of replaying each boundary independently.
+
+**Stateless environment bridges:** `AutoExecutor` and `FilesystemAccess` are bridges to the environment, not state holders. They receive all context per method call. This keeps replay simple because wrappers only need to verify inputs and return or verify outputs rather than reproduce hidden state transitions.
 
 ### Event types
 
@@ -413,41 +435,6 @@ events:
       - `test/random[0]`: ✓ `shuf -i 1-100 -n 1`
 ```
 
-### Recording cassettes
-
-**Tools with LLM steps** require a human to drive the interaction. The user records the cassette by running the MCP server live with `MEKARA_VCR_CASSETTE` set, not by editing the cassette file manually.
-
-**Tools with no LLM steps** can be recorded automatically via standalone scripts in `tests/`:
-
-```python
-# tests/record_<tool>_cassette.py
-# Run: poetry run python tests/record_<tool>_cassette.py
-
-cassette = VCRCassette(CASSETTE_PATH, mode="record",
-                       initial_state={"working_dir": str(working_dir)})
-server = VcrMekaraServer(cassette, working_dir=working_dir)
-server.<tool>(...)
-cassette.save()
-```
-
-Use `tempfile.TemporaryDirectory()` for the working dir so the cassette's `working_dir` is a unique path that won't exist on other machines.
-
-### Adding a cassette replay test
-
-Add the cassette name to the `parametrize` list in `TestMcpSessionReplay.test_replay_cassette`:
-
-```python
-@pytest.mark.parametrize("cassette_name", [
-    "mcp-nested",
-    "write-bundled",
-    "your-new-tool",   # <-- just add this
-])
-async def test_replay_cassette(self, cassette_name: str) -> None:
-    cassette_path = Path(__file__).parent / "cassettes" / f"{cassette_name}.yaml"
-    cassette = VCRCassette(cassette_path, mode="replay")
-    await MekaraServerTestDriver(cassette).run()
-```
-
 ### Implementation anti-patterns
 
 **Asserting cassette existence in tests:** `VCRCassette` already raises if the file is missing. Don't add redundant guards.
@@ -459,3 +446,5 @@ async def test_replay_cassette(self, cassette_name: str) -> None:
 **Consuming wrong event types at a boundary:** Each consumer only consumes events for its direction. `VcrMekaraServer` never consumes input events — those come from the test driver.
 
 **Pre-filtering events:** Don't extract events upfront for manual comparison. Each boundary consumes its events as part of normal execution flow.
+
+**Re-exporting VCR symbols outside `mekara.vcr`:** Import VCR implementations from `mekara.vcr` instead of re-exporting them from other packages.

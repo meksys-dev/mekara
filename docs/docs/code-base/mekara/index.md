@@ -15,8 +15,7 @@ This section covers the structure of the `mekara` Python MCP server package.
 - [CLI](./cli/) – The main CLI entrypoint and argument handling.
 - [Capabilities](./capabilities/) – User-facing features:
   - [MCP Integration](./capabilities/mcp.md) – Running mekara scripts inside Claude Code via MCP.
-- [VCR Agent Recordings](./vcr-agent-recordings/) – Guide for VCR recording and replay.
-- [Testing](./testing/) – Test suite implementation and testing utilities.
+- [Testing](./testing/) – Test suite implementation, VCR recording workflow, and testing utilities.
 - [Code Conventions](./conventions/) – Critical architectural decisions and conventions that must be preserved.
 - [Scripts](./scripts.md) – Utility scripts for development and documentation maintenance.
 - [Refactoring Patterns](./refactoring.md) – Lessons learned: code smells, unnecessary indirection, and when to simplify.
