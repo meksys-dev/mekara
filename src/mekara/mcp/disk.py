@@ -11,12 +11,8 @@ from pathlib import Path
 from typing import Protocol
 
 
-class FilesystemAccess(Protocol):
-    """Protocol for reading and writing files.
-
-    Implementations can be real (RealFilesystemAccess) or wrapped for VCR
-    (VcrFilesystemAccess) to record/verify filesystem operations.
-    """
+class FilesystemAccessProtocol(Protocol):
+    """Protocol for reading and writing files."""
 
     def read_file(self, path: Path) -> str:
         """Read content from a file.

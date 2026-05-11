@@ -1,10 +1,4 @@
-"""VCR cassette state shared across record/replay implementations.
-
-This module owns the YAML cassette format used by mekara's production VCR support.
-VCR-aware implementations (SDK client, user input provider, auto executor) should
-share a single VCRCassette instance and call VCRCassette.save() opportunistically
-to persist progress during recording.
-"""
+"""VCR cassette: shared event stream for record/replay sessions."""
 
 from __future__ import annotations
 
@@ -13,6 +7,7 @@ from typing import Any, Literal, TypeVar, overload
 
 import yaml
 
+from mekara.vcr.errors import VcrReplayMismatchError
 from mekara.vcr.events import (
     AutoStepEvent,
     McpContinueCompiledScriptInputEvent,
@@ -162,7 +157,7 @@ class VCRCassette:
         event = self._events[self._replay_event_index]
 
         if event_type is not None and not isinstance(event, event_type):
-            raise ValueError(
+            raise VcrReplayMismatchError(
                 f"VCR replay event mismatch. Expected {event_type.__name__}, "
                 f"got {type(event).__name__}."
             )

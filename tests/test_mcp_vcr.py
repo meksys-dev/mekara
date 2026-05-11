@@ -16,8 +16,8 @@ from mekara.scripting.auto import AutoExecutor
 from mekara.utils.project import find_project_root
 from mekara.vcr import VcrAutoExecutor
 from mekara.vcr.cassette import VCRCassette
+from mekara.vcr.mcp_server import MekaraServerTestDriver
 from tests.utils import ScriptLoaderStub
-from tests.vcr_test_driver import MekaraServerTestDriver
 
 # Get project root for script resolution
 _base_dir = find_project_root()

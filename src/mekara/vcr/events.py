@@ -451,8 +451,7 @@ class AutoStepEvent:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> AutoStepEvent:
-        # Allow 'index' for backwards compatibility with old cassettes
-        _check_keys(data, {"type", "working_dir", "inputs", "result", "index"}, "AutoStepEvent")
+        _check_keys(data, {"type", "working_dir", "inputs", "result"}, "AutoStepEvent")
         return cls(
             working_dir=data["working_dir"],
             inputs=AutoStepInputs.from_dict(data["inputs"]),

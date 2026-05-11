@@ -6,8 +6,6 @@ sidebar_position: 2
 
 This section documents coding conventions for the mekara codebase.
 
-- [VCR Conventions](./vcr.md) – Recording and replay architecture for testing
-
 ## MCP Server Architecture
 
 mekara provides script execution via MCP (Model Context Protocol) for Claude Code integration. The MCP server (`src/mekara/mcp/server.py`) exposes tools that Claude Code uses to execute scripts.

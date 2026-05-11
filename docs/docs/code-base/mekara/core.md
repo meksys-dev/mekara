@@ -73,9 +73,9 @@ The LLM prompting algorithm can be summarized as:
 
 ## Capabilities
 
-| Capability                               | Description                                          |
-| ---------------------------------------- | ---------------------------------------------------- |
-| [Scripting](./capabilities/scripting.md) | Natural language scripts with transparent automation |
+| Capability                          | Description                                          |
+| ----------------------------------- | ---------------------------------------------------- |
+| [Scripting](./modules/scripting.md) | Natural language scripts with transparent automation |
 
 ## Architecture
 
