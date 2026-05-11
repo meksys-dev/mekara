@@ -3,7 +3,7 @@ sidebar_label: Repository Initialization
 sidebar_position: 2
 ---
 
-Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, and tracked `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` directories so mekara can later add scripts.
+Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, canonical `.agents/skills/` sources, symlinked tool-specific skill directories, and `.mekara/scripts/compiled/` storage so mekara can later add scripts.
 
 <UserContext>$ARGUMENTS</UserContext>
 
@@ -57,13 +57,14 @@ If the scaffolding command can't express required version/toolchain constraints,
 
 ### Step 3: Add a tracked mekara root
 
-Ensure `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` exist (tracked) so mekara can treat the repo as a project root later. Create `.claude/commands/` as a symlink to `.mekara/scripts/nl/` for backward compatibility:
+Ensure `.agents/skills/`, `.mekara/scripts/nl/`, `.claude/skills/`, and `.mekara/scripts/compiled/` exist so mekara can treat the repo as a project root later. `.agents/skills/` is canonical; the tool-specific directories are symlinks to it:
 
 ```bash
 cd "<repo-dir>"
-mkdir -p ".mekara/scripts/nl" ".mekara/scripts/compiled"
-touch ".mekara/scripts/nl/.gitkeep" ".mekara/scripts/compiled/.gitkeep"
-ln -s "../.mekara/scripts/nl" ".claude/commands"
+mkdir -p ".agents/skills" ".mekara/scripts" ".mekara/scripts/compiled" ".claude"
+touch ".agents/skills/.gitkeep" ".mekara/scripts/compiled/.gitkeep"
+ln -s "../../.agents/skills" ".mekara/scripts/nl"
+ln -s "../.agents/skills" ".claude/skills"
 ```
 
 ### Step 4: Implement the minimal entrypoint
@@ -147,4 +148,4 @@ Use the committer agent to commit _all_ changes.
 - Prefer a tiny, deterministic entrypoint over a “real” app: the purpose is stable output and fast iteration.
 - Capture “source of truth” output in the README by running the “hello world” command, not by hand-editing.
 - Keep checks minimal and fast so the repo is safe to use in recorded demos and repeated replays.
-- Track `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` (even empty) so mekara can treat the repo as a project root later.
+- Track `.agents/skills/` and `.mekara/scripts/compiled/` (even empty) so mekara can treat the repo as a project root later; `.mekara/scripts/nl/` and `.claude/skills/` should be symlinks to `.agents/skills/`.

@@ -52,15 +52,15 @@ ASCII directory trees and/or Mermaid Architecture Diagrams showing the relevant 
 **Current structure:**
 
 ```
-.claude/commands/           # Directory with .md files
-.mekara/scripts/            # Directory with .py files
+.agents/skills/             # Directory with SKILL.md files
+.mekara/scripts/            # Directory with symlinks and .py files
 ```
 
 **Target structure:**
 
 ```
 .mekara/scripts/
-├── nl/                     # Natural language scripts
+├── nl/                     # Symlink to .agents/skills
 └── compiled/              # Compiled scripts
 ```
 ````

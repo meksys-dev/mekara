@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Sync natural language scripts between .mekara/scripts/nl/, docs/wiki/, and src/mekara/bundled/scripts/nl/.
+"""Sync natural language scripts between .agents/skills/, docs/wiki/, and bundled skills.
 
 Also serves as the pre-commit hook for validating and syncing script changes on commit.
 """
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from enum import Enum, auto
@@ -18,6 +19,8 @@ from markdown_it import MarkdownIt
 WIKI_EXCLUDED_CATEGORIES = {"", "mekara", "test"}
 # Categories excluded from bundled (project-specific, not useful for other projects)
 BUNDLED_EXCLUDED_CATEGORIES = {"mekara"}
+LOCAL_SKILLS_PREFIX = ".agents/skills/"
+BUNDLED_SKILLS_PREFIX = "src/mekara/bundled/scripts/nl/"
 
 
 class SyncDirection(Enum):
@@ -75,6 +78,42 @@ def extract_frontmatter(content: str) -> tuple[str, str]:
     return frontmatter, body
 
 
+def skill_file_for_script(root: Path, relative_path: str) -> Path:
+    """Return the SKILL.md path for a script relative path like project/release.md."""
+    return root / relative_path.removesuffix(".md") / "SKILL.md"
+
+
+def script_relative_for_skill(root: Path, skill_file: Path) -> str:
+    """Return the script relative path for a SKILL.md file."""
+    return skill_file.parent.relative_to(root).as_posix() + ".md"
+
+
+def description_from_body(body: str) -> str:
+    """Create a concise skill description from the command body."""
+    for line in body.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("<UserContext>") or stripped.startswith("#"):
+            continue
+        description = re.sub(r"[`*_\[\]]", "", stripped)
+        return description[:1024]
+    return "Runs this mekara command."
+
+
+def skill_content(relative_path: str, body: str) -> str:
+    """Wrap command body in Agent Skills frontmatter."""
+    name = Path(relative_path).stem
+    description = description_from_body(body)
+    return f"---\nname: {name}\ndescription: {description}\n---\n\n{body}"
+
+
+def changed_skill_relative(changed_path: str, prefix: str) -> str | None:
+    """Return script relative path for a changed SKILL.md path."""
+    if not changed_path.startswith(prefix) or not changed_path.endswith("/SKILL.md"):
+        return None
+    skill_dir = changed_path.removeprefix(prefix).removesuffix("/SKILL.md")
+    return f"{skill_dir}.md"
+
+
 def sync_to_docs(
     mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]
 ) -> int:
@@ -84,41 +123,29 @@ def sync_to_docs(
     bundled-script-generalization.md). Those scripts are maintained
     independently in .mekara vs wiki/bundled.
     """
-    for item in sorted(mekara_root.iterdir()):
-        if item.is_file() and item.suffix == ".md":
-            files = [item]
-            category = ""
-            wiki_dir = wiki_root
-            bundled_dir = bundled_root
-        elif item.is_dir():
-            files = sorted(item.glob("*.md"))
-            category = item.name
-            wiki_dir = wiki_root / category
-            bundled_dir = bundled_root / category
-        else:
+    for mekara_file in sorted(mekara_root.rglob("SKILL.md")):
+        relative_path = script_relative_for_skill(mekara_root, mekara_file)
+        if relative_path in generalized:
             continue
 
-        for mekara_file in files:
-            relative_path = f"{category}/{mekara_file.name}" if category else mekara_file.name
-            if relative_path in generalized:
-                continue
+        category = relative_path.split("/", 1)[0] if "/" in relative_path else ""
+        mekara_content = mekara_file.read_text()
+        _, mekara_body = extract_frontmatter(mekara_content)
 
-            mekara_content = mekara_file.read_text()
+        if category not in WIKI_EXCLUDED_CATEGORIES:
+            wiki_file = wiki_root / relative_path
+            if wiki_file.exists():
+                wiki_content = wiki_file.read_text()
+                frontmatter, _ = extract_frontmatter(wiki_content)
+                wiki_file.write_text(frontmatter + "\n" + mekara_body)
+            else:
+                wiki_file.parent.mkdir(parents=True, exist_ok=True)
+                wiki_file.write_text(mekara_body)
 
-            if category not in WIKI_EXCLUDED_CATEGORIES:
-                wiki_file = wiki_dir / mekara_file.name
-                if wiki_file.exists():
-                    wiki_content = wiki_file.read_text()
-                    frontmatter, _ = extract_frontmatter(wiki_content)
-                    wiki_file.write_text(frontmatter + "\n" + mekara_content)
-                else:
-                    wiki_file.parent.mkdir(parents=True, exist_ok=True)
-                    wiki_file.write_text(mekara_content)
-
-            if category not in BUNDLED_EXCLUDED_CATEGORIES:
-                bundled_file = bundled_dir / mekara_file.name
-                bundled_file.parent.mkdir(parents=True, exist_ok=True)
-                bundled_file.write_text(mekara_content)
+        if category not in BUNDLED_EXCLUDED_CATEGORIES:
+            bundled_file = skill_file_for_script(bundled_root, relative_path)
+            bundled_file.parent.mkdir(parents=True, exist_ok=True)
+            bundled_file.write_text(mekara_content)
 
     return 0
 
@@ -132,41 +159,27 @@ def sync_to_mekara(
     Skips syncing to .mekara/scripts/nl/ for generalized scripts (listed in
     bundled-script-generalization.md) since those have intentional overrides.
     """
-    for item in sorted(wiki_root.iterdir()):
-        if item.is_file() and item.suffix == ".md":
-            files = [item]
-            category = ""
-            mekara_dir = mekara_root
-            bundled_dir = bundled_root
-        elif item.is_dir():
-            files = sorted(item.glob("*.md"))
-            category = item.name
-            mekara_dir = mekara_root / category
-            bundled_dir = bundled_root / category
-        else:
+    for wiki_file in sorted(wiki_root.rglob("*.md")):
+        if wiki_file.name == "index.md":
             continue
 
-        for wiki_file in files:
-            if wiki_file.name == "index.md":
-                continue
+        relative_path = wiki_file.relative_to(wiki_root).as_posix()
+        wiki_content = wiki_file.read_text()
+        _, body = extract_frontmatter(wiki_content)
+        content = skill_content(relative_path, body)
 
-            relative_path = f"{category}/{wiki_file.name}" if category else wiki_file.name
-            mekara_file = mekara_dir / wiki_file.name
-            bundled_file = bundled_dir / wiki_file.name
+        # Always update bundled (wiki is the source of truth for generic scripts)
+        bundled_file = skill_file_for_script(bundled_root, relative_path)
+        bundled_file.parent.mkdir(parents=True, exist_ok=True)
+        bundled_file.write_text(content)
 
-            wiki_content = wiki_file.read_text()
-            _, body = extract_frontmatter(wiki_content)
+        # Skip .mekara for generalized scripts (intentional project override)
+        if relative_path in generalized:
+            continue
 
-            # Always update bundled (wiki is the source of truth for generic scripts)
-            bundled_file.parent.mkdir(parents=True, exist_ok=True)
-            bundled_file.write_text(body)
-
-            # Skip .mekara for generalized scripts (intentional project override)
-            if relative_path in generalized:
-                continue
-
-            mekara_file.parent.mkdir(parents=True, exist_ok=True)
-            mekara_file.write_text(body)
+        mekara_file = skill_file_for_script(mekara_root, relative_path)
+        mekara_file.parent.mkdir(parents=True, exist_ok=True)
+        mekara_file.write_text(content)
 
     return 0
 
@@ -178,38 +191,26 @@ def sync_from_bundled(
 
     Skips syncing to .mekara/scripts/nl/ for generalized scripts (intentional overrides).
     """
-    for item in sorted(bundled_root.iterdir()):
-        if item.is_file() and item.suffix == ".md":
-            files = [item]
-            category = ""
-            wiki_dir = wiki_root
-            mekara_dir = mekara_root
-        elif item.is_dir():
-            files = sorted(item.glob("*.md"))
-            category = item.name
-            wiki_dir = wiki_root / category
-            mekara_dir = mekara_root / category
-        else:
+    for bundled_file in sorted(bundled_root.rglob("SKILL.md")):
+        relative_path = script_relative_for_skill(bundled_root, bundled_file)
+        category = relative_path.split("/", 1)[0] if "/" in relative_path else ""
+        bundled_content = bundled_file.read_text()
+        _, bundled_body = extract_frontmatter(bundled_content)
+
+        if category not in WIKI_EXCLUDED_CATEGORIES:
+            wiki_file = wiki_root / relative_path
+            if wiki_file.exists():
+                wiki_content = wiki_file.read_text()
+                frontmatter, _ = extract_frontmatter(wiki_content)
+                wiki_file.write_text(frontmatter + "\n" + bundled_body)
+
+        # Skip .mekara for generalized scripts (intentional project override)
+        if relative_path in generalized:
             continue
 
-        for bundled_file in files:
-            relative_path = f"{category}/{bundled_file.name}" if category else bundled_file.name
-            bundled_content = bundled_file.read_text()
-
-            if category not in WIKI_EXCLUDED_CATEGORIES:
-                wiki_file = wiki_dir / bundled_file.name
-                if wiki_file.exists():
-                    wiki_content = wiki_file.read_text()
-                    frontmatter, _ = extract_frontmatter(wiki_content)
-                    wiki_file.write_text(frontmatter + "\n" + bundled_content)
-
-            # Skip .mekara for generalized scripts (intentional project override)
-            if relative_path in generalized:
-                continue
-
-            mekara_file = mekara_dir / bundled_file.name
-            mekara_file.parent.mkdir(parents=True, exist_ok=True)
-            mekara_file.write_text(bundled_content)
+        mekara_file = skill_file_for_script(mekara_root, relative_path)
+        mekara_file.parent.mkdir(parents=True, exist_ok=True)
+        mekara_file.write_text(bundled_content)
 
     return 0
 
@@ -259,7 +260,7 @@ def _check_non_generalized_compiled_match(repo_root: Path, generalized: set[str]
 def _check_sync_conflict(changed: set[str], repo_root: Path, generalized: set[str]) -> int:
     """Flag conflict only if same script is staged in both sources with differing content,
     and is not intentionally generalized."""
-    mekara_nl = {f for f in changed if f.startswith(".mekara/scripts/nl/")}
+    mekara_nl = {f for f in changed if changed_skill_relative(f, LOCAL_SKILLS_PREFIX) is not None}
     if not mekara_nl:
         return 0
 
@@ -270,7 +271,9 @@ def _check_sync_conflict(changed: set[str], repo_root: Path, generalized: set[st
     conflicts: list[str] = []
 
     for nl_file in mekara_nl:
-        relative = nl_file.removeprefix(".mekara/scripts/nl/")
+        relative = changed_skill_relative(nl_file, LOCAL_SKILLS_PREFIX)
+        if relative is None:
+            continue
         wiki_file = f"docs/wiki/{relative}"
         if wiki_file not in changed:
             continue
@@ -281,12 +284,13 @@ def _check_sync_conflict(changed: set[str], repo_root: Path, generalized: set[st
         if not nl_path.exists() or not wiki_path.exists():
             continue
         _, wiki_body = extract_frontmatter(wiki_path.read_text())
-        if nl_path.read_text() != wiki_body:
+        _, nl_body = extract_frontmatter(nl_path.read_text())
+        if nl_body != wiki_body:
             conflicts.append(relative)
 
     if conflicts:
         print(
-            "Error: Both .mekara/scripts/nl/ and docs/wiki/ were modified with differing content."
+            "Error: Both .agents/skills/ and docs/wiki/ were modified with differing content."
         )
         print("Please commit changes to only one source at a time.")
         print("Conflicting scripts:")
@@ -298,7 +302,7 @@ def _check_sync_conflict(changed: set[str], repo_root: Path, generalized: set[st
 
 def _run_sync(direction: SyncDirection, repo_root: Path, generalized: set[str]) -> bool:
     """Run sync. Returns True if sync modified any files on disk."""
-    mekara_root = repo_root / ".mekara" / "scripts" / "nl"
+    mekara_root = repo_root / ".agents" / "skills"
     wiki_root = repo_root / "docs" / "wiki"
     bundled_root = repo_root / "src" / "mekara" / "bundled" / "scripts" / "nl"
 
@@ -315,14 +319,16 @@ def _run_sync(direction: SyncDirection, repo_root: Path, generalized: set[str]) 
 
 def _check_bundled_nl_compiled(changed: set[str], repo_root: Path) -> int:
     """Require bundled compiled changes only for independently maintained scripts."""
-    bundled_nl = [f for f in changed if f.startswith("src/mekara/bundled/scripts/nl/")]
+    bundled_nl = [f for f in changed if changed_skill_relative(f, BUNDLED_SKILLS_PREFIX) is not None]
     missing: list[str] = []
     generalized = load_generalized_scripts(repo_root)
     for nl_file in bundled_nl:
-        relative = nl_file.removeprefix("src/mekara/bundled/scripts/nl/")
+        relative = changed_skill_relative(nl_file, BUNDLED_SKILLS_PREFIX)
+        if relative is None:
+            continue
         if relative not in generalized:
             continue
-        compiled = nl_file.replace("/nl/", "/compiled/", 1).removesuffix(".md") + ".py"
+        compiled = f"src/mekara/bundled/scripts/compiled/{relative.removesuffix('.md')}.py"
         if (repo_root / compiled).exists() and compiled not in changed:
             missing.append(compiled)
     if missing:
@@ -342,32 +348,32 @@ def _check_bundled_nl_compiled(changed: set[str], repo_root: Path) -> int:
 
 def _warn_sync_mismatch(changed: set[str], repo_root: Path) -> None:
     """Warn when .mekara and bundled scripts change without corresponding updates."""
-    nl_changed = any(f.startswith(".mekara/scripts/nl/") for f in changed)
-    bundled_nl_changed = any(f.startswith("src/mekara/bundled/scripts/nl/") for f in changed)
+    nl_changed = any(changed_skill_relative(f, LOCAL_SKILLS_PREFIX) is not None for f in changed)
+    bundled_nl_changed = any(changed_skill_relative(f, BUNDLED_SKILLS_PREFIX) is not None for f in changed)
 
     if nl_changed and not bundled_nl_changed:
         for nl_file in changed:
-            if not nl_file.startswith(".mekara/scripts/nl/"):
+            relative = changed_skill_relative(nl_file, LOCAL_SKILLS_PREFIX)
+            if relative is None:
                 continue
-            bundled = nl_file.replace(".mekara/scripts/nl/", "src/mekara/bundled/scripts/nl/", 1)
+            bundled = f"{BUNDLED_SKILLS_PREFIX}{relative.removesuffix('.md')}/SKILL.md"
             if (repo_root / bundled).exists():
                 print()
-                print("Warning: .mekara/scripts/nl/ changed but bundled scripts didn't.")
+                print("Warning: .agents/skills/ changed but bundled scripts didn't.")
                 print("Check if src/mekara/bundled/scripts/nl/ needs corresponding updates.")
                 print()
                 break
 
     if bundled_nl_changed and not nl_changed:
         for bundled_file in changed:
-            if not bundled_file.startswith("src/mekara/bundled/scripts/nl/"):
+            relative = changed_skill_relative(bundled_file, BUNDLED_SKILLS_PREFIX)
+            if relative is None:
                 continue
-            mekara = bundled_file.replace(
-                "src/mekara/bundled/scripts/nl/", ".mekara/scripts/nl/", 1
-            )
+            mekara = f"{LOCAL_SKILLS_PREFIX}{relative.removesuffix('.md')}/SKILL.md"
             if (repo_root / mekara).exists():
                 print()
-                print("Warning: Bundled scripts changed but .mekara/scripts/nl/ didn't.")
-                print("Check if .mekara/scripts/nl/ needs corresponding updates.")
+                print("Warning: Bundled scripts changed but .agents/skills/ didn't.")
+                print("Check if .agents/skills/ needs corresponding updates.")
                 print()
                 break
 
@@ -383,16 +389,18 @@ def main() -> int:
 
     changed = _staged_files()
 
-    nl_changed = any(f.startswith(".mekara/scripts/nl/") for f in changed)
+    nl_changed = any(changed_skill_relative(f, LOCAL_SKILLS_PREFIX) is not None for f in changed)
     wiki_changed = any(f.startswith("docs/wiki/") for f in changed)
-    bundled_nl_changed = any(f.startswith("src/mekara/bundled/scripts/nl/") for f in changed)
+    bundled_nl_changed = any(
+        changed_skill_relative(f, BUNDLED_SKILLS_PREFIX) is not None for f in changed
+    )
 
     if _check_sync_conflict(changed, repo_root, generalized) != 0:
         return 1
 
     synced = False
     if nl_changed:
-        print("Natural language scripts changed. Syncing to docs/wiki/ and bundled scripts...")
+        print("Agent skills changed. Syncing to docs/wiki/ and bundled scripts...")
         synced = _run_sync(SyncDirection.TO_DOCS, repo_root, generalized) or synced
     if wiki_changed:
         print("Wiki changed. Syncing to .mekara/scripts/nl/ and bundled scripts...")

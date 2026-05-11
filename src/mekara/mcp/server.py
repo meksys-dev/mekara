@@ -287,9 +287,9 @@ class MekaraServer:
         cmd_name_underscored = cmd_name.replace("-", "_")
         bundled_commands = bundled_commands_dir()
 
-        bundled_nl_path: Path | None = bundled_commands / f"{cmd_name}.md"
+        bundled_nl_path: Path | None = bundled_commands / cmd_name / "SKILL.md"
         if not self.fs_access.path_exists(bundled_nl_path):
-            alt = bundled_commands / f"{cmd_name_underscored}.md"
+            alt = bundled_commands / cmd_name_underscored / "SKILL.md"
             bundled_nl_path = alt if self.fs_access.path_exists(alt) else None
 
         bundled_std_path = bundled_standards_dir() / f"{name}.md"
@@ -319,7 +319,7 @@ class MekaraServer:
 
     def _write_bundled_command(self, name: str, bundled_nl_path: Path, force: bool) -> str:
         """Copy bundled command NL source (and compiled .py if present) to .mekara/scripts/."""
-        local_nl_path = self.executor.working_dir / ".mekara" / "scripts" / "nl" / f"{name}.md"
+        local_nl_path = self.executor.working_dir / ".mekara" / "scripts" / "nl" / name / "SKILL.md"
         if error := self._copy_bundled_file(bundled_nl_path, local_nl_path, force):
             return error
         written_files = [str(local_nl_path.relative_to(self.executor.working_dir))]

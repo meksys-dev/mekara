@@ -106,7 +106,7 @@ _LEVEL_DIRS: list[Path] = [
 ]
 
 _NL_SCRIPT_LEVELS: list[SearchLevel] = [
-    SearchLevel(d / "scripts" / "nl", ".md") for d in _LEVEL_DIRS
+    SearchLevel(d / "scripts" / "nl", "SKILL.md") for d in _LEVEL_DIRS
 ]
 _COMPILED_SCRIPT_LEVELS: list[SearchLevel] = [
     SearchLevel(d / "scripts" / "compiled", ".py") for d in _LEVEL_DIRS
@@ -166,11 +166,18 @@ def _find_highest_precedence(
     Returns:
         Match with index and path if found, or None.
     """
+    normalized_filename = filename.replace(":", "/")
     for i, level in enumerate(levels):
-        exact = level.directory / f"{filename}{level.extension}"
+        if level.extension == "SKILL.md":
+            exact = level.directory / normalized_filename / level.extension
+            underscored = level.directory / normalized_filename.replace("-", "_") / level.extension
+        else:
+            exact = level.directory / f"{normalized_filename}{level.extension}"
+            underscored = (
+                level.directory / f"{normalized_filename.replace('-', '_')}{level.extension}"
+            )
         if exact.exists():
             return Match(found_index=i, path=exact)
-        underscored = level.directory / f"{filename.replace('-', '_')}{level.extension}"
         if underscored.exists():
             return Match(found_index=i, path=underscored)
     return None

@@ -67,6 +67,17 @@ class LoadedCompiledScript:
 LoadedScript = LoadedCompiledScript | LoadedNLScript
 
 
+def strip_skill_frontmatter(content: str) -> str:
+    """Remove Agent Skills frontmatter before sending command content to the runner."""
+    if not content.startswith("---\n"):
+        return content
+    end_idx = content.find("\n---\n", 4)
+    if end_idx == -1:
+        return content
+    body = content[end_idx + 5 :]
+    return body[1:] if body.startswith("\n") else body
+
+
 def load_script(name: str, request: str = "") -> LoadedScript:
     """Load a script by name - unified entrypoint for all script loading.
 
@@ -90,7 +101,7 @@ def load_script(name: str, request: str = "") -> LoadedScript:
     if target is None:
         raise ScriptLoadError(f"Script not found: {name}")
 
-    nl_source = target.nl.path.read_text()
+    nl_source = strip_skill_frontmatter(target.nl.path.read_text())
     prompt = build_nl_command_prompt(nl_source, request)
 
     if target.target_type == Script.COMPILED:

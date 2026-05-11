@@ -543,12 +543,14 @@ class TestInstallCommands:
     """Tests for _install_commands function."""
 
     def test_installs_commands_when_neither_dir_exists(self, tmp_path: Path) -> None:
-        """When neither dir exists, creates mekara as canonical and symlinks claude to it."""
+        """When no skill dirs exist, creates .agents/skills and tool symlinks."""
         # Set up fake bundled commands directory
         bundled_dir = tmp_path / "bundled"
         bundled_dir.mkdir()
-        (bundled_dir / "command1.md").write_text("# Command 1")
-        (bundled_dir / "command2.md").write_text("# Command 2")
+        (bundled_dir / "command1").mkdir()
+        (bundled_dir / "command2").mkdir()
+        (bundled_dir / "command1" / "SKILL.md").write_text("# Command 1")
+        (bundled_dir / "command2" / "SKILL.md").write_text("# Command 2")
 
         # Use tmp_path as fake home
         fake_home = tmp_path / "home"
@@ -561,61 +563,55 @@ class TestInstallCommands:
         assert result == 0
 
         mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-        claude_dir = fake_home / ".claude" / "commands"
+        agents_dir = fake_home / ".agents" / "skills"
+        claude_dir = fake_home / ".claude" / "skills"
 
-        # Mekara dir should be a real directory with commands
+        # .agents/skills should be the canonical directory with commands
+        assert agents_dir.is_dir()
+        assert not agents_dir.is_symlink()
+        assert (agents_dir / "command1" / "SKILL.md").exists()
+        assert (agents_dir / "command2" / "SKILL.md").exists()
+
+        # Tool-specific paths should be symlinks to .agents/skills
         assert mekara_dir.is_dir()
-        assert not mekara_dir.is_symlink()
-        assert (mekara_dir / "command1.md").exists()
-        assert (mekara_dir / "command2.md").exists()
-
-        # Claude dir should be a symlink to mekara
+        assert mekara_dir.is_symlink()
+        assert mekara_dir.resolve() == agents_dir.resolve()
         assert claude_dir.is_symlink()
-        assert claude_dir.resolve() == mekara_dir.resolve()
+        assert claude_dir.resolve() == agents_dir.resolve()
 
         # Commands should be accessible via both paths
-        assert (claude_dir / "command1.md").read_text() == "# Command 1"
+        assert (claude_dir / "command1" / "SKILL.md").read_text() == "# Command 1"
 
-    def test_installs_commands_when_claude_exists(self, tmp_path: Path) -> None:
-        """When claude dir exists, mekara should symlink to it."""
+    def test_returns_error_when_claude_skills_exists_as_real_directory(
+        self, tmp_path: Path
+    ) -> None:
+        """Existing real ~/.claude/skills should fail instead of becoming canonical."""
         bundled_dir = tmp_path / "bundled"
         bundled_dir.mkdir()
-        (bundled_dir / "command1.md").write_text("# Command 1")
+        (bundled_dir / "command1").mkdir()
+        (bundled_dir / "command1" / "SKILL.md").write_text("# Command 1")
 
         fake_home = tmp_path / "home"
         fake_home.mkdir()
 
-        # Pre-create ~/.claude/commands/ as a real directory
-        claude_dir = fake_home / ".claude" / "commands"
+        # Pre-create ~/.claude/skills/ as a real directory
+        claude_dir = fake_home / ".claude" / "skills"
         claude_dir.mkdir(parents=True)
 
         with patch("mekara.utils.project.bundled_commands_dir", return_value=bundled_dir):
             with patch("pathlib.Path.home", return_value=fake_home):
                 result = _install_commands()
 
-        assert result == 0
-
-        mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-
-        # Claude dir should remain a real directory
-        assert claude_dir.is_dir()
-        assert not claude_dir.is_symlink()
-
-        # Mekara dir should be a symlink to claude
-        assert mekara_dir.is_symlink()
-        assert mekara_dir.resolve() == claude_dir.resolve()
-
-        # Commands should be in claude dir (canonical)
-        assert (claude_dir / "command1.md").exists()
-        assert (claude_dir / "command1.md").read_text() == "# Command 1"
+        assert result == 1
 
     def test_preserves_directory_structure(self, tmp_path: Path) -> None:
         """Should preserve subdirectory structure when installing."""
         bundled_dir = tmp_path / "bundled"
         bundled_dir.mkdir()
-        (bundled_dir / "project").mkdir()
-        (bundled_dir / "top.md").write_text("# Top")
-        (bundled_dir / "project" / "nested.md").write_text("# Nested")
+        (bundled_dir / "top").mkdir()
+        (bundled_dir / "project" / "nested").mkdir(parents=True)
+        (bundled_dir / "top" / "SKILL.md").write_text("# Top")
+        (bundled_dir / "project" / "nested" / "SKILL.md").write_text("# Nested")
 
         fake_home = tmp_path / "home"
         fake_home.mkdir()
@@ -627,23 +623,25 @@ class TestInstallCommands:
         assert result == 0
 
         mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-        assert (mekara_dir / "top.md").exists()
-        assert (mekara_dir / "project" / "nested.md").exists()
+        assert (mekara_dir / "top" / "SKILL.md").exists()
+        assert (mekara_dir / "project" / "nested" / "SKILL.md").exists()
 
     def test_skips_up_to_date_files(self, tmp_path: Path) -> None:
         """Should skip files that already have the same content."""
         bundled_dir = tmp_path / "bundled"
         bundled_dir.mkdir()
-        (bundled_dir / "same.md").write_text("# Same content")
-        (bundled_dir / "new.md").write_text("# New content")
+        (bundled_dir / "same").mkdir()
+        (bundled_dir / "new").mkdir()
+        (bundled_dir / "same" / "SKILL.md").write_text("# Same content")
+        (bundled_dir / "new" / "SKILL.md").write_text("# New content")
 
         fake_home = tmp_path / "home"
         fake_home.mkdir()
 
-        # Pre-create mekara dir with existing file
-        mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-        mekara_dir.mkdir(parents=True)
-        (mekara_dir / "same.md").write_text("# Same content")
+        # Pre-create canonical skill dir with existing file
+        agents_dir = fake_home / ".agents" / "skills"
+        (agents_dir / "same").mkdir(parents=True)
+        (agents_dir / "same" / "SKILL.md").write_text("# Same content")
 
         with patch("mekara.utils.project.bundled_commands_dir", return_value=bundled_dir):
             with patch("pathlib.Path.home", return_value=fake_home):
@@ -659,21 +657,22 @@ class TestInstallCommands:
         """Should update files that have different content."""
         bundled_dir = tmp_path / "bundled"
         bundled_dir.mkdir()
-        (bundled_dir / "changed.md").write_text("# New version")
+        (bundled_dir / "changed").mkdir()
+        (bundled_dir / "changed" / "SKILL.md").write_text("# New version")
 
         fake_home = tmp_path / "home"
         fake_home.mkdir()
 
-        mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-        mekara_dir.mkdir(parents=True)
-        (mekara_dir / "changed.md").write_text("# Old version")
+        agents_dir = fake_home / ".agents" / "skills"
+        (agents_dir / "changed").mkdir(parents=True)
+        (agents_dir / "changed" / "SKILL.md").write_text("# Old version")
 
         with patch("mekara.utils.project.bundled_commands_dir", return_value=bundled_dir):
             with patch("pathlib.Path.home", return_value=fake_home):
                 result = _install_commands()
 
         assert result == 0
-        assert (mekara_dir / "changed.md").read_text() == "# New version"
+        assert (agents_dir / "changed" / "SKILL.md").read_text() == "# New version"
 
     def test_returns_error_if_bundled_dir_missing(self, tmp_path: Path) -> None:
         """Should return error if bundled commands directory doesn't exist."""
@@ -688,17 +687,21 @@ class TestInstallCommands:
         """Should not recreate symlink if it already exists and works."""
         bundled_dir = tmp_path / "bundled"
         bundled_dir.mkdir()
-        (bundled_dir / "command.md").write_text("# Command")
+        (bundled_dir / "command").mkdir()
+        (bundled_dir / "command" / "SKILL.md").write_text("# Command")
 
         fake_home = tmp_path / "home"
         fake_home.mkdir()
 
-        # Pre-create the standard setup: mekara as canonical, claude as symlink
+        # Pre-create the standard setup: .agents/skills as canonical, tool paths as symlinks
+        agents_dir = fake_home / ".agents" / "skills"
+        agents_dir.mkdir(parents=True)
         mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-        mekara_dir.mkdir(parents=True)
-        claude_dir = fake_home / ".claude" / "commands"
+        mekara_dir.parent.mkdir(parents=True)
+        mekara_dir.symlink_to(agents_dir)
+        claude_dir = fake_home / ".claude" / "skills"
         claude_dir.parent.mkdir(parents=True)
-        claude_dir.symlink_to(mekara_dir)
+        claude_dir.symlink_to(agents_dir)
 
         with patch("mekara.utils.project.bundled_commands_dir", return_value=bundled_dir):
             with patch("pathlib.Path.home", return_value=fake_home):

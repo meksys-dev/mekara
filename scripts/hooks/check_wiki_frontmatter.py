@@ -4,9 +4,7 @@
 import sys
 from pathlib import Path
 
-import yaml
-from markdown_it import MarkdownIt
-from mdit_py_plugins.front_matter import front_matter_plugin
+from check_skill_frontmatter import load_markdown_frontmatter
 
 
 def check_frontmatter(file_path: Path) -> tuple[bool, str]:
@@ -22,30 +20,11 @@ def check_frontmatter(file_path: Path) -> tuple[bool, str]:
     if file_path.name == "index.md":
         return True, ""
 
-    content = file_path.read_text()
-
-    # Parse with markdown-it and front_matter plugin
-    md = MarkdownIt().use(front_matter_plugin)
-    tokens = md.parse(content)
-
-    # Find frontmatter token
-    frontmatter_token = None
-    for token in tokens:
-        if token.type == "front_matter":
-            frontmatter_token = token
-            break
-
-    if not frontmatter_token:
+    frontmatter, error = load_markdown_frontmatter(file_path)
+    if error is not None:
+        return False, error
+    if frontmatter is None:
         return False, f"Missing frontmatter in {file_path}"
-
-    # Parse YAML frontmatter
-    try:
-        frontmatter = yaml.safe_load(frontmatter_token.content)
-    except yaml.YAMLError as e:
-        return False, f"Invalid YAML frontmatter in {file_path}: {e}"
-
-    if not frontmatter:
-        return False, f"Empty frontmatter in {file_path}"
 
     # Check for sidebar_label
     if "sidebar_label" not in frontmatter:
@@ -71,7 +50,10 @@ def main() -> int:
         print("\nWiki frontmatter validation failed:", file=sys.stderr)
         for error in errors:
             print(f"  - {error}", file=sys.stderr)
-        print("\nAll non-index wiki files must have a 'sidebar_label' field in their frontmatter.", file=sys.stderr)
+        print(
+            "\nAll non-index wiki files must have a 'sidebar_label' field in their frontmatter.",
+            file=sys.stderr,
+        )
         return 1
 
     return 0

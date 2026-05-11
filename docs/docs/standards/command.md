@@ -7,7 +7,7 @@ import Version from '@site/src/components/Version';
 
 # Standard Mekara Command
 
-This page documents the standard structure for mekara <Version /> natural language command scripts. All scripts in `.mekara/scripts/nl/` should follow this structure.
+This page documents the standard structure for mekara <Version /> natural language command scripts. All scripts in `.agents/skills/` should follow this structure.
 
 The clearly delineated step structure enables clean compilation to executable Python scripts via `/compile`.
 

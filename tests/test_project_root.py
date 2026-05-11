@@ -174,7 +174,7 @@ class TestCommandsDir:
     """Tests for commands_dir function."""
 
     def test_returns_commands_directory(self) -> None:
-        """Should return .mekara/scripts/nl directory."""
+        """Should return .mekara/scripts/nl symlink path."""
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             result = commands_dir(root)
@@ -258,8 +258,8 @@ class TestBundledCommandsDir:
         assert result.is_dir()
 
     def test_contains_bundled_commands(self) -> None:
-        """Bundled commands directory should contain .md command files."""
+        """Bundled commands directory should contain SKILL.md command files."""
         result = bundled_commands_dir()
-        commands = list(result.glob("*.md"))
+        commands = list(result.rglob("SKILL.md"))
         # Should have at least some commands
         assert len(commands) >= 1

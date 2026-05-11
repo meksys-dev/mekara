@@ -85,8 +85,8 @@ No arguments — auto-detects from the current directory. Steps:
 
 **Tasks:**
 
-- [ ] Write `.mekara/scripts/nl/setup-worktree.md`
-- [ ] Write `.mekara/scripts/nl/teardown-worktree.md`
+- [ ] Write `.agents/skills/setup-worktree/SKILL.md`
+- [ ] Write `.agents/skills/teardown-worktree/SKILL.md`
 - [ ] Run `/compile setup-worktree` to generate `setup-worktree.py`
 - [ ] Run `/compile teardown-worktree` to generate `teardown-worktree.py`
 

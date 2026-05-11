@@ -366,11 +366,11 @@ class TestWriteBundled:
         assert "finish" in response
 
         # Check that file was written
-        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish.md"
+        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish" / "SKILL.md"
         assert nl_file.exists(), f"Expected file {nl_file} to be written"
 
         # Verify content matches bundled source
-        bundled_nl = bundled_commands_dir() / "finish.md"
+        bundled_nl = bundled_commands_dir() / "finish" / "SKILL.md"
         assert nl_file.read_text() == bundled_nl.read_text()
 
     def test_write_bundled_command_with_compiled(self, tmp_path: Path) -> None:
@@ -384,7 +384,7 @@ class TestWriteBundled:
         response = server.write_bundled("finish")
 
         # Check that both files were written
-        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish.md"
+        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish" / "SKILL.md"
         compiled_file = tmp_path / ".mekara" / "scripts" / "compiled" / "finish.py"
 
         assert nl_file.exists()
@@ -435,7 +435,7 @@ class TestWriteBundled:
         assert "Wrote bundled command" in response1
 
         # Modify the local file
-        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish.md"
+        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish" / "SKILL.md"
         original_content = nl_file.read_text()
         nl_file.write_text("MODIFIED CONTENT")
 
@@ -458,13 +458,13 @@ class TestWriteBundled:
 
         bundled = bundled_commands_dir()
         # Look for any nested script
-        nested_scripts = list(bundled.glob("*/"))
+        nested_scripts = [path for path in bundled.glob("*/") if list(path.glob("*/SKILL.md"))]
         if nested_scripts:
             # Pick the first nested directory
             nested_dir = nested_scripts[0]
-            nested_files = list(nested_dir.glob("*.md"))
+            nested_files = list(nested_dir.glob("*/SKILL.md"))
             if nested_files:
-                nested_name = nested_files[0].stem
+                nested_name = nested_files[0].parent.name
                 nested_dir_name = nested_dir.name
                 # Convert to colon-based name
                 colon_name = f"{nested_dir_name}:{nested_name}"
@@ -474,7 +474,13 @@ class TestWriteBundled:
 
                 # Check that nested directory structure was created
                 nl_file = (
-                    tmp_path / ".mekara" / "scripts" / "nl" / nested_dir_name / f"{nested_name}.md"
+                    tmp_path
+                    / ".mekara"
+                    / "scripts"
+                    / "nl"
+                    / nested_dir_name
+                    / nested_name
+                    / "SKILL.md"
                 )
                 assert nl_file.exists()
 

@@ -103,7 +103,7 @@ Captures the state of tracked files at a point in the conversation.
         "version": 2,
         "backupTime": "2026-02-01T14:59:02.697Z"
       },
-      ".mekara/scripts/nl/sync-help.md": {
+      ".agents/skills/sync-help/SKILL.md": {
         "backupFileName": null,
         "version": 1,
         "backupTime": "2026-02-01T14:59:17.220Z"

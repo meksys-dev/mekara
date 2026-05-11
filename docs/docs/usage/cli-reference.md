@@ -62,11 +62,13 @@ your-project/
 │           ├── deploy.py
 │           └── ...
 ├── .claude/
-│   └── commands/ → .mekara/scripts/nl/  # symlink
+│   └── skills/ → .agents/skills/        # symlink
+├── .agents/
+│   └── skills/                          # canonical natural language skills
 └── .gitignore
 ```
 
-**`.mekara/scripts/nl/`** (canonical; symlinked as `.claude/commands/`) — Your natural language script sources. These `.md` files are the source of truth for your automation workflows.
+**`.agents/skills/`** (canonical; symlinked as `.mekara/scripts/nl/` and `.claude/skills/`) — Your natural language script sources. These `SKILL.md` files are the source of truth for your automation workflows.
 
 **`.mekara/scripts/compiled/`** — Compiled Python generators. Keep this folder tracked in Git so others can run scripts without needing to compile.
 

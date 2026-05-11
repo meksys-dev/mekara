@@ -30,7 +30,7 @@ Then integrate it into Claude Code with `mekara install`, or if you want a more 
 
 mekara comes with a set of bundled commands like `/start`, `/finish`, `/change`, and others. You can access them in two ways:
 
-- **Recommended**: Run `mekara install` or `mekara install commands` to copy the bundled commands to `~/.mekara/scripts/nl/` (canonical; symlinked as `~/.claude/commands/`), making them available as regular Claude Code commands (`/command-name`)
+- **Recommended**: Run `mekara install` or `mekara install commands` to copy the bundled commands to `~/.agents/skills/` (canonical; symlinked as `~/.mekara/scripts/nl/` and `~/.claude/skills/`), making them available as regular skills and mekara commands
 - **Alternative**: If you haven't installed the bundled commands, **you can still use them by typing `//command-name` (with a double slash) in Claude Code**. So long as you've installed the Mekara hooks with `mekara install hooks`, the hooks will inject the bundled command content directly into the conversation. This is useful if you want to try Mekara before committing to installing the bundled commands globally.
 
 See [mekara install](./commands/install.md) for detailed installation instructions.
