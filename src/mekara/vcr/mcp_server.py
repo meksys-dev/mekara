@@ -18,6 +18,7 @@ from mekara.mcp.server import MekaraServer
 from mekara.scripting.auto import AutoExecutor
 from mekara.vcr import VcrAutoExecutor
 from mekara.vcr.cassette import VCRCassette
+from mekara.vcr.errors import VcrReplayMismatchError
 from mekara.vcr.events import (
     McpContinueCompiledScriptInputEvent,
     McpFinishNLScriptInputEvent,
@@ -78,14 +79,10 @@ class VcrMekaraServer:
             self._cassette.save()
             return response
         else:
-            # Replay: run real application code (VcrAutoExecutor handles auto_step events)
-            # Inputs came from test driver which consumed mcp_tool_input
             response = await self._inner.start(name, arguments, working_dir)
-
-            # Consume mcp_tool_output and verify output matches recorded
             output_event = self._cassette.consume_event(McpToolOutputEvent)
             if response != output_event.output:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: start() output mismatch.\n"
                     f"Expected: {output_event.output!r}\n"
                     f"Got: {response!r}\n"
@@ -108,14 +105,10 @@ class VcrMekaraServer:
             self._cassette.save()
             return response
         else:
-            # Replay: run real application code (VcrAutoExecutor handles auto_step events)
-            # Inputs came from test driver which consumed mcp_tool_input
             response = await self._inner.continue_compiled_script(outputs)
-
-            # Consume mcp_tool_output and verify output matches recorded
             output_event = self._cassette.consume_event(McpToolOutputEvent)
             if response != output_event.output:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: continue_compiled_script() output mismatch.\n"
                     f"Expected: {output_event.output!r}\n"
                     f"Got: {response!r}\n"
@@ -136,14 +129,10 @@ class VcrMekaraServer:
             self._cassette.save()
             return response
         else:
-            # Replay: run real application code
-            # Inputs came from test driver which consumed mcp_tool_input
             response = self._inner.status()
-
-            # Consume mcp_tool_output and verify output matches recorded
             output_event = self._cassette.consume_event(McpToolOutputEvent)
             if response != output_event.output:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: status() output mismatch.\n"
                     f"Expected: {output_event.output!r}\n"
                     f"Got: {response!r}\n"
@@ -166,14 +155,10 @@ class VcrMekaraServer:
             self._cassette.save()
             return response
         else:
-            # Replay: run real application code
-            # Inputs came from test driver which consumed mcp_tool_input
             response = await self._inner.finish_nl_script()
-
-            # Consume mcp_tool_output and verify output matches recorded
             output_event = self._cassette.consume_event(McpToolOutputEvent)
             if response != output_event.output:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: finish_nl_script() output mismatch.\n"
                     f"Expected: {output_event.output!r}\n"
                     f"Got: {response!r}\n"
@@ -181,15 +166,10 @@ class VcrMekaraServer:
                 )
             return response
 
-    # Keep old name as alias for backwards compatibility
-    async def finish(self) -> str:
-        """Deprecated: Use finish_nl_script instead."""
-        return await self.finish_nl_script()
-
     def write_bundled(self, name: str, force: bool = False) -> str:
         """Write a bundled command or standard to disk with VCR recording.
 
-        VCR handles filesystem events at the FilesystemAccess boundary.
+        VCR handles filesystem events at the FilesystemAccessProtocol boundary.
         This just records MCP-level events.
         """
         if self._cassette.mode == "record":
@@ -199,17 +179,58 @@ class VcrMekaraServer:
             self._cassette.save()
             return response
         else:
-            # Replay: run real application code
             response = self._inner.write_bundled(name, force)
-
-            # Consume and verify MCP output
             output_event = self._cassette.consume_event(McpToolOutputEvent)
             if response != output_event.output:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: write_bundled() output mismatch.\n"
                     f"Expected: {output_event.output!r}\n"
                     f"Got: {response!r}\n"
                     "Re-record the cassette if outputs have changed."
                 )
-
             return response
+
+
+class MekaraServerTestDriver:
+    """Test harness that replays entire MCP sessions.
+
+    Consumes McpInputEvents from the cassette and dispatches them to VcrMekaraServer,
+    which in turn verifies outputs against recorded McpToolOutputEvents.
+    """
+
+    def __init__(self, cassette: VCRCassette) -> None:
+        if cassette.mode != "replay":
+            raise ValueError("MekaraServerTestDriver requires replay mode cassette")
+        self._cassette = cassette
+        self._server = VcrMekaraServer(cassette)
+
+    async def run(self) -> None:
+        """Replay all MCP tool calls from the cassette.
+
+        Loops while events remain: consumes the next McpInputEvent and dispatches
+        it to VcrMekaraServer. VcrMekaraServer runs real application code and
+        verifies output matches the recorded McpToolOutputEvent.
+
+        Raises VcrReplayMismatchError if any event or output verification fails.
+        """
+        while self._cassette.has_remaining_events():
+            event = self._cassette.consume_event()
+
+            if isinstance(event, McpStartInputEvent):
+                await self._server.start(
+                    name=event.name,
+                    arguments=event.arguments,
+                    working_dir=event.working_dir,
+                )
+            elif isinstance(event, McpContinueCompiledScriptInputEvent):
+                await self._server.continue_compiled_script(outputs=event.outputs)
+            elif isinstance(event, McpFinishNLScriptInputEvent):
+                await self._server.finish_nl_script()
+            elif isinstance(event, McpStatusInputEvent):
+                self._server.status()
+            elif isinstance(event, McpWriteBundledInputEvent):
+                self._server.write_bundled(name=event.name, force=event.force)
+            else:
+                raise VcrReplayMismatchError(
+                    f"Unexpected event type in cassette: {type(event).__name__}"
+                )

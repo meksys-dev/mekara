@@ -14,22 +14,8 @@ from mekara.scripting.auto import (
     AutoExecutor,
 )
 from mekara.scripting.runtime import Auto, AutoResult
+from mekara.vcr.errors import VcrReplayMismatchError
 from mekara.vcr.events import AutoStepEvent
-
-
-class VcrReplayMismatchError(Exception):
-    """Raised when VCR replay detects a mismatch between recorded and actual inputs."""
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        show_traceback: bool = True,
-        display_error: bool = True,
-    ) -> None:
-        super().__init__(message)
-        self.show_traceback = show_traceback
-        self.display_error = display_error
 
 
 class VcrAutoExecutor:

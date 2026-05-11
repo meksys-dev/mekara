@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from mekara.mcp.disk import FilesystemAccess
+from mekara.mcp.disk import FilesystemAccessProtocol
 from mekara.vcr.cassette import VCRCassette
+from mekara.vcr.errors import VcrReplayMismatchError
 from mekara.vcr.events import (
     PathAnchor,
     PathExistsEvent,
@@ -44,7 +45,7 @@ class VcrFilesystemAccess:
         self,
         cassette: VCRCassette,
         working_dir: Path,
-        inner: FilesystemAccess | None = None,
+        inner: FilesystemAccessProtocol | None = None,
     ) -> None:
         self._cassette = cassette
         self._anchors: dict[PathAnchor, Path] = {
@@ -54,7 +55,7 @@ class VcrFilesystemAccess:
         if cassette.mode == "record":
             if inner is None:
                 raise ValueError("Record mode requires inner filesystem access")
-            self._inner: FilesystemAccess = inner
+            self._inner: FilesystemAccessProtocol = inner
         else:
             if inner is not None:
                 raise ValueError("Replay mode must not have inner filesystem access")
@@ -73,7 +74,7 @@ class VcrFilesystemAccess:
         else:
             event = self._cassette.consume_event(ReadDiskEvent)
             if event.path != rel:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: read path mismatch.\nExpected: {rel}\nGot: {event.path}"
                 )
             return event.content
@@ -88,11 +89,13 @@ class VcrFilesystemAccess:
         else:
             event = self._cassette.consume_event(WriteDiskEvent)
             if event.path != rel:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: write path mismatch.\nExpected: {rel}\nGot: {event.path}"
                 )
             if event.content != content:
-                raise ValueError(f"VCR replay error: file write content mismatch for {path}")
+                raise VcrReplayMismatchError(
+                    f"VCR replay error: file write content mismatch for {path}"
+                )
 
     def path_exists(self, path: Path) -> bool:
         """Check path existence with VCR recording/replay."""
@@ -105,7 +108,7 @@ class VcrFilesystemAccess:
         else:
             event = self._cassette.consume_event(PathExistsEvent)
             if event.path != rel:
-                raise ValueError(
+                raise VcrReplayMismatchError(
                     f"VCR replay error: path_exists path mismatch.\n"
                     f"Expected: {rel}\nGot: {event.path}"
                 )

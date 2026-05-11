@@ -19,7 +19,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from mekara.mcp.disk import FilesystemAccess, RealFilesystemAccess
+from mekara.mcp.disk import FilesystemAccessProtocol, RealFilesystemAccess
 from mekara.mcp.executor import (
     AutoExecutorProtocol,
     ExecutedStep,
@@ -108,7 +108,7 @@ class MekaraServer:
 
     def __init__(
         self,
-        fs_access: FilesystemAccess,
+        fs_access: FilesystemAccessProtocol,
         auto_executor: AutoExecutorProtocol | None = None,
         working_dir: Path | None = None,
     ) -> None:

@@ -13,6 +13,7 @@ from typing import Any, Literal, TypeVar, overload
 
 import yaml
 
+from mekara.vcr.errors import VcrReplayMismatchError
 from mekara.vcr.events import (
     AutoStepEvent,
     McpContinueCompiledScriptInputEvent,
@@ -162,7 +163,7 @@ class VCRCassette:
         event = self._events[self._replay_event_index]
 
         if event_type is not None and not isinstance(event, event_type):
-            raise ValueError(
+            raise VcrReplayMismatchError(
                 f"VCR replay event mismatch. Expected {event_type.__name__}, "
                 f"got {type(event).__name__}."
             )
