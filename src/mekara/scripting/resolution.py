@@ -8,9 +8,9 @@ file paths. The precedence algorithm:
 3. Return ResolvedTarget with both pieces (nl required, compiled optional)
 
 Precedence levels (first match wins):
-- Local (<project_root>/.mekara/)
-- User (~/.mekara/)
-- Bundled (package bundled/)
+- Local (<project_root>/.agents/skills/)
+- User (~/.agents/skills/)
+- Bundled (package bundled/skills/)
 """
 
 from __future__ import annotations
@@ -96,20 +96,18 @@ class Match(NamedTuple):
 
 
 # Base directories for each precedence level, built at module load time.
-# Each entry is the root for that level: local/.mekara, ~/.mekara, package/bundled/.
+# Each entry is the root for that level: local/.agents, ~/.agents, package/bundled/.
 # All specific search level lists are derived from these.
 _local_root = find_project_root()
 _LEVEL_DIRS: list[Path] = [
-    *([_local_root / ".mekara"] if _local_root is not None else []),
-    Path.home() / ".mekara",
-    bundled_commands_dir().parent.parent,  # package/bundled/
+    *([_local_root / ".agents"] if _local_root is not None else []),
+    Path.home() / ".agents",
+    bundled_commands_dir().parent,  # package/bundled/
 ]
 
-_NL_SCRIPT_LEVELS: list[SearchLevel] = [
-    SearchLevel(d / "scripts" / "nl", "SKILL.md") for d in _LEVEL_DIRS
-]
+_NL_SCRIPT_LEVELS: list[SearchLevel] = [SearchLevel(d / "skills", "SKILL.md") for d in _LEVEL_DIRS]
 _COMPILED_SCRIPT_LEVELS: list[SearchLevel] = [
-    SearchLevel(d / "scripts" / "compiled", ".py") for d in _LEVEL_DIRS
+    SearchLevel(d / "skills", "mekara.py") for d in _LEVEL_DIRS
 ]
 
 # Bundled base is always the last entry; used to infer is_bundled from a matched path.
@@ -168,7 +166,7 @@ def _find_highest_precedence(
     """
     normalized_filename = filename.replace(":", "/")
     for i, level in enumerate(levels):
-        if level.extension == "SKILL.md":
+        if level.extension in ("SKILL.md", "mekara.py"):
             exact = level.directory / normalized_filename / level.extension
             underscored = level.directory / normalized_filename.replace("-", "_") / level.extension
         else:

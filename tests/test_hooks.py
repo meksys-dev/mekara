@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 
 from mekara.cli import (
-    _command_affects_mekara_dir,
+    _command_affects_agents_dir,
     _hook_auto_approve,
     _hook_pre_tool_use,
     _hook_user_prompt_submit,
@@ -18,47 +18,47 @@ from mekara.cli import (
 from mekara.scripting.resolution import ResolvedTarget, ScriptInfo
 
 
-class TestCommandAffectsMekaraDir:
-    """Tests for _command_affects_mekara_dir function."""
+class TestCommandAffectsAgentsDir:
+    """Tests for _command_affects_agents_dir function."""
 
     def test_systematize_in_name(self, tmp_path: Path) -> None:
-        """Commands with 'systematize' in name should affect .mekara/scripts/nl/."""
+        """Commands with 'systematize' in name should affect .agents/skills/."""
         script = tmp_path / "test.py"
         script.write_text("# empty script")
-        assert _command_affects_mekara_dir("systematize", script) is True
-        assert _command_affects_mekara_dir("my-systematize-thing", script) is True
+        assert _command_affects_agents_dir("systematize", script) is True
+        assert _command_affects_agents_dir("my-systematize-thing", script) is True
 
     def test_standardize_in_name(self, tmp_path: Path) -> None:
-        """Commands with 'standardize' in name should affect .mekara/scripts/nl/."""
+        """Commands with 'standardize' in name should affect .agents/skills/."""
         script = tmp_path / "test.py"
         script.write_text("# empty script")
-        assert _command_affects_mekara_dir("standardize", script) is True
+        assert _command_affects_agents_dir("standardize", script) is True
 
     def test_rsi_in_name(self, tmp_path: Path) -> None:
-        """Commands with 'rsi-' or 'rsi/' in name should affect .mekara/scripts/nl/."""
+        """Commands with 'rsi-' or 'rsi/' in name should affect .agents/skills/."""
         script = tmp_path / "test.py"
         script.write_text("# empty script")
-        assert _command_affects_mekara_dir("rsi-documentation", script) is True
-        assert _command_affects_mekara_dir("rsi/scripting", script) is True
-        assert _command_affects_mekara_dir("recursive-self-improvement", script) is True
+        assert _command_affects_agents_dir("rsi-documentation", script) is True
+        assert _command_affects_agents_dir("rsi/scripting", script) is True
+        assert _command_affects_agents_dir("recursive-self-improvement", script) is True
 
-    def test_mekara_scripts_in_content(self, tmp_path: Path) -> None:
-        """Commands with '.mekara/scripts/nl' in content should affect .mekara/scripts/nl/."""
+    def test_agents_skills_in_content(self, tmp_path: Path) -> None:
+        """Commands with '.agents/skills' in content should affect .agents/skills/."""
         script = tmp_path / "test.py"
-        script.write_text("# writes to .mekara/scripts/nl/foo.md")
-        assert _command_affects_mekara_dir("random-name", script) is True
+        script.write_text("# writes to .agents/skills/foo/SKILL.md")
+        assert _command_affects_agents_dir("random-name", script) is True
 
     def test_no_match(self, tmp_path: Path) -> None:
-        """Commands without relevant patterns should not affect .claude/."""
+        """Commands without relevant patterns should not affect .agents/skills/."""
         script = tmp_path / "test.py"
         script.write_text("# just a regular script\nprint('hello')")
-        assert _command_affects_mekara_dir("finish", script) is False
-        assert _command_affects_mekara_dir("test/random", script) is False
+        assert _command_affects_agents_dir("finish", script) is False
+        assert _command_affects_agents_dir("test/random", script) is False
 
     def test_missing_file(self, tmp_path: Path) -> None:
         """Missing file should return False."""
         missing = tmp_path / "nonexistent.py"
-        assert _command_affects_mekara_dir("finish", missing) is False
+        assert _command_affects_agents_dir("finish", missing) is False
 
 
 class TestHookUserPromptSubmit:
@@ -149,14 +149,14 @@ class TestHookUserPromptSubmit:
     def test_dev_mode_outputs_for_mekara_affecting_commands(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Dev mode should output system prompt for commands affecting .mekara/scripts/nl/."""
+        """Dev mode should output system prompt for commands affecting .agents/skills/."""
         monkeypatch.setenv("MEKARA_DEV", "true")
 
-        # NL source with .mekara in content (used for dev mode check)
+        # NL source with .agents/skills in content (used for dev mode check)
         compiled_path = tmp_path / "my-script.py"
         compiled_path.write_text("# compiled script")
         nl_path = tmp_path / "my-script.md"
-        nl_path.write_text("# modifies .mekara/scripts/nl/")
+        nl_path.write_text("# modifies .agents/skills/foo/SKILL.md")
 
         target = ResolvedTarget(
             compiled=ScriptInfo(path=compiled_path, is_bundled=False),
@@ -181,10 +181,10 @@ class TestHookUserPromptSubmit:
     def test_dev_mode_no_output_for_non_mekara_commands(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Dev mode should NOT output for commands not affecting .mekara/scripts/nl/."""
+        """Dev mode should NOT output for commands not affecting .agents/skills/."""
         monkeypatch.setenv("MEKARA_DEV", "true")
 
-        # Script without .mekara/scripts/nl patterns
+        # Script without .agents/skills patterns
         compiled_path = tmp_path / "finish.py"
         compiled_path.write_text("# compiled")
         nl_path = tmp_path / "finish.md"
@@ -543,7 +543,7 @@ class TestInstallCommands:
     """Tests for _install_commands function."""
 
     def test_installs_commands_when_neither_dir_exists(self, tmp_path: Path) -> None:
-        """When no skill dirs exist, creates .agents/skills and tool symlinks."""
+        """When no skill dirs exist, creates .agents/skills and ~/.claude/skills symlink."""
         # Set up fake bundled commands directory
         bundled_dir = tmp_path / "bundled"
         bundled_dir.mkdir()
@@ -562,7 +562,6 @@ class TestInstallCommands:
 
         assert result == 0
 
-        mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
         agents_dir = fake_home / ".agents" / "skills"
         claude_dir = fake_home / ".claude" / "skills"
 
@@ -572,14 +571,11 @@ class TestInstallCommands:
         assert (agents_dir / "command1" / "SKILL.md").exists()
         assert (agents_dir / "command2" / "SKILL.md").exists()
 
-        # Tool-specific paths should be symlinks to .agents/skills
-        assert mekara_dir.is_dir()
-        assert mekara_dir.is_symlink()
-        assert mekara_dir.resolve() == agents_dir.resolve()
+        # ~/.claude/skills should be a symlink to ~/.agents/skills
         assert claude_dir.is_symlink()
         assert claude_dir.resolve() == agents_dir.resolve()
 
-        # Commands should be accessible via both paths
+        # Commands should be accessible via the symlink
         assert (claude_dir / "command1" / "SKILL.md").read_text() == "# Command 1"
 
     def test_returns_error_when_claude_skills_exists_as_real_directory(
@@ -622,9 +618,9 @@ class TestInstallCommands:
 
         assert result == 0
 
-        mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-        assert (mekara_dir / "top" / "SKILL.md").exists()
-        assert (mekara_dir / "project" / "nested" / "SKILL.md").exists()
+        agents_dir = fake_home / ".agents" / "skills"
+        assert (agents_dir / "top" / "SKILL.md").exists()
+        assert (agents_dir / "project" / "nested" / "SKILL.md").exists()
 
     def test_skips_up_to_date_files(self, tmp_path: Path) -> None:
         """Should skip files that already have the same content."""
@@ -650,7 +646,7 @@ class TestInstallCommands:
 
         assert result == 0
         calls = [str(call) for call in mock_print.call_args_list]
-        assert any("Installed 1 commands" in call for call in calls)
+        assert any("Installed 1 skill files" in call for call in calls)
         assert any("1 already up to date" in call for call in calls)
 
     def test_updates_changed_files(self, tmp_path: Path) -> None:
@@ -693,12 +689,9 @@ class TestInstallCommands:
         fake_home = tmp_path / "home"
         fake_home.mkdir()
 
-        # Pre-create the standard setup: .agents/skills as canonical, tool paths as symlinks
+        # Pre-create the standard setup: .agents/skills as canonical, claude/skills as symlink
         agents_dir = fake_home / ".agents" / "skills"
         agents_dir.mkdir(parents=True)
-        mekara_dir = fake_home / ".mekara" / "scripts" / "nl"
-        mekara_dir.parent.mkdir(parents=True)
-        mekara_dir.symlink_to(agents_dir)
         claude_dir = fake_home / ".claude" / "skills"
         claude_dir.parent.mkdir(parents=True)
         claude_dir.symlink_to(agents_dir)

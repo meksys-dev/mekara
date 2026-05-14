@@ -48,13 +48,13 @@ ASCII directory trees and/or Mermaid Architecture Diagrams showing the relevant 
 
 ```
 .agents/skills/             # Directory with SKILL.md files
-.mekara/scripts/            # Directory with symlinks and .py files
+.agents/skills/            # Directory with symlinks and .py files
 ```
 
 **Target structure:**
 
 ```
-.mekara/scripts/
+.agents/skills/
 ├── nl/                     # Symlink to .agents/skills
 └── compiled/              # Compiled scripts
 ```

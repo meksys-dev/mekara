@@ -49,8 +49,8 @@ def resolve_standard(name: str) -> Path | None:
     """Resolve a standard name to its file path.
 
     Searches for the standard in the following order:
-    1. Local: <project_root>/.mekara/standards/<name>.md
-    2. User: ~/.mekara/standards/<name>.md
+    1. Local: <project_root>/.agents/standards/<name>.md
+    2. User: ~/.agents/standards/<name>.md
     3. Bundled: package bundled/standards/<name>.md
 
     Args:

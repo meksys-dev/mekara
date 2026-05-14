@@ -9,12 +9,8 @@ A fully-configured standard Mekara project has roughly the following structure, 
 ```
 <project-name>/                 # parent directory
 ├── main/                       # original clone (primary workspace)
-│   ├── .mekara/
-│   │   └── scripts/
-│   │       ├── nl/ → .agents/skills/  # symlink for mekara script resolution
-│   │       └── compiled/       # compiled Python scripts
 │   ├── .agents/
-│   │   └── skills/             # Agent Skills natural language sources (canonical)
+│   │   └── skills/             # Agent Skills — SKILL.md + mekara.py per skill (canonical)
 │   ├── .claude/
 │   │   └── skills/ → .agents/skills/         # symlink for Claude Code and OpenCode
 │   ├── .github/
@@ -57,10 +53,8 @@ docs/
 - `SKILL.md` must include `name` and `description`, and `name` must match the containing directory.
 - Use only Agent Skills standard frontmatter for cross-tool compatibility: `name`, `description`, `license`, `compatibility`, `metadata`, and experimental `allowed-tools`.
 - Supporting files belong beside `SKILL.md` in `scripts/`, `references/`, or `assets/`.
-- `.mekara/scripts/nl/`: Symlink to `.agents/skills/` so mekara resolves the same skills as natural language scripts.
 - `.claude/skills/`: Symlink to `.agents/skills/` so [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) and [OpenCode](https://opencode.ai/docs/skills/) discover the same skills.
-- `.mekara/scripts/compiled/`: Contains optimized Python versions of those natural language scripts. These files are auto-generated—edit the sources in `.mekara/scripts/nl/`, not these files.
-- Mirrors the directory structure of `.mekara/scripts/nl/`
+- Each skill folder may also contain a `mekara.py` — the compiled Python version of the skill's `SKILL.md`. These are auto-generated; edit the source `SKILL.md`, not `mekara.py`.
 - `.github/workflows/`: Contains custom CI workflows for every PR. The standard setup includes 1) a check that all pre-commit hooks pass on all files, and 2) a check that all tests pass.
 - `docs/` or `../docs/`: Contains a documentation site adhering to the [Standard Mekara Documentation](./documentation.md) guidelines.
 

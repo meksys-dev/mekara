@@ -1,1 +1,0 @@
-"""Bundled scripts package."""
