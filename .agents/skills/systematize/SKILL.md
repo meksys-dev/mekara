@@ -13,7 +13,7 @@ You are creating a systematized command that captures a problem-solving approach
 
 ## Process
 
-The user has just worked through a specific problem with you and solved it. Now they want you to create a command in `.mekara/scripts/nl/` that:
+The user has just worked through a specific problem with you and solved it. Now they want you to create a command in `.agents/skills/` that:
 
 - Captures the **general problem-solving pattern** used
 - Replaces **situation-specific details** with instructions to query the user
@@ -61,7 +61,7 @@ Review the conversation to extract:
 
 ### Step 3: Write the command file
 
-- Create `.mekara/scripts/nl/<name>.md`
+- Create `.agents/skills/<name>/SKILL.md`
 - Satisfy the Output Specification above
 - Include examples if helpful (but make them generic)
 - For scenario-specific sections (like verification mechanisms or performance characteristics), use "if applicable" phrasing and provide concrete examples from the current implementation so future agents can recognize similar patterns (e.g., "For a caching feature, include timing: Recording ~10s, Replay ~0.5s")

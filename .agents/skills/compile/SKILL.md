@@ -23,7 +23,7 @@ Generate a Python file that:
     3. Uses `yield llm(...)` for anything requiring LLM judgment
     4. Uses `yield call_script(...)` when the script explicitly instructs invoking another script (for example, "Run `/finish <request>`.")
 
-The `.py` filename should match the source skill directory name with hyphens replaced by underscores per PEP 8. Scripts can be nested in subdirectories (e.g., `.agents/skills/git/finish/SKILL.md` compiles to `.mekara/scripts/compiled/git/finish.py`).
+The compiled file is always named `mekara.py` and lives inside the same skill folder as `SKILL.md` (e.g., `.agents/skills/finish/mekara.py`, or nested: `.agents/skills/git/finish/mekara.py`).
 
 ### The `auto` Primitive
 
@@ -292,7 +292,7 @@ This preserves the original context for future reference while explaining why it
 
 ## Output Specification
 
-- Produce `.mekara/scripts/compiled/<name>.py`, using underscores in the filename where the source `.md` uses hyphens.
+- Produce `.agents/skills/<name>/mekara.py`, co-located with the source `SKILL.md`.
 - Ensure the generated file exposes the standard `execute(request: str)` entry point expected by the mekara runtime.
 - Ensure the generated code preserves the source workflow in runnable compiled form.
 
@@ -312,7 +312,7 @@ Generate the Python code following the format above.
 
 ### Step 3: Check if the compiled script already exists
 
-**Check if the compiled script already exists** - use Read to examine the existing `.mekara/scripts/compiled/<name>.py` file (if it exists) before writing. This avoids failed write attempts and allows you to identify exactly what changed between the source and compiled versions. Only write/edit if changes are needed.
+**Check if the compiled script already exists** - use Read to examine the existing `.agents/skills/<name>/mekara.py` file (if it exists) before writing. This avoids failed write attempts and allows you to identify exactly what changed between the source and compiled versions. Only write/edit if changes are needed.
 
 ### Step 4: Verify wording matches exactly
 
@@ -320,21 +320,17 @@ Generate the Python code following the format above.
 
 ### Step 5: Write the output
 
-Write the output to `.mekara/scripts/compiled/<name>.py` (convert hyphens to underscores per PEP 8).
+Write the output to `.agents/skills/<name>/mekara.py`.
 
-### Step 6: Create `__init__.py` if it doesn't exist
+### Step 6: Update source if needed
 
-Create `.mekara/scripts/compiled/__init__.py` if it doesn't exist.
+If any changes to the workflow were made during compilation (e.g., adding merge conflict handling, clarifying ambiguous steps), update the original source script in `.agents/skills/` to match.
 
-### Step 7: Update source if needed
-
-If any changes to the workflow were made during compilation (e.g., adding merge conflict handling, clarifying ambiguous steps), update the original source script in `.mekara/scripts/nl/` to match.
-
-### Step 8: Report and wait for feedback
+### Step 7: Report and wait for feedback
 
 Report what was compiled and wait for user feedback. Do not proceed to the commit until the user has explicitly given the go-ahead. Do **not** call `mcp__mekara__continue` -- this is for natural-language script **completion**, not for continuing to the next step of a natural language script.
 
-### Step 9: Commit both files
+### Step 8: Commit both files
 
 **Commit both the source `.md` file and the compiled `.py` file together** - when updating a mekara script, always commit the source and compiled versions in the same commit to keep them synchronized.
 
@@ -368,7 +364,7 @@ Source (`start.md`):
 4. Tell the user the final instructions
 ```
 
-Output (`.mekara/scripts/compiled/start.py` - note: if source were `.agents/skills/my-script/SKILL.md`, output would be `.mekara/scripts/compiled/my_script.py`; if source were in a subdirectory like `.agents/skills/git/my-script/SKILL.md`, output would be `.mekara/scripts/compiled/git/my_script.py`):
+Output (`.agents/skills/start/mekara.py` - for a nested skill like `.agents/skills/git/finish/SKILL.md` the output is `.agents/skills/git/finish/mekara.py`):
 ```python
 """Auto-generated script. Source: .agents/skills/start/SKILL.md"""
 

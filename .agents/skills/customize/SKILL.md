@@ -13,7 +13,7 @@ Customize a bundled mekara command or standard so it matches this repository's a
 
 Gather from the user-provided context what to customize: a bundled command or a bundled standard.
 
-Commands are invoked as `/command-name` and live in `.mekara/scripts/nl/`. Standards are referenced by scripts using `@standard:name` syntax and live in `.mekara/standards/`.
+Commands are invoked as `/command-name` and live in `.agents/skills/`. Standards are referenced by scripts using `@standard:name` syntax and live in `.agents/standards/`.
 
 If the target is a standard, use the `standard:` prefix when calling the MCP tool (e.g., `standard:command`). The prefix is optional if the name is unambiguous — the tool will auto-detect.
 
@@ -23,8 +23,8 @@ If the name or target type is unclear, ask the user.
 
 Call `mcp__mekara__write_bundled` with the name to write the bundled source to disk:
 
-- Commands are written to `.mekara/scripts/nl/<name>.md`
-- Standards are written to `.mekara/standards/<name>.md`
+- Commands are written to `.agents/skills/<name>.md`
+- Standards are written to `.agents/standards/<name>.md`
 
 Then read the written file to understand the bundled source's structure.
 
@@ -56,7 +56,7 @@ Do not change the underlying method unless the repository actually requires it.
 
 ### Step 4: Customize the file
 
-Edit the file (already written to `.mekara/scripts/nl/<name>.md` or `.mekara/standards/<name>.md`) with repo-specific customizations.
+Edit the file (already written to `.agents/skills/<name>.md` or `.agents/standards/<name>.md`) with repo-specific customizations.
 
 Preserve the bundled source's general process, but replace generic assumptions with repo-specific ones where appropriate. Remove internal mekara-repo assumptions that do not apply in the target repository instead of carrying them over into the local override.
 

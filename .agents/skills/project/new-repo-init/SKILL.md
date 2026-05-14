@@ -1,9 +1,9 @@
 ---
 name: new-repo-init
-description: Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, canonical .agents/skills/ sources, symlinked tool-specific skill directories, and .mekara/scripts/compiled/ storage so mekara can later add scripts.
+description: Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, canonical .agents/skills/ sources, symlinked tool-specific skill directories.
 ---
 
-Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, canonical `.agents/skills/` sources, symlinked tool-specific skill directories, and `.mekara/scripts/compiled/` storage so mekara can later add scripts.
+Create a repository with a minimal "hello world" (or equivalent) entrypoint, a minimal test setup, canonical `.agents/skills/` sources, symlinked tool-specific skill directories.
 
 <UserContext>$ARGUMENTS</UserContext>
 
@@ -57,13 +57,12 @@ If the scaffolding command can't express required version/toolchain constraints,
 
 ### Step 3: Add a tracked mekara root
 
-Ensure `.agents/skills/`, `.mekara/scripts/nl/`, `.claude/skills/`, and `.mekara/scripts/compiled/` exist so mekara can treat the repo as a project root later. `.agents/skills/` is canonical; the tool-specific directories are symlinks to it:
+Ensure `.agents/skills/` exists and `~/.claude/skills/` symlinks to it so mekara can treat the repo as a project root. `.agents/skills/` is canonical:
 
 ```bash
 cd "<repo-dir>"
-mkdir -p ".agents/skills" ".mekara/scripts" ".mekara/scripts/compiled" ".claude"
-touch ".agents/skills/.gitkeep" ".mekara/scripts/compiled/.gitkeep"
-ln -s "../../.agents/skills" ".mekara/scripts/nl"
+mkdir -p ".agents/skills" ".claude"
+touch ".agents/skills/.gitkeep"
 ln -s "../.agents/skills" ".claude/skills"
 ```
 
@@ -148,4 +147,4 @@ Use the committer agent to commit _all_ changes.
 - Prefer a tiny, deterministic entrypoint over a “real” app: the purpose is stable output and fast iteration.
 - Capture “source of truth” output in the README by running the “hello world” command, not by hand-editing.
 - Keep checks minimal and fast so the repo is safe to use in recorded demos and repeated replays.
-- Track `.agents/skills/` and `.mekara/scripts/compiled/` (even empty) so mekara can treat the repo as a project root later; `.mekara/scripts/nl/` and `.claude/skills/` should be symlinks to `.agents/skills/`.
+- Track `.agents/skills/` (even empty with `.gitkeep`) so mekara can treat the repo as a project root; `~/.claude/skills/` should be a symlink to `.agents/skills/`.

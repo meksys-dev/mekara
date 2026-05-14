@@ -20,7 +20,7 @@ WIKI_EXCLUDED_CATEGORIES = {"", "mekara", "test"}
 # Categories excluded from bundled (project-specific, not useful for other projects)
 BUNDLED_EXCLUDED_CATEGORIES = {"mekara"}
 LOCAL_SKILLS_PREFIX = ".agents/skills/"
-BUNDLED_SKILLS_PREFIX = "src/mekara/bundled/scripts/nl/"
+BUNDLED_SKILLS_PREFIX = "src/mekara/bundled/skills/"
 
 
 class SyncDirection(Enum):
@@ -39,7 +39,7 @@ def load_generalized_scripts(repo_root: Path) -> set[str]:
     returns paths like {"project/release.md", "project/systematize.md"} for
     any ### heading of the form "category:script.md".
 
-    These scripts have diverged intentionally between .mekara/scripts/nl/
+    These scripts have diverged intentionally between .agents/skills/
     (project-specific) and bundled/wiki (generic) and must not be synced.
     """
     doc = repo_root / "docs" / "docs" / "code-base" / "mekara" / "bundled-script-generalization.md"
@@ -117,7 +117,7 @@ def changed_skill_relative(changed_path: str, prefix: str) -> str | None:
 def sync_to_docs(
     mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]
 ) -> int:
-    """Sync from .mekara/scripts/nl/ to docs/wiki/ and bundled/scripts/.
+    """Sync from .agents/skills/ to docs/wiki/ and bundled skills.
 
     Skips scripts that have been intentionally generalized (listed in
     bundled-script-generalization.md). Those scripts are maintained
@@ -153,10 +153,10 @@ def sync_to_docs(
 def sync_to_mekara(
     mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]
 ) -> int:
-    """Sync from docs/wiki/ to .mekara/scripts/nl/ and bundled/scripts/.
+    """Sync from docs/wiki/ to .agents/skills/ and bundled skills.
 
     The wiki holds the generic version of scripts. Always syncs to bundled.
-    Skips syncing to .mekara/scripts/nl/ for generalized scripts (listed in
+    Skips syncing to .agents/skills/ for generalized scripts (listed in
     bundled-script-generalization.md) since those have intentional overrides.
     """
     for wiki_file in sorted(wiki_root.rglob("*.md")):
@@ -187,9 +187,9 @@ def sync_to_mekara(
 def sync_from_bundled(
     mekara_root: Path, wiki_root: Path, bundled_root: Path, generalized: set[str]
 ) -> int:
-    """Sync from src/mekara/bundled/scripts/nl/ to docs/wiki/ and .mekara/scripts/nl/.
+    """Sync from src/mekara/bundled/skills/ to docs/wiki/ and .agents/skills/.
 
-    Skips syncing to .mekara/scripts/nl/ for generalized scripts (intentional overrides).
+    Skips syncing to .agents/skills/ for generalized scripts (intentional overrides).
     """
     for bundled_file in sorted(bundled_root.rglob("SKILL.md")):
         relative_path = script_relative_for_skill(bundled_root, bundled_file)
@@ -227,16 +227,17 @@ def _staged_files() -> set[str]:
 
 
 def _compiled_to_nl_relative(compiled_relative: str) -> str:
-    return compiled_relative.removesuffix(".py").replace("_", "-") + ".md"
+    compiled_path = Path(compiled_relative)
+    return compiled_path.parent.as_posix() + ".md"
 
 
 def _check_non_generalized_compiled_match(repo_root: Path, generalized: set[str]) -> int:
     """Ensure bundled compiled scripts match local compiled scripts unless generalized."""
-    local_root = repo_root / ".mekara" / "scripts" / "compiled"
-    bundled_root = repo_root / "src" / "mekara" / "bundled" / "scripts" / "compiled"
+    local_root = repo_root / ".agents" / "skills"
+    bundled_root = repo_root / "src" / "mekara" / "bundled" / "skills"
 
     mismatches: list[str] = []
-    for bundled_file in sorted(bundled_root.rglob("*.py")):
+    for bundled_file in sorted(bundled_root.rglob("mekara.py")):
         relative = bundled_file.relative_to(bundled_root).as_posix()
         local_file = local_root / relative
         if not local_file.exists():
@@ -304,7 +305,7 @@ def _run_sync(direction: SyncDirection, repo_root: Path, generalized: set[str]) 
     """Run sync. Returns True if sync modified any files on disk."""
     mekara_root = repo_root / ".agents" / "skills"
     wiki_root = repo_root / "docs" / "wiki"
-    bundled_root = repo_root / "src" / "mekara" / "bundled" / "scripts" / "nl"
+    bundled_root = repo_root / "src" / "mekara" / "bundled" / "skills"
 
     if direction == SyncDirection.TO_DOCS:
         sync_to_docs(mekara_root, wiki_root, bundled_root, generalized)
@@ -328,7 +329,7 @@ def _check_bundled_nl_compiled(changed: set[str], repo_root: Path) -> int:
             continue
         if relative not in generalized:
             continue
-        compiled = f"src/mekara/bundled/scripts/compiled/{relative.removesuffix('.md')}.py"
+        compiled = f"src/mekara/bundled/skills/{relative.removesuffix('.md')}/mekara.py"
         if (repo_root / compiled).exists() and compiled not in changed:
             missing.append(compiled)
     if missing:
@@ -360,7 +361,7 @@ def _warn_sync_mismatch(changed: set[str], repo_root: Path) -> None:
             if (repo_root / bundled).exists():
                 print()
                 print("Warning: .agents/skills/ changed but bundled scripts didn't.")
-                print("Check if src/mekara/bundled/scripts/nl/ needs corresponding updates.")
+                print("Check if src/mekara/bundled/skills/ needs corresponding updates.")
                 print()
                 break
 
@@ -383,7 +384,7 @@ def main() -> int:
     generalized = load_generalized_scripts(repo_root)
 
     if "--all" in sys.argv:
-        print("Syncing all .mekara/scripts/nl/ to docs/wiki/ and bundled scripts...")
+        print("Syncing all .agents/skills/ to docs/wiki/ and bundled skills...")
         _run_sync(SyncDirection.TO_DOCS, repo_root, generalized)
         return 0
 
@@ -400,13 +401,13 @@ def main() -> int:
 
     synced = False
     if nl_changed:
-        print("Agent skills changed. Syncing to docs/wiki/ and bundled scripts...")
+        print("Agent skills changed. Syncing to docs/wiki/ and bundled skills...")
         synced = _run_sync(SyncDirection.TO_DOCS, repo_root, generalized) or synced
     if wiki_changed:
-        print("Wiki changed. Syncing to .mekara/scripts/nl/ and bundled scripts...")
+        print("Wiki changed. Syncing to .agents/skills/ and bundled skills...")
         synced = _run_sync(SyncDirection.TO_MEKARA, repo_root, generalized) or synced
     if bundled_nl_changed:
-        print("Bundled NL scripts changed. Syncing to docs/wiki/ and .mekara/scripts/nl/...")
+        print("Bundled skills changed. Syncing to docs/wiki/ and .agents/skills/...")
         synced = _run_sync(SyncDirection.FROM_BUNDLED, repo_root, generalized) or synced
 
     if synced:

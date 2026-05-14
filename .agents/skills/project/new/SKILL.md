@@ -36,7 +36,7 @@ This creates:
 - Minimal "hello world" entrypoint
 - Minimal test setup
 - README with setup instructions
-- Tracked `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` directories
+- Tracked `.agents/skills/` directory
 
 ### Step 2: Set up pre-commit hooks
 

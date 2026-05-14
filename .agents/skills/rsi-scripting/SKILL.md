@@ -11,7 +11,7 @@ Update `/systematize` to incorporate new conventions or patterns for natural lan
 
 ### Step 0: Update /systematize with new conventions
 
-Review the conversation to identify what new patterns or conventions were established for command files in `.mekara/scripts/nl/`. Then update `/systematize` to teach future agents these conventions.
+Review the conversation to identify what new patterns or conventions were established for command files in `.agents/skills/`. Then update `/systematize` to teach future agents these conventions.
 
 Common updates:
 - **New structure types**: Add alternative templates in step 7 showing when to use each

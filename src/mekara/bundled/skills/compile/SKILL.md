@@ -50,6 +50,26 @@ def _print_message(message: str) -> None:
 yield auto(_print_message, {"message": "Hello!"}, context="Display greeting to user")
 ```
 
+### The `allow_failure` Parameter
+
+When a non-zero exit code is part of the information a command returns rather than an error signal, use `allow_failure=True`. The generator receives the `ShellResult` with `success`, `exit_code`, and `output` fields:
+
+```python
+# git ls-remote --exit-code exits 0 if remote exists, 2 if not
+result = yield auto("git ls-remote --exit-code origin", context="Check if remote is configured", allow_failure=True)
+has_remote = result.exit_code == 0
+
+# git show-ref --verify --quiet exits 0 if branch exists, 1 if not
+result = yield auto("git show-ref --verify --quiet refs/heads/main", context="Check if main branch exists", allow_failure=True)
+branch_exists = result.exit_code == 0
+
+# git merge-base --is-ancestor exits 0 if A is ancestor of B, 1 if not
+result = yield auto(f"git merge-base --is-ancestor {commit_a} {commit_b}", context="Check ancestry", allow_failure=True)
+is_ancestor = result.exit_code == 0
+```
+
+Without `allow_failure=True`, any non-zero exit halts execution and hands control to the LLM as an error.
+
 ### The `context` Parameter
 
 The `context` parameter is **required** for all `auto` steps. It should be the **verbatim text** from the source script that explains what the step does. This context is shown to the LLM when:

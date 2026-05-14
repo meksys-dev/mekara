@@ -11,7 +11,7 @@ Generalize a mekara-specific script for the bundled location so it works for all
 
 ### Step 0: Gather information
 
-Gather from the user-provided context which script to generalize (the source in `.mekara/scripts/nl/`).
+Gather from the user-provided context which script to generalize (the source in `.agents/skills/`).
 
 If unclear, ask the user.
 
@@ -25,7 +25,7 @@ Be aware of the other standards in @docs/docs/standards/. For example, if a scri
 
 ### Step 2: Compare source and bundled versions
 
-Compare the source script (`.mekara/scripts/nl/<name>.md`) with its bundled version (`src/mekara/bundled/scripts/nl/<name>.md`) to understand what changes have already been made.
+Compare the source script (`.agents/skills/<name>/SKILL.md`) with its bundled version (`src/mekara/bundled/skills/<name>/SKILL.md`) to understand what changes have already been made.
 
 ### Step 3: Identify and remove mekara-specific content
 
@@ -38,15 +38,15 @@ Replace with generic instructions that work for any project.
 
 ### Step 4: Update bundled scripts
 
-Update `src/mekara/bundled/scripts/nl/<name>.md`
+Update `src/mekara/bundled/skills/<name>/SKILL.md`
 
-If a compiled version exists at `src/mekara/bundled/scripts/compiled/<name>.py`, update it too. The pre-commit hook requires both to be updated together. If no compiled version exists, don't create one - only update the natural language script.
+If a compiled version exists at `src/mekara/bundled/skills/<name>/mekara.py`, update it too. The pre-commit hook requires both to be updated together. If no compiled version exists, don't create one - only update the natural language script.
 
 ### Step 5: Update guidance
 
 Add an entry to `docs/docs/code-base/mekara/bundled-script-generalization.md` documenting what was stripped from this script.
 
-**Important:** This file tracks the *persistent differences* between the project version and the bundled version — i.e., what the bundled version has removed or generalized *compared to the project version right now*. Do NOT document changes you just made that were applied equally to both versions (e.g., if you updated both `.agents/skills/finish/SKILL.md` and `src/mekara/bundled/scripts/nl/finish/SKILL.md` to call `/teardown-worktree`, that is NOT a difference to record). Only record things where the bundled version intentionally diverges from the project version (e.g., generic package manager examples instead of `poetry install --with dev`).
+**Important:** This file tracks the *persistent differences* between the project version and the bundled version — i.e., what the bundled version has removed or generalized *compared to the project version right now*. Do NOT document changes you just made that were applied equally to both versions (e.g., if you updated both `.agents/skills/finish/SKILL.md` and `src/mekara/bundled/skills/finish/SKILL.md` to call `/teardown-worktree`, that is NOT a difference to record). Only record things where the bundled version intentionally diverges from the project version (e.g., generic package manager examples instead of `poetry install --with dev`).
 
 ### Step 6: Verify generalizability
 
@@ -58,7 +58,7 @@ Confirm the generalized script would work for:
 ## Key Principles
 
 - **Bundled scripts are the generic default** - They should work out-of-the-box for any project type
-- **Project customization via override** - Projects customize by maintaining their own `.mekara/scripts/nl/<name>.md`
+- **Project customization via override** - Projects customize by maintaining their own `.agents/skills/<name>/SKILL.md`
 - **Read the standards** - The standards tell you what ALL mekara projects have; anything beyond that is mekara-repo-specific
 - **Only reference standard paths** - Only reference file paths that are explicitly documented in the mekara standards (@docs/docs/standards/). Never reference mekara-specific paths like `docs/docs/` (Docusaurus structure) - use generic paths from the standards like `docs/development/workflows.md`
 - **Only generalize what was requested** - If asked to generalize `systematize.md`, don't also modify `project/systematize.md` or other scripts. Special-case scripts (like those under `project/`) may be intentionally mekara-specific
