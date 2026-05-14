@@ -18,14 +18,14 @@ The `\b` marker in the epilog preserves verbatim formatting for the environment 
 
 ## Commands
 
-| Command                   | Purpose                                             |
-| ------------------------- | --------------------------------------------------- |
-| `mekara`                  | Show help text                                      |
-| `mekara mcp`              | Start the MCP server                                |
-| `mekara install`          | Install both hooks and commands                     |
-| `mekara install hooks`    | Set up MCP server and hook integration              |
-| `mekara install commands` | Install bundled commands to `~/.mekara/scripts/nl/` |
-| `mekara hook`             | Hook handlers for Claude Code integration           |
+| Command                   | Purpose                                         |
+| ------------------------- | ----------------------------------------------- |
+| `mekara`                  | Show help text                                  |
+| `mekara mcp`              | Start the MCP server                            |
+| `mekara install`          | Install both hooks and commands                 |
+| `mekara install hooks`    | Set up MCP server and hook integration          |
+| `mekara install commands` | Install bundled commands to `~/.agents/skills/` |
+| `mekara hook`             | Hook handlers for Claude Code integration       |
 
 All command groups (`install`, `hook`) use `invoke_without_command=True` to show help when invoked without a subcommand, ensuring users always get helpful output rather than errors.
 
@@ -73,9 +73,9 @@ Sets up MCP server and hook integration by running the bundled `ai-tooling/setup
 
 ### `mekara install commands`
 
-Copies all bundled natural language commands from `bundled/scripts/nl/` to `~/.mekara/scripts/nl/`:
+Copies all bundled skills from `src/mekara/bundled/skills/` to `~/.agents/skills/`:
 
-- Preserves directory structure (e.g., `project/setup-docs/SKILL.md` → `~/.agents/skills/project/setup-docs/SKILL.md`)
+- Preserves directory structure (e.g., `project/setup-docs/{SKILL.md, mekara.py}` → `~/.agents/skills/project/setup-docs/{SKILL.md, mekara.py}`)
 - Skips files that already have identical content
 - Updates files that have different content
 
@@ -93,30 +93,24 @@ For detailed documentation including input schemas, example outputs, and manual 
 
 The `find_project_root()` function in `src/mekara/utils/project.py` locates the project root:
 
-- Walks up from the current directory looking for `.mekara` or `.claude`
+- Walks up from the current directory looking for `.agents` or `.claude`
 - Returns the first parent directory containing either marker
 - Returns `None` if no project root is found
 
-## Script Resolution
+## Skill Resolution
 
-Script resolution (`src/mekara/scripting/resolution.py`) uses a two-phase algorithm that ensures NL source is always available (needed for `llm` step prompts even in compiled scripts).
+Skill resolution (`src/mekara/scripting/resolution.py`) uses a unified algorithm that looks for both NL (SKILL.md) and compiled (mekara.py) versions in the same skill folder.
 
-### Precedence Levels
+### Resolution Precedence (Highest to Lowest)
 
-1. Local compiled: `.mekara/scripts/compiled/<name>.py`
-2. Local NL: `.mekara/scripts/nl/<name>/SKILL.md` (symlinked from canonical `.agents/skills/<name>/SKILL.md`)
-3. User compiled: `~/.mekara/scripts/compiled/<name>.py`
-4. User NL: `~/.mekara/scripts/nl/<name>/SKILL.md` (symlinked from canonical `~/.agents/skills/<name>/SKILL.md`)
-5. Bundled compiled: `bundled/scripts/compiled/<name>.py`
-6. Bundled NL: `bundled/scripts/nl/<name>.md`
+1. Local NL: `.agents/skills/<skill>/SKILL.md`
+2. Local compiled: `.agents/skills/<skill>/mekara.py`
+3. User NL: `~/.agents/skills/<skill>/SKILL.md`
+4. User compiled: `~/.agents/skills/<skill>/mekara.py`
+5. Bundled NL: `src/mekara/bundled/skills/<skill>/SKILL.md`
+6. Bundled compiled: `src/mekara/bundled/skills/<skill>/mekara.py`
 
-### Algorithm
-
-1. Find NL at highest precedence (check levels 2, 4, 6)
-2. Find compiled at **same level or higher** than NL (check levels 1, 3, 5 where level ≤ NL level)
-3. Return `None` if no NL found
-
-This means a local NL command (level 2) will NOT use a bundled compiled version (level 5), but a bundled NL command (level 6) WILL use a user compiled version (level 3).
+Both NL and compiled are found within the same tier (e.g., at tier 1, both `.agents/skills/<skill>/SKILL.md` and `.agents/skills/<skill>/mekara.py` exist together). This is different from the old layout where NL and compiled were in separate directories; now they coexist in the same folder.
 
 ### Data Model
 
@@ -124,21 +118,19 @@ This means a local NL command (level 2) will NOT use a bundled compiled version 
 
 - `nl: ScriptInfo` (required) - path and is_bundled flag for NL source
 - `compiled: ScriptInfo | None` - path and is_bundled flag for compiled version
-- `name: str` - canonical name with colons as path separators (e.g., `test:nested`)
+- `name: str` - canonical name with colons as path separators (e.g., `project:setup-docs`)
 
 ### Name Normalization
 
-Script names use hyphens (e.g., `ai-tooling/setup-mekara-mcp`), but compiled Python files require valid Python module names (underscores). The resolution system handles this automatically:
+Skill folder names use hyphens (e.g., `ai-tooling`, `setup-mekara-mcp`), but the compiled Python file is always named `mekara.py` (not underscore-normalized). The NL source is always `SKILL.md`. Both exist in the same folder:
 
-1. **NL sources** use hyphens: `.agents/skills/ai-tooling/setup-mekara-mcp/SKILL.md`
-2. **Compiled scripts** use underscores: `.mekara/scripts/compiled/ai_tooling/setup_mekara_mcp.py`
+```
+.agents/skills/ai-tooling/setup-mekara-mcp/
+├── SKILL.md
+└── mekara.py
+```
 
-When resolving a script, the system tries both forms:
-
-- First tries exact match: `ai-tooling/setup-mekara-mcp.py`
-- Falls back to underscored: `ai_tooling/setup_mekara_mcp.py`
-
-This allows NL sources to use human-readable hyphenated names while compiled scripts follow Python module conventions. The conversion applies to the **entire path** including directory names.
+The canonical name uses colons and hyphens: `ai-tooling:setup-mekara-mcp`.
 
 ## Dependencies
 

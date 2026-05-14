@@ -115,7 +115,7 @@ The `UserPromptSubmit` hook (`mekara hook reroute-user-commands`) intercepts use
 1. Detects `/command` patterns
 2. Resolves the command via mekara's resolution logic
 3. For compiled scripts, outputs MCP instructions
-4. For dev mode commands affecting `.mekara/`, adds system prompt
+4. For dev mode skills affecting `.agents/skills/`, adds system prompt
 
 ## Module Layout
 

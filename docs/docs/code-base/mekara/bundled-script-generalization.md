@@ -4,7 +4,7 @@ sidebar_position: 10
 
 # Bundled Script Generalization
 
-This file documents what changes are made when generalizing scripts for the bundled location (`src/mekara/bundled/scripts/`).
+This file documents what changes are made when generalizing scripts for the bundled location (`src/mekara/bundled/skills/`).
 
 ## All Scripts
 
@@ -18,16 +18,16 @@ Bundled standards (`src/mekara/bundled/standards/`) are verbatim copies of the d
 
 ### Installation Transformations
 
-When `mekara install commands` copies bundled scripts to `~/.mekara/scripts/nl/`:
+When `mekara install commands` copies bundled skills to `~/.agents/skills/`:
 
-- Standards are installed to `~/.mekara/standards/`
-- `@standard:name` references in commands are replaced with `@~/.mekara/standards/name.md` so Claude Code's `@` file reference mechanism can resolve them directly
+- Standards are installed to `~/.agents/standards/`
+- `@standard:name` references in skills are replaced with `@~/.agents/standards/name.md` so Claude Code's `@` file reference mechanism can resolve them directly
 
 ### Bundled Compiled Scripts
 
-For scripts listed on this page, the bundled compiled file may intentionally differ from `.mekara/scripts/compiled/` because the bundled NL source is intentionally generalized. In those bundled compiled files, the `Source:` line should point at `src/mekara/bundled/scripts/nl/...`.
+For skills listed on this page, the bundled compiled file may intentionally differ from `.agents/skills/<skill>/mekara.py` because the bundled NL source is intentionally generalized. In those bundled compiled files, the `Source:` line should point at `src/mekara/bundled/skills/<skill>/SKILL.md`.
 
-If a bundled NL script is _not_ intentionally generalized (i.e. it's not present on this page), the bundled compiled script should stay exactly aligned with the canonical source script, including the `Source:` line.
+If a bundled NL skill is _not_ intentionally generalized (i.e. it's not present on this page), the bundled compiled script should stay exactly aligned with the canonical source skill, including the `Source:` line.
 
 ## Individual Scripts
 
@@ -138,7 +138,7 @@ If a bundled NL script is _not_ intentionally generalized (i.e. it's not present
 
 **Changed:**
 
-- Step 4 documentation targets: `.mekara` version points to both `docs/docs/standards/workflow.md` (for standard workflow commands) and `docs/docs/development/workflows.md` (for mekara-specific commands). Bundled version points only to `docs/docs/development/workflows.md` (the generic per-project workflows doc).
+- Step 4 documentation targets: `.agents/skills/` version points to both `docs/docs/standards/workflow.md` (for standard workflow commands) and `docs/docs/development/workflows.md` (for mekara-specific commands). Bundled version points only to `docs/docs/development/workflows.md` (the generic per-project workflows doc).
 
 **Kept:**
 
@@ -163,6 +163,6 @@ If a bundled NL script is _not_ intentionally generalized (i.e. it's not present
 **Kept:**
 
 - All workflow structure
-- `.mekara/scripts/nl/` and `.mekara/scripts/compiled/` paths (standard across all mekara projects)
+- `.agents/skills/` paths (standard across all mekara projects)
 - Commit requirement
 - All guidelines for updates

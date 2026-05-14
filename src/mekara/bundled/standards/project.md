@@ -10,9 +10,14 @@ A fully-configured standard Mekara project has roughly the following structure, 
 <project-name>/                 # parent directory
 ├── main/                       # original clone (primary workspace)
 │   ├── .agents/
-│   │   └── skills/             # Agent Skills — SKILL.md + mekara.py per skill (canonical)
+│   │   ├── skills/             # Agent Skills (canonical)
+│   │   │   ├── finish/
+│   │   │   │   ├── SKILL.md    # natural language source
+│   │   │   │   └── mekara.py   # compiled Python
+│   │   │   └── ...
+│   │   └── standards/          # Project standards
 │   ├── .claude/
-│   │   └── skills/ → .agents/skills/         # symlink for Claude Code and OpenCode
+│   │   └── skills/ → ~/.agents/skills/   # symlink to user skills
 │   ├── .github/
 │   │   └── workflows/          # CI workflows
 │   ├── .pre-commit-config.yaml # (or equivalent hook config)
@@ -48,13 +53,15 @@ docs/
 
 ### Core Directories
 
-- `.agents/skills/`: Contains natural language sources in the [Agent Skills](https://agentskills.io/specification) directory format. This is the canonical source for reusable command content.
-- Each command is a directory named with lowercase letters, numbers, and single hyphens, containing `SKILL.md` with YAML frontmatter and Markdown instructions.
-- `SKILL.md` must include `name` and `description`, and `name` must match the containing directory.
-- Use only Agent Skills standard frontmatter for cross-tool compatibility: `name`, `description`, `license`, `compatibility`, `metadata`, and experimental `allowed-tools`.
-- Supporting files belong beside `SKILL.md` in `scripts/`, `references/`, or `assets/`.
-- `.claude/skills/`: Symlink to `.agents/skills/` so [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) and [OpenCode](https://opencode.ai/docs/skills/) discover the same skills.
-- Each skill folder may also contain a `mekara.py` — the compiled Python version of the skill's `SKILL.md`. These are auto-generated; edit the source `SKILL.md`, not `mekara.py`.
+- `.agents/skills/`: Contains skills in the [Agent Skills](https://agentskills.io/specification) directory format. This is the canonical source for reusable automation content.
+  - Each skill is a directory named with lowercase letters, numbers, and single hyphens, containing:
+    - `SKILL.md`: Natural language source with YAML frontmatter and Markdown instructions
+    - `mekara.py`: Compiled Python version (auto-generated, edit `SKILL.md` instead)
+  - `SKILL.md` must include `name` and `description`, and `name` must match the containing directory.
+  - Use only Agent Skills standard frontmatter for cross-tool compatibility: `name`, `description`, `license`, `compatibility`, `metadata`, and experimental `allowed-tools`.
+  - Supporting files belong beside `SKILL.md` in `scripts/`, `references/`, or `assets/`.
+- `.agents/standards/`: Contains project-specific standards and guidelines.
+- `.claude/skills/`: Symlink to `~/.agents/skills/` so [Claude Code](https://docs.anthropic.com/en/docs/claude-code/skills) and [OpenCode](https://opencode.ai/docs/skills/) discover user-installed skills.
 - `.github/workflows/`: Contains custom CI workflows for every PR. The standard setup includes 1) a check that all pre-commit hooks pass on all files, and 2) a check that all tests pass.
 - `docs/` or `../docs/`: Contains a documentation site adhering to the [Standard Mekara Documentation](./documentation.md) guidelines.
 

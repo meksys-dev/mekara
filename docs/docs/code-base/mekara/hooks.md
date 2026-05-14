@@ -172,16 +172,16 @@ Both `reroute-user-commands` and `reroute-agent-commands` use mekara's resolutio
 
 The resolution checks these locations in order:
 
-1. Local compiled: `.mekara/scripts/compiled/<name>.py`
-2. Local NL: `.mekara/scripts/nl/<name>.md`
-3. User compiled: `~/.mekara/scripts/compiled/<name>.py`
-4. User NL: `~/.mekara/scripts/nl/<name>.md`
-5. Bundled compiled: `bundled/scripts/compiled/<name>.py`
-6. Bundled NL: `bundled/scripts/nl/<name>.md`
+1. Local NL: `.agents/skills/<skill>/SKILL.md`
+2. Local compiled: `.agents/skills/<skill>/mekara.py`
+3. User NL: `~/.agents/skills/<skill>/SKILL.md`
+4. User compiled: `~/.agents/skills/<skill>/mekara.py`
+5. Bundled NL: `src/mekara/bundled/skills/<skill>/SKILL.md`
+6. Bundled compiled: `src/mekara/bundled/skills/<skill>/mekara.py`
 
 ### Dev Mode
 
-When `MEKARA_DEV=true`, the `reroute-user-commands` hook outputs an additional `<dev-mode>` section for commands that affect `.mekara/scripts/nl/`, instructing Claude to target the mekara source repository instead of the current project.
+When `MEKARA_DEV=true`, the `reroute-user-commands` hook outputs an additional `<dev-mode>` section for skills that affect `.agents/skills/`, instructing Claude to target the mekara source repository instead of the current project.
 
 ### Command Normalization
 

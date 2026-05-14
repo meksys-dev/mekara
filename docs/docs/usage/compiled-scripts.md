@@ -2,28 +2,26 @@
 sidebar_position: 2
 ---
 
-# Compiled Scripts
+# Compiled Skills
 
-Mekara commands start as natural language scripts (`.mekara/scripts/nl/*.md`) and get compiled into Python generator functions (`.mekara/scripts/compiled/*.py`). This page explains the compiled format so you can understand and edit scripts directly.
+Mekara skills start as natural language sources (`.agents/skills/<skill>/SKILL.md`) and get compiled into Python generator functions (`.agents/skills/<skill>/mekara.py`). This page explains the compiled format so you can understand and edit skills directly.
 
 For compilation instructions and detailed rules, run `/compile` in Claude Code.
 
 ## File Structure
 
 ```
-.mekara/scripts/
-├── nl/                          # Natural language sources
-│   ├── finish.md
-│   ├── start.md
-│   └── git/
-│       └── merge-main.md
-└── compiled/                    # Generated Python scripts
-    ├── __init__.py
-    ├── finish.py
-    ├── start.py
-    └── git/
-        ├── __init__.py
-        └── merge_main.py        # Hyphens become underscores
+.agents/skills/
+├── finish/
+│   ├── SKILL.md                 # Natural language source
+│   └── mekara.py                # Compiled Python generator
+├── start/
+│   ├── SKILL.md
+│   └── mekara.py
+└── git/
+    └── merge-main/
+        ├── SKILL.md
+        └── mekara.py
 ```
 
 ## Script Anatomy
@@ -124,7 +122,7 @@ result = yield llm("Determine the target branch", expects={"branch": "branch nam
 yield auto(f"git checkout {result.outputs['branch']}", context="Switch to target branch")
 ```
 
-## Example: Complete Script
+## Example: Complete Skill
 
 Source (`.agents/skills/example/SKILL.md`):
 
@@ -135,7 +133,7 @@ Source (`.agents/skills/example/SKILL.md`):
 4. Tell the user they're ready to start
 ```
 
-Compiled (`.mekara/scripts/compiled/example.py`):
+Compiled (`.agents/skills/example/mekara.py`):
 
 ```python
 """Auto-generated script. Source: .agents/skills/example/SKILL.md"""
@@ -161,13 +159,13 @@ def execute(request: str):
     yield llm("Tell the user they're ready to start working on the feature")
 ```
 
-## Editing Compiled Scripts
+## Editing Compiled Skills
 
-You can edit compiled scripts directly, but keep in mind:
+You can edit compiled skills directly, but keep in mind:
 
-1. **Source is authoritative**: The `.mekara/scripts/nl/*.md` file is the source of truth. If you edit the compiled `.py` directly, your changes may be overwritten on the next `/compile`.
+1. **Source is authoritative**: The `.agents/skills/<skill>/SKILL.md` file is the source of truth. If you edit the compiled `mekara.py` directly, your changes may be overwritten on the next `/compile`.
 
-2. **Keep them in sync**: If you make structural changes to a compiled script, update the source `.md` to match.
+2. **Keep them in sync**: If you make structural changes to a compiled skill, update the source `.md` to match.
 
 3. **Prefer editing source**: For most changes, edit the natural language source and recompile. This keeps the intent clear and makes future modifications easier.
 

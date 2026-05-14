@@ -77,7 +77,7 @@ The following examples show how the standard content placement rules apply to me
 ### usage/
 
 - Example: "Use Claude Code with the mekara MCP server to run scripts"
-- Example: "Scripts are stored in `.agents/skills/` (canonical; symlinked as `.mekara/scripts/nl/` and `.claude/skills/`) and compiled to `.mekara/scripts/compiled/`"
+- Example: "Skills are stored in `.agents/skills/` (canonical; symlinked as `.claude/skills/`) with both NL (SKILL.md) and compiled (mekara.py) versions in the same folder"
 
 ### development/
 

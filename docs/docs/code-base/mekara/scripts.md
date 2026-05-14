@@ -125,14 +125,14 @@ parts = split_transcript(transcript_path, marker="Step 2")
 
 ## sync_nl.py
 
-Syncs natural language scripts between `.mekara/scripts/nl/`, `docs/wiki/`, and `src/mekara/bundled/scripts/nl/`. Also serves as the `check-bundled-scripts` pre-commit hook entry point.
+Syncs natural language scripts between `.agents/skills/`, `docs/wiki/`, and `src/mekara/bundled/skills/`. Also serves as the `check-bundled-scripts` pre-commit hook entry point.
 
 **What it does:**
 
 - Detects which of the three script locations changed and syncs to the other two
 - Flags conflicts when the same script is staged in two sources with differing content
 - Validates that bundled NL/compiled pairs are updated together
-- Excludes generalized scripts (listed in `bundled-script-generalization.md`) from `.mekara` ↔ wiki sync
+- Excludes generalized scripts (listed in `bundled-script-generalization.md`) from `.agents` ↔ wiki sync
 - Top-level scripts (no category subdirectory) are excluded from wiki but synced to bundled
 
 **When it runs:**
