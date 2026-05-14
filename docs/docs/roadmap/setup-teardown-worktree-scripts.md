@@ -15,40 +15,36 @@ sidebar_label: "setup-worktree / teardown-worktree Scripts"
 2. Create `/teardown-worktree` script that auto-detects context and tears down the worktree environment, including remote branch deletion
 3. Update `/start` to delegate steps 3–6 to `/setup-worktree`
 4. Update `/finish` to delegate steps 15–16 to `/teardown-worktree`
-5. Compile all four scripts to regenerate their `.py` counterparts
+5. Compile all four scripts to regenerate their `mekara.py` counterparts
 
 ## Architecture
 
 **Current structure:**
 
 ```
-.mekara/scripts/nl/
-├── start.md           # steps 1-7 inline (includes worktree setup steps 3-6)
-├── finish.md          # steps 0-16 inline (includes worktree teardown steps 15-16)
+.agents/skills/
+├── start/SKILL.md     # steps 1-7 inline (includes worktree setup steps 3-6)
+├── finish/SKILL.md    # steps 0-16 inline (includes worktree teardown steps 15-16)
 └── ...
 
-.mekara/scripts/compiled/
-├── start.py
-├── finish.py
-└── ...
+.agents/skills/start/mekara.py
+.agents/skills/finish/mekara.py
 ```
 
 **Target structure:**
 
 ```
-.mekara/scripts/nl/
-├── start.md           # steps 1-2 + delegates to /setup-worktree + step 7
-├── finish.md          # steps 0-14 + delegates to /teardown-worktree
-├── setup-worktree.md  # NEW: worktree creation + dep install + settings copy
-├── teardown-worktree.md  # NEW: venv removal + remote branch deletion + worktree removal
+.agents/skills/
+├── start/SKILL.md              # steps 1-2 + delegates to /setup-worktree + step 7
+├── finish/SKILL.md             # steps 0-14 + delegates to /teardown-worktree
+├── setup-worktree/SKILL.md     # NEW: worktree creation + dep install + settings copy
+├── teardown-worktree/SKILL.md  # NEW: venv removal + remote branch deletion + worktree removal
 └── ...
 
-.mekara/scripts/compiled/
-├── start.py
-├── finish.py
-├── setup-worktree.py  # NEW
-├── teardown-worktree.py  # NEW
-└── ...
+.agents/skills/start/mekara.py
+.agents/skills/finish/mekara.py
+.agents/skills/setup-worktree/mekara.py     # NEW
+.agents/skills/teardown-worktree/mekara.py  # NEW
 ```
 
 ## Design Details
@@ -87,8 +83,8 @@ No arguments — auto-detects from the current directory. Steps:
 
 - [ ] Write `.agents/skills/setup-worktree/SKILL.md`
 - [ ] Write `.agents/skills/teardown-worktree/SKILL.md`
-- [ ] Run `/compile setup-worktree` to generate `setup-worktree.py`
-- [ ] Run `/compile teardown-worktree` to generate `teardown-worktree.py`
+- [ ] Run `/compile setup-worktree` to generate `.agents/skills/setup-worktree/mekara.py`
+- [ ] Run `/compile teardown-worktree` to generate `.agents/skills/teardown-worktree/mekara.py`
 
 ### Phase 2: Update `start.md` and `finish.md`
 
@@ -96,10 +92,10 @@ No arguments — auto-detects from the current directory. Steps:
 
 **Tasks:**
 
-- [ ] Edit `start.md` to replace steps 3–6 with a call to `/setup-worktree <branch-name>`
-- [ ] Edit `finish.md` to replace steps 15–16 with a call to `/teardown-worktree`
-- [ ] Run `/compile start` to regenerate `start.py`
-- [ ] Run `/compile finish` to regenerate `finish.py`
+- [ ] Edit `.agents/skills/start/SKILL.md` to replace steps 3–6 with a call to `/setup-worktree <branch-name>`
+- [ ] Edit `.agents/skills/finish/SKILL.md` to replace steps 15–16 with a call to `/teardown-worktree`
+- [ ] Run `/compile start` to regenerate `.agents/skills/start/mekara.py`
+- [ ] Run `/compile finish` to regenerate `.agents/skills/finish/mekara.py`
 
 ### Phase 3: Generalize bundled scripts
 

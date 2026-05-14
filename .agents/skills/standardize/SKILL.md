@@ -13,11 +13,11 @@ Defines (or updates) a standard and applies it consistently across two scripts.
 
 Gather the following information from the user-provided context:
 
-- Which two scripts should be standardized (paths under `.mekara/scripts/nl/`).
+- Which two scripts should be standardized (paths under `.agents/skills/`).
 - What specifically should be standardized (examples: step structure, decision-point structure, wording conventions, what belongs in Step 0, verification/commit conventions, shared checklist).
 - Where the standard should live (the canonical home). Examples:
   - A documentation page under `docs/docs/` (preferred for shared human+AI guidance)
-  - A command script under `.mekara/scripts/nl/` that acts as the living spec for this class of scripts
+  - A command script under `.agents/skills/` that acts as the living spec for this class of scripts
   - A code module/config if the “standard” is actually behavior (not prose)
   Regardless, the standard has to live *somewhere* if the standard is to survive past this particular conversation. The standard has to be a long-lived artifact that can be explicitly referenced, so that when the standard changes, all applicable downstream artifcats also change with it.
 - Any constraints about what must not change (behavior, wording, ordering, “don’t touch this user-edited section”, etc.).

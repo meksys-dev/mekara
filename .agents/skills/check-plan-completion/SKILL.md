@@ -14,7 +14,7 @@ Verify codebase matches the desired end state in a design document.
 Gather the following from the user-provided context:
 - Path to the design document
 
-If unclear, look for `.mekara/plans/*.md` files.
+If unclear, look for `.agents/plans/*.md` files.
 
 ### Step 1: Read the design
 

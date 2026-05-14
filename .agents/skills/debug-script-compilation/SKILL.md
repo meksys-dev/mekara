@@ -14,8 +14,8 @@ You are debugging an issue with the mekara scripting system's compilation or run
 Gather the following information from the user-provided context:
 
 - **The error message/traceback** - What error occurred when trying to run the script?
-- **The failing script path** - Which compiled script in `.mekara/scripts/compiled/` is having issues?
-- **The source script** - Which `.md` file in `.mekara/scripts/nl/` was it compiled from?
+- **The failing script path** - Which compiled script (`mekara.py`) in `.agents/skills/<skill>/` is having issues?
+- **The source script** - Which `.md` file in `.agents/skills/` was it compiled from?
 
 If any information is unclear or missing, ask the user for details.
 
@@ -25,7 +25,7 @@ Read the full error traceback to understand what's failing and identify the spec
 
 ### Step 2: Read the compiled script
 
-Examine the generated Python code in `.mekara/scripts/compiled/` and look for any obvious issues with the generated code.
+Examine the generated Python code in `.agents/skills/<skill>/mekara.py` and look for any obvious issues with the generated code.
 
 ### Step 3: Read the compilation instructions
 
@@ -37,7 +37,7 @@ Check `src/mekara/cli.py` and `src/mekara/runtime/` to understand how the runtim
 
 ### Step 5: Compare with working scripts
 
-Look at other compiled scripts in `.mekara/scripts/compiled/` that work correctly and identify differences in structure, signatures, or patterns.
+Look at other compiled scripts (`mekara.py`) in `.agents/skills/` that work correctly and identify differences in structure, signatures, or patterns.
 
 ### Step 6: Determine root cause
 

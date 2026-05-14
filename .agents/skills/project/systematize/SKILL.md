@@ -3,7 +3,7 @@ name: systematize
 description: Creates a stack-agnostic repo-setup command from a reusable setup-session methodology.
 ---
 
-Create a new stack-agnostic repo-setup command under `.mekara/scripts/nl/project/` by extracting a reusable methodology from a repo setup session.
+Create a new stack-agnostic repo-setup command under `.agents/skills/project/` by extracting a reusable methodology from a repo setup session.
 
 <UserContext>$ARGUMENTS</UserContext>
 
@@ -25,7 +25,7 @@ Only ask the user if this information is genuinely unclear or missing from the c
 
 ### Step 1: Choose the new command name and location
 
-Pick a descriptive kebab-case filename under `.mekara/scripts/nl/project/` and ensure the implied slash command matches the path:
+Pick a descriptive kebab-case directory under `.agents/skills/project/` and ensure the implied slash command matches the path:
 
 - Example: `.agents/skills/project/new-repo-init/SKILL.md` → `/project/new-repo-init`
 
@@ -71,7 +71,7 @@ Use examples to show different approaches for different stacks, but keep steps g
 
 ### Step 5: Write the command file
 
-Create `.mekara/scripts/nl/project/<name>.md` so it satisfies the Output Specification above.
+Create `.agents/skills/project/<name>/SKILL.md` so it satisfies the Output Specification above.
 
 Repo-setup-specific requirements beyond the standard:
 - Step 0 must gather stack details and intended end state (infer from session; ask only if missing)

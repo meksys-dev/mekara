@@ -53,7 +53,7 @@ That is a _lot_ of time and tokens spent on something that could have gone a lot
 
 Note the amount of back-and-forth we have with the LLM over the compilation process: given the potential time savings involved, it is highly recommended to spend some time optimizing this process.
 
-The resulting Python script can be found [here](https://github.com/meksys-dev/ai-dojo/blob/training/intro/mechanized/.mekara/scripts/compiled/sync_help.py) -- note the interleaving between fully automated steps and steps that require LLM judgment.
+The resulting Python script interleaves fully automated steps with steps that require LLM judgment.
 
 :::info[Try it yourself!]
 You can try mechanizing the worfklow yourself on the `training/intro/unchanged` commit on our [AI Dojo](https://github.com/meksys-dev/ai-dojo/).

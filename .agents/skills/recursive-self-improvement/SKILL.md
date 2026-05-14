@@ -9,9 +9,9 @@ Improve workflows for future agents.
 
 ## Process
 
-### Step 0: Update the specific file in `.mekara/scripts/nl/`
+### Step 0: Update the specific file in `.agents/skills/`
 
-Update the specific file in `.mekara/scripts/nl/` for the previous command that you were given, or for this specific override provided by the user.
+Update the specific file in `.agents/skills/` for the previous command that you were given, or for this specific override provided by the user.
 
 Put in advice for future agents to collaborate better with the user, based on the user feedback that's been given to you in this interaction.
 
@@ -27,7 +27,7 @@ If the feedback belongs in cross-cutting guidance rather than in a single proces
 
 ### Step 1: Update compiled version if applicable
 
-If the script has a compiled version in `.mekara/scripts/compiled/`, update the compiled version too. Both must stay in sync.
+If the script has a compiled `mekara.py` version in the same skill directory, update the compiled version too. Both must stay in sync.
 
 ### Step 2: Commit the workflow improvement
 

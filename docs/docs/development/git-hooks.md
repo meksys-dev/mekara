@@ -47,7 +47,7 @@ In general, the hook will sync changes from any one of the three sources to the 
 
 The only exception to the above are the skills in `.agents/skills/` that are intentionally more specific than the generic bundled/wiki version (e.g., `project/release` has mekara-specific PyPI steps). These are also the individual skills that are mentioned in [Bundled Script Generalization](../code-base/mekara/bundled-script-generalization.md). If a skill is mentioned in that file, that skill is treated as customized and is excluded from bidirectional sync between the bundled and project-specific skills. However, a sync between wiki and bundled versions remain.
 
-Normally this script acts only on changed files, but the `--all` option als exists to sync all scripts regardless of what's staged, allowing drift to be fixed.
+Normally this script acts only on changed files, but the `--all` option also exists to sync all scripts regardless of what's staged, allowing drift to be fixed.
 
 **Important edge cases:**
 

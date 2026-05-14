@@ -167,5 +167,5 @@ mv /tmp/<repo-name>-migration-staging/main <repo-name>
 - Always use a staging area for safe directory moves — never move a directory while inside it
 - The main worktree keeps the full `.git/` directory; additional worktrees reference it
 - Virtual environments may need recreation after the directory path changes
-- This command only handles worktree structure — it does NOT create `.mekara/` or `.claude/` directories (use `/project/new-repo-init` for that)
+- This command only handles worktree structure — it does NOT create `.agents/` or `.claude/` directories (use `/project/new-repo-init` for that)
 - Branch names with slashes (e.g., `feature/foo`) create nested directories in the worktree structure

@@ -132,6 +132,7 @@ Syncs natural language scripts between `.agents/skills/`, `docs/wiki/`, and `src
 - Detects which of the three script locations changed and syncs to the other two
 - Flags conflicts when the same script is staged in two sources with differing content
 - Validates that bundled NL/compiled pairs are updated together
+- Treats bundled skills as single directories under `src/mekara/bundled/skills/<skill>/`, with `SKILL.md` and `mekara.py` side by side
 - Excludes generalized scripts (listed in `bundled-script-generalization.md`) from `.agents` ↔ wiki sync
 - Top-level scripts (no category subdirectory) are excluded from wiki but synced to bundled
 
