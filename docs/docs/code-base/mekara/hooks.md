@@ -191,3 +191,23 @@ Both hooks normalize command names by:
 - Converting colons to slashes (`test:random` → `test/random`)
 
 This ensures consistent resolution regardless of how the user types the command.
+
+### Prompt Parsing for reroute-user-commands
+
+The `reroute-user-commands` hook parses the raw user prompt to extract the command name and arguments via `parse_slash_command()` in `src/mekara/cli.py`.
+
+:::warning[Multi-line argument pitfall]
+Arguments can span multiple lines when users paste context after a command (e.g., `/start <multi-line description>`). A regex like `^//?(command)(?:\s+(.*))?$` silently fails here: `(.*)` stops at the first newline, so `$` never matches end-of-string, and the entire match returns `None` — the hook outputs nothing.
+
+The fix is to match only the command name at the start and take everything after it as raw text:
+
+```python
+# Wrong: $ anchor breaks on multi-line args
+match = re.match(r"^//?(/?[a-zA-Z0-9_/:/-]+)(?:\s+(.*))?$", prompt.strip())
+
+# Right: match command name, capture rest verbatim
+match = re.match(r"^//?(/?[a-zA-Z0-9_/:/-]+)", prompt.strip())
+arguments = prompt.strip()[match.end():].lstrip()
+```
+
+:::

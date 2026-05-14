@@ -97,6 +97,7 @@ See [Git Hooks](../development/git-hooks.md) for the full list of checks. This p
 The entire set of branch protection and repository settings on GitHub guarantee that every PR leaves `main` (and `docs` if it exists) in a good _working_ state:
 
 - All CI checks must pass and branches must be up-to-date before merging
-- Linear history enforced (no merge commits)
+- Squash merging only (merge commits and rebase merging disabled); squash commit uses PR title and description
+- Linear history required on protected branches
 - No force pushes or direct commits—all changes go through PRs
 - PRs auto-merge when checks pass; branches auto-delete after merge

@@ -130,15 +130,20 @@ Key protection features:
 - `allow_force_pushes: false` - No force pushing to main
 - `required_linear_history: true` - Enforces clean, linear git history
 
-### Step 5: Enable repository settings
+### Step 5: Configure merge settings, auto-merge, and branch cleanup
 
-Enable auto-merge and auto-delete merged branches:
+Enforce squash-only merging, enable auto-merge, and auto-delete merged branches:
 
 ```bash
 gh api repos/<org>/<repo> \
   --method PATCH \
   --field allow_auto_merge=true \
-  --field delete_branch_on_merge=true
+  --field delete_branch_on_merge=true \
+  --field allow_merge_commit=false \
+  --field allow_squash_merge=true \
+  --field allow_rebase_merge=false \
+  --field squash_merge_commit_title=PR_TITLE \
+  --field squash_merge_commit_message=PR_BODY
 ```
 
 ### Step 6: Verify configuration
@@ -156,16 +161,22 @@ gh api repos/<org>/<repo>/branches/main/protection | jq '{
 
 gh api repos/<org>/<repo> | jq '{
   delete_branch_on_merge: .delete_branch_on_merge,
-  allow_auto_merge: .allow_auto_merge
+  allow_auto_merge: .allow_auto_merge,
+  allow_merge_commit: .allow_merge_commit,
+  allow_squash_merge: .allow_squash_merge,
+  allow_rebase_merge: .allow_rebase_merge,
+  squash_merge_commit_title: .squash_merge_commit_title,
+  squash_merge_commit_message: .squash_merge_commit_message
 }'
 ```
 
 Confirm all settings match expectations:
 
 - Required status checks are configured
-- Strict mode is enabled
+- Strict mode is enabled (branches must be up-to-date before merging)
 - Force pushes are disabled
 - Linear history is required
+- Squash merging only (merge commits and rebase merging disabled), with PR title and description as squash commit message
 - Auto-merge and auto-delete are enabled
 
 ### Step 7 (Optional): Set up docs branch CI and protection (if separate docs branch exists)
@@ -203,7 +214,8 @@ The `main` and `docs` branches are protected with the following rules:
 
 - ✅ All CI checks must pass before merging
 - ✅ Branches must be up-to-date with `main` or `docs` before merging
-- ✅ Linear history required (squash or rebase merge only)
+- ✅ Squash merging only (merge commits and rebase merging disabled)
+- ✅ Linear history required on protected branches
 - ✅ No force pushes allowed
 - ✅ No direct commits to `main` or `docs` (all changes via pull requests)
 - ✅ Rules enforced for all users, including admins

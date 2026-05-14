@@ -66,7 +66,7 @@ def _verify_branch_protection(
 def _verify_repo_settings(
     org: str, repo_name: str, context: str
 ) -> Generator[Auto, ShellResult, None]:
-    """Verify repository settings for auto-merge and auto-delete."""
+    """Verify repository settings for merge type, auto-merge, and auto-delete."""
     result = yield auto(
         f"gh api repos/{org}/{repo_name}",
         context=context,
@@ -78,6 +78,16 @@ def _verify_repo_settings(
         errors.append("Auto-merge not enabled")
     if not repo.get("delete_branch_on_merge"):
         errors.append("Delete branch on merge not enabled")
+    if repo.get("allow_merge_commit"):
+        errors.append("Merge commits not disabled")
+    if not repo.get("allow_squash_merge"):
+        errors.append("Squash merging not enabled")
+    if repo.get("allow_rebase_merge"):
+        errors.append("Rebase merging not disabled")
+    if repo.get("squash_merge_commit_title") != "PR_TITLE":
+        errors.append("Squash merge commit title not set to PR_TITLE")
+    if repo.get("squash_merge_commit_message") != "PR_BODY":
+        errors.append("Squash merge commit message not set to PR_BODY")
 
     if errors:
         raise RuntimeError(
@@ -269,11 +279,19 @@ List all the job names that should be required status checks.""",
         ),
     )
 
-    # Step 5: Enable repository settings
+    # Step 5: Configure merge settings, auto-merge, and branch cleanup
     yield auto(
         f"gh api repos/{org}/{repo_name} --method PATCH "
-        f"--field allow_auto_merge=true --field delete_branch_on_merge=true",
-        context="Enable auto-merge and auto-delete merged branches",
+        "--field allow_auto_merge=true "
+        "--field delete_branch_on_merge=true "
+        "--field allow_merge_commit=false "
+        "--field allow_squash_merge=true "
+        "--field allow_rebase_merge=false "
+        "--field squash_merge_commit_title=PR_TITLE "
+        "--field squash_merge_commit_message=PR_BODY",
+        context=(
+            "Enforce squash-only merging, enable auto-merge, and auto-delete merged branches"
+        ),
     )
 
     # Step 6: Verify configuration
@@ -291,7 +309,10 @@ List all the job names that should be required status checks.""",
     yield from _verify_repo_settings(
         org,
         repo_name,
-        context="Verify repository settings for auto-merge and auto-delete are enabled",
+        context=(
+            "Verify repository settings: squash-only merging, auto-merge, and "
+            "auto-delete are configured correctly"
+        ),
     )
 
     # Step 7 (Optional): Set up docs branch CI and protection (if separate docs branch exists)
@@ -427,10 +448,11 @@ pass before code can be merged to `main`.
 The `main` branch is protected with the following rules:
 
 - ✅ All CI checks must pass before merging
-- ✅ Branches must be up-to-date with `main` before merging
-- ✅ Linear history required (squash or rebase merge only)
+- ✅ Branches must be up-to-date with `main` or `docs` before merging
+- ✅ Squash merging only (merge commits and rebase merging disabled)
+- ✅ Linear history required on protected branches
 - ✅ No force pushes allowed
-- ✅ No direct commits to `main` (all changes via pull requests)
+- ✅ No direct commits to `main` or `docs` (all changes via pull requests)
 - ✅ Rules enforced for all users, including admins
 - ✅ Merged branches are automatically deleted
 ```{docs_note}"""
