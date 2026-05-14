@@ -28,7 +28,7 @@ Releases must start from a clean main branch with no uncommitted or unpushed cha
 Gather the following information from the user-provided context:
 - Target version (e.g., `0.1.0a1` for first alpha, `0.1.0` for stable)
 
-If unclear, ask the user for the target version.
+If unclear, look up the current published version on PyPI and suggest the next patch increment (e.g., if `0.1.1` is published, suggest `0.1.2`). Ask the user to confirm or provide a different version.
 
 ### Step 2: Check for broken external links
 
@@ -113,10 +113,18 @@ poetry publish
 
 After the user confirms the package installs and runs correctly from PyPI, create a git tag and GitHub release:
 
+First, find the previous version tag to use as the start of the release notes:
+
+```bash
+git tag --sort=-version:refname | grep '^v' | sed -n '2p'
+```
+
+Then create the tag and release, scoping notes to only changes since the previous tag:
+
 ```bash
 git tag v<target-version>
 git push origin v<target-version>
-gh release create v<target-version> --title "v<target-version>" --generate-notes
+gh release create v<target-version> --title "v<target-version>" --generate-notes --notes-start-tag v<previous-version>
 ```
 
 Wait for the user to confirm successful install before creating the release.
@@ -126,3 +134,4 @@ Wait for the user to confirm successful install before creating the release.
 - **Verify before publishing**: Always build and verify the package contents before handing off to the user for publishing
 - **Test on TestPyPI first**: TestPyPI exists specifically for testing the full publish/install flow without affecting the real PyPI index
 - **User publishes manually**: The user should always manually run the publish command after reviewing the prepared package—never auto-publish
+

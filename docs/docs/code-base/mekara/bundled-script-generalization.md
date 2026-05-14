@@ -103,10 +103,14 @@ If a bundled NL skill is _not_ intentionally generalized (i.e. it's not present 
 - TestPyPI publish commands, `pip install --index-url ...`, `mekara --version` verification → replaced with generic "publish to appropriate registry" instructions
 - Duplicate "Step 5" numbering bug fixed (publish step renumbered to Step 6)
 
+**Changed:**
+
+- Step 1: "look up PyPI and suggest next patch increment" → "look up the appropriate registry and suggest the next patch increment"
+- Step 7 (GitHub release): kept as-is — `--notes-start-tag` and tag/push commands are fully generic
+
 **Kept:**
 
 - Step 0 clean main branch check (generic)
-- Step 1 version gathering (generic)
 - Step 4 Docusaurus snapshot (made conditional — "if the project uses Docusaurus versioning")
 - Key Principles (removed TestPyPI-specific principle, kept verify-before-publish and user-publishes-manually)
 
