@@ -33,7 +33,6 @@ from mekara.scripting.loading import ScriptLoadError
 from mekara.scripting.runtime import Auto, AutoException, CallScript
 from mekara.utils.project import (
     bundled_commands_dir,
-    bundled_scripts_dir,
     bundled_standards_dir,
     find_project_root,
 )
@@ -262,7 +261,7 @@ class MekaraServer:
         return "\n".join(lines)
 
     def write_bundled(self, name: str, force: bool = False) -> str:
-        """Write a bundled command or standard to the local .mekara/ directory.
+        """Write a bundled command or standard to the local .agents/ directory.
 
         Detects whether `name` refers to a command or standard automatically.
         Use the "standard:" prefix to explicitly target a standard (e.g.,
@@ -318,22 +317,21 @@ class MekaraServer:
         return None
 
     def _write_bundled_command(self, name: str, bundled_nl_path: Path, force: bool) -> str:
-        """Copy bundled command NL source (and compiled .py if present) to .mekara/scripts/."""
-        local_nl_path = self.executor.working_dir / ".mekara" / "scripts" / "nl" / name / "SKILL.md"
+        """Copy bundled command NL source (and mekara.py if present) to .agents/skills/."""
+        local_skill_dir = self.executor.working_dir / ".agents" / "skills" / name
+        local_nl_path = local_skill_dir / "SKILL.md"
         if error := self._copy_bundled_file(bundled_nl_path, local_nl_path, force):
             return error
         written_files = [str(local_nl_path.relative_to(self.executor.working_dir))]
 
         name_underscored = name.replace("-", "_")
-        bundled_scripts = bundled_scripts_dir()
-        bundled_compiled_path = bundled_scripts / f"{name}.py"
+        bundled_commands = bundled_commands_dir()
+        bundled_compiled_path = bundled_commands / name / "mekara.py"
         if not self.fs_access.path_exists(bundled_compiled_path):
-            bundled_compiled_path = bundled_scripts / f"{name_underscored}.py"
+            bundled_compiled_path = bundled_commands / name_underscored / "mekara.py"
 
         if self.fs_access.path_exists(bundled_compiled_path):
-            local_compiled_path = (
-                self.executor.working_dir / ".mekara" / "scripts" / "compiled" / f"{name}.py"
-            )
+            local_compiled_path = local_skill_dir / "mekara.py"
             self._copy_bundled_file(bundled_compiled_path, local_compiled_path, force=True)
             written_files.append(str(local_compiled_path.relative_to(self.executor.working_dir)))
 
@@ -341,12 +339,12 @@ class MekaraServer:
         return f"Wrote bundled command `{name}` to disk:\n\n{files_str}"
 
     def _write_bundled_standard(self, name: str, force: bool) -> str:
-        """Copy bundled standard to .mekara/standards/."""
+        """Copy bundled standard to .agents/standards/."""
         bundled_std_path = bundled_standards_dir() / f"{name}.md"
         if not self.fs_access.path_exists(bundled_std_path):
             return f"Error: No bundled standard found for '{name}'"
 
-        local_std_path = self.executor.working_dir / ".mekara" / "standards" / f"{name}.md"
+        local_std_path = self.executor.working_dir / ".agents" / "standards" / f"{name}.md"
         if error := self._copy_bundled_file(bundled_std_path, local_std_path, force):
             return error
         rel_path = local_std_path.relative_to(self.executor.working_dir)

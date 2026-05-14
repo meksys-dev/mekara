@@ -35,8 +35,8 @@ The tool auto-detects whether the name refers to a command or a standard. If a n
 
 Claude will fetch the bundled source, understand your repository's structure and conventions, and create a customized version:
 
-- Commands are written to `.mekara/scripts/nl/`
-- Standards are written to `.mekara/standards/`
+- Commands are written to `.agents/skills/`
+- Standards are written to `.agents/standards/`
 
 Commit the result. The next time the command or standard is used, your local version takes precedence.
 

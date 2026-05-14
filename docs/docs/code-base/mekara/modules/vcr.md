@@ -246,13 +246,13 @@ VcrMekaraServer
 
 Note: In replay mode, `VcrMekaraServer` does not consume input events — those are consumed by the test driver (see below).
 
-| Method signature                                                         | Behavior                                                                | VCR event(s) produced / consumed                            |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `start(name: str, arguments: str = "", working_dir: str \| None = None)` | Start executing a script                                                | `McpStartInputEvent`, `McpToolOutputEvent`                  |
-| `continue_compiled_script(outputs: dict[str, Any])`                      | Continue a compiled script after an llm step                            | `McpContinueCompiledScriptInputEvent`, `McpToolOutputEvent` |
-| `finish_nl_script()`                                                     | Mark a natural-language script as complete                              | `McpFinishNLScriptInputEvent`, `McpToolOutputEvent`         |
-| `status()`                                                               | Return the current script execution state                               | `McpStatusInputEvent`, `McpToolOutputEvent`                 |
-| `write_bundled(name: str, force: bool = False)`                          | Write a bundled command or standard into the local `.mekara/` directory | `McpWriteBundledInputEvent`, `McpToolOutputEvent`           |
+| Method signature                                                         | Behavior                                                              | VCR event(s) produced / consumed                            |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `start(name: str, arguments: str = "", working_dir: str \| None = None)` | Start executing a script                                              | `McpStartInputEvent`, `McpToolOutputEvent`                  |
+| `continue_compiled_script(outputs: dict[str, Any])`                      | Continue a compiled script after an llm step                          | `McpContinueCompiledScriptInputEvent`, `McpToolOutputEvent` |
+| `finish_nl_script()`                                                     | Mark a natural-language script as complete                            | `McpFinishNLScriptInputEvent`, `McpToolOutputEvent`         |
+| `status()`                                                               | Return the current script execution state                             | `McpStatusInputEvent`, `McpToolOutputEvent`                 |
+| `write_bundled(name: str, force: bool = False)`                          | Write a bundled skill or standard into the local `.agents/` directory | `McpWriteBundledInputEvent`, `McpToolOutputEvent`           |
 
 | Event                                 | Fields                                                    | VCR verifies | VCR provides                            |
 | ------------------------------------- | --------------------------------------------------------- | ------------ | --------------------------------------- |
@@ -410,21 +410,21 @@ events:
   - type: read_disk
     path:
       anchor: mekara
-      path: bundled/scripts/nl/finish.md
+      path: bundled/skills/finish/SKILL.md
     content: |
       file content here
 
   - type: write_disk
     path:
       anchor: project
-      path: .mekara/scripts/nl/finish.md
+      path: .agents/skills/finish/SKILL.md
     content: |
       file content here
 
   - type: path_exists
     path:
       anchor: project
-      path: .mekara/scripts/nl/finish.md
+      path: .agents/skills/finish/SKILL.md
     exists: false
 
   - type: mcp_tool_output

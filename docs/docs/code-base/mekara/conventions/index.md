@@ -26,7 +26,7 @@ mekara provides script execution via MCP (Model Context Protocol) for Claude Cod
 - Hook reads the prompt from stdin (JSON format)
 - Resolves the command using mekara's resolution logic
 - For compiled scripts, outputs instructions telling Claude to use MCP tools
-- Dev mode outputs additional system prompt for commands affecting `.mekara/scripts/nl/`
+- Dev mode outputs additional system prompt for skills affecting `.agents/skills/`
 
 ## General Coding Patterns
 

@@ -35,13 +35,13 @@ The module defines the step types (`Auto`, `Llm`, `CallScript`) and their corres
 
 The module takes a script name and returns a fully-processed object that consumers can use directly without additional loading or content processing. This is the module's main action, encompassing several sub-actions:
 
-**Resolution:** The module resolves script names to file paths by searching:
+**Resolution:** The module resolves skill names to file paths by searching:
 
-- project (`.mekara/scripts/`)
-- user (`~/.mekara/scripts/`)
-- bundled (package `bundled/scripts/`)
+- project (`.agents/skills/`)
+- user (`~/.agents/skills/`)
+- bundled (package `bundled/skills/`)
 
-in that order, taking the first match. At each precedence level, resolution tries the exact name first (e.g., `merge-main.md`), then the underscore variant (e.g., `merge_main.md`), allowing Python-style filenames for compiled scripts while preserving hyphenated names for NL scripts.
+in that order, taking the first match. Within each location, both NL (SKILL.md) and compiled (mekara.py) versions are found in the same skill folder.
 
 Name resolution details:
 
@@ -242,14 +242,14 @@ src/mekara/scripting/
 
 At module load time, `resolution.py` builds `_LEVEL_DIRS` — a list of the base directory for each precedence level:
 
-- Local: `project_root / ".mekara"` (omitted if not in a project)
-- User: `Path.home() / ".mekara"`
+- Local: `project_root / ".agents"` (omitted if not in a project)
+- User: `Path.home() / ".agents"`
 - Bundled: `package / "bundled"`
 
 All specific search level lists are derived from `_LEVEL_DIRS` by appending the relevant subpath:
 
-- `_NL_SCRIPT_LEVELS` — `SearchLevel(d / "scripts" / "nl", ".md")` for each `d` in `_LEVEL_DIRS`
-- `_COMPILED_SCRIPT_LEVELS` — `SearchLevel(d / "scripts" / "compiled", ".py")` for each `d`
+- `_NL_SCRIPT_LEVELS` — `SearchLevel(d / "skills", "SKILL.md")` for each `d` in `_LEVEL_DIRS`
+- `_COMPILED_SCRIPT_LEVELS` — `SearchLevel(d / "skills", "mekara.py")` for each `d`
 - `_BUNDLED_BASE = _LEVEL_DIRS[-1]` — used to infer `is_bundled` when constructing `ScriptInfo` from a `Match`
 
 `standards.py` imports `_LEVEL_DIRS` and derives its own list:

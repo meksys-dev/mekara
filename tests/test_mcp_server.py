@@ -351,7 +351,7 @@ class TestWriteBundled:
     """Tests for MekaraServer.write_bundled."""
 
     def test_write_bundled_command_happy_path(self, tmp_path: Path) -> None:
-        """write_bundled should copy bundled NL source to local .mekara/scripts/."""
+        """write_bundled should copy bundled NL source to local .agents/skills/."""
         from mekara.mcp.server import MekaraServer
         from mekara.utils.project import bundled_commands_dir
 
@@ -366,7 +366,7 @@ class TestWriteBundled:
         assert "finish" in response
 
         # Check that file was written
-        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish" / "SKILL.md"
+        nl_file = tmp_path / ".agents" / "skills" / "finish" / "SKILL.md"
         assert nl_file.exists(), f"Expected file {nl_file} to be written"
 
         # Verify content matches bundled source
@@ -374,27 +374,26 @@ class TestWriteBundled:
         assert nl_file.read_text() == bundled_nl.read_text()
 
     def test_write_bundled_command_with_compiled(self, tmp_path: Path) -> None:
-        """write_bundled should also copy compiled .py if it exists."""
+        """write_bundled should also copy mekara.py if it exists in the skill folder."""
         from mekara.mcp.server import MekaraServer
-        from mekara.utils.project import bundled_scripts_dir
+        from mekara.utils.project import bundled_commands_dir
 
         server = MekaraServer(fs_access=RealFilesystemAccess(), working_dir=tmp_path)
 
         # Use "finish" which has a compiled version
         response = server.write_bundled("finish")
 
-        # Check that both files were written
-        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish" / "SKILL.md"
-        compiled_file = tmp_path / ".mekara" / "scripts" / "compiled" / "finish.py"
-
+        # Check that SKILL.md was written
+        nl_file = tmp_path / ".agents" / "skills" / "finish" / "SKILL.md"
         assert nl_file.exists()
 
         # Check if compiled version exists and was copied
-        bundled_compiled = bundled_scripts_dir() / "finish.py"
+        bundled_compiled = bundled_commands_dir() / "finish" / "mekara.py"
         if bundled_compiled.exists():
+            compiled_file = tmp_path / ".agents" / "skills" / "finish" / "mekara.py"
             assert compiled_file.exists(), f"Expected file {compiled_file} to be written"
             assert compiled_file.read_text() == bundled_compiled.read_text()
-            assert "finish.py" in response
+            assert "mekara.py" in response
 
     def test_write_bundled_command_not_found(self, tmp_path: Path) -> None:
         """write_bundled should error if name matches neither a command nor a standard."""
@@ -435,7 +434,7 @@ class TestWriteBundled:
         assert "Wrote bundled command" in response1
 
         # Modify the local file
-        nl_file = tmp_path / ".mekara" / "scripts" / "nl" / "finish" / "SKILL.md"
+        nl_file = tmp_path / ".agents" / "skills" / "finish" / "SKILL.md"
         original_content = nl_file.read_text()
         nl_file.write_text("MODIFIED CONTENT")
 
@@ -474,13 +473,7 @@ class TestWriteBundled:
 
                 # Check that nested directory structure was created
                 nl_file = (
-                    tmp_path
-                    / ".mekara"
-                    / "scripts"
-                    / "nl"
-                    / nested_dir_name
-                    / nested_name
-                    / "SKILL.md"
+                    tmp_path / ".agents" / "skills" / nested_dir_name / nested_name / "SKILL.md"
                 )
                 assert nl_file.exists()
 
@@ -496,7 +489,7 @@ class TestWriteBundled:
         assert "Wrote bundled standard" in response
         assert "command" in response
 
-        std_file = tmp_path / ".mekara" / "standards" / "command.md"
+        std_file = tmp_path / ".agents" / "standards" / "command.md"
         assert std_file.exists(), f"Expected file {std_file} to be written"
 
         bundled_std = bundled_standards_dir() / "command.md"
@@ -512,7 +505,7 @@ class TestWriteBundled:
         response = server.write_bundled("workflow")
 
         assert "Wrote bundled standard" in response
-        std_file = tmp_path / ".mekara" / "standards" / "workflow.md"
+        std_file = tmp_path / ".agents" / "standards" / "workflow.md"
         assert std_file.exists()
 
     def test_write_bundled_standard_not_found(self, tmp_path: Path) -> None:

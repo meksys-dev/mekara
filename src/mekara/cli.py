@@ -73,13 +73,13 @@ def cli(ctx: click.Context, debug: bool, dev_mode: bool) -> None:
 def _configure_debug_logging() -> None:
     """Configure debug logging to write to a timestamped file.
 
-    Creates a log file at ~/.mekara/logs/YYYY-MM-DD-HH-MM-SS.log and prints
+    Creates a log file at ~/.agents/logs/YYYY-MM-DD-HH-MM-SS.log and prints
     the absolute path to stdout so users know where to find debug output.
     """
     from datetime import datetime
 
     # Create logs directory
-    logs_dir = Path.home() / ".mekara" / "logs"
+    logs_dir = Path.home() / ".agents" / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
 
     # Create timestamped log file
@@ -102,7 +102,7 @@ def get_mekara_source_path() -> Path:
 
     This works for editable installs by walking up from the package location.
     For regular pip installs, this returns the installed package location
-    (which won't have .mekara/scripts/nl/).
+    (which won't have .agents/skills/).
 
     Returns:
         Path to the mekara source repo (parent of src/mekara/)
@@ -122,7 +122,7 @@ def build_dev_mode_system_prompt() -> str:
         for recursive commands.
     """
     source_path = get_mekara_source_path()
-    commands_path = source_path / ".mekara" / "scripts" / "nl"
+    commands_path = source_path / ".agents" / "skills"
 
     return (
         f"**DEV MODE ACTIVE**: You are developing mekara itself. "
@@ -130,18 +130,18 @@ def build_dev_mode_system_prompt() -> str:
         f"`/recursive-self-improvement`, or similar commands that create or modify "
         f"command files, target the mekara source repository at:\n\n"
         f"  {commands_path}\n\n"
-        f"Do NOT modify command files in the current working directory's .mekara/scripts/nl/. "
+        f"Do NOT modify command files in the current working directory's .agents/skills/. "
         f"All mekara development changes should go to the mekara source repo above."
     )
 
 
-def _command_affects_mekara_dir(command_name: str, target_path: Path) -> bool:
-    """Check if a command affects the script directory.
+def _command_affects_agents_dir(command_name: str, target_path: Path) -> bool:
+    """Check if a command affects the skills directory.
 
     Checks both the command name and file content for patterns that indicate
-    the command creates or modifies files in .mekara/.
+    the command creates or modifies files in .agents/skills/.
     """
-    # Commands known by name to affect .mekara/scripts/nl/
+    # Commands known by name to affect .agents/skills/
     name_patterns = [
         "systematize",
         "standardize",
@@ -153,14 +153,14 @@ def _command_affects_mekara_dir(command_name: str, target_path: Path) -> bool:
     if any(pattern in name_lower for pattern in name_patterns):
         return True
 
-    # Check file content for .mekara/ directory operations
+    # Check file content for .agents/skills/ directory operations
     try:
         content = target_path.read_text()
     except (OSError, IOError):
         return False
 
     content_patterns = [
-        ".mekara",
+        ".agents/skills",
         ".claude",
     ]
 
@@ -301,9 +301,9 @@ def _hook_user_prompt_submit() -> int:
     if target is None:
         return 0
 
-    # Dev mode: output system prompt if command affects .mekara/ directory
+    # Dev mode: output system prompt if command affects .agents/skills/ directory
     is_dev_mode = _env_bool(MEKARA_DEV_ENV)
-    affects_dot_mekara = _command_affects_mekara_dir(command_name_normalized, target.nl.path)
+    affects_dot_mekara = _command_affects_agents_dir(command_name_normalized, target.nl.path)
     if is_dev_mode and affects_dot_mekara:
         print(f"<dev-mode>\n{build_dev_mode_system_prompt()}\n</dev-mode>")
 
@@ -456,43 +456,38 @@ def _install_hooks() -> int:
 
 
 def _install_commands() -> int:
-    """Install bundled commands, scripts, and standards to ~/.mekara/.
+    """Install bundled skills and standards to ~/.agents/.
 
     Copies:
-    - Bundled NL commands to ~/.agents/skills/
-    - Bundled compiled scripts to ~/.mekara/scripts/compiled/
-    - Bundled standards to ~/.mekara/standards/
+    - Bundled skills (SKILL.md + mekara.py) to ~/.agents/skills/
+    - Bundled standards to ~/.agents/standards/
 
-    When installing NL commands, @standard:name references are replaced with
-    @~/.mekara/standards/name.md so Claude Code's file reference mechanism
+    When installing SKILL.md files, @standard:name references are replaced with
+    @~/.agents/standards/name.md so Claude Code's file reference mechanism
     can resolve them.
 
-    ~/.agents/skills/ is canonical. ~/.mekara/scripts/nl/ and ~/.claude/skills/
-    are symlinks to it.
+    ~/.agents/skills/ is canonical. ~/.claude/skills/ is a symlink to it.
     """
     from pathlib import Path
 
     from mekara.utils.project import (
         bundled_commands_dir,
-        bundled_scripts_dir,
         bundled_standards_dir,
     )
 
     home = Path.home()
     agents_skills_dir = home / ".agents" / "skills"
-    mekara_nl_dir = home / ".mekara" / "scripts" / "nl"
-    mekara_compiled_dir = home / ".mekara" / "scripts" / "compiled"
-    mekara_standards_dir = home / ".mekara" / "standards"
+    agents_standards_dir = home / ".agents" / "standards"
     claude_skills_dir = home / ".claude" / "skills"
 
     # Install standards first
     standards_source = bundled_standards_dir()
     if standards_source.exists():
-        mekara_standards_dir.mkdir(parents=True, exist_ok=True)
+        agents_standards_dir.mkdir(parents=True, exist_ok=True)
         standards_copied = 0
         for source_file in standards_source.rglob("*.md"):
             relative_path = source_file.relative_to(standards_source)
-            target_file = mekara_standards_dir / relative_path
+            target_file = agents_standards_dir / relative_path
             target_file.parent.mkdir(parents=True, exist_ok=True)
 
             content = source_file.read_text()
@@ -503,55 +498,35 @@ def _install_commands() -> int:
             standards_copied += 1
 
         if standards_copied > 0:
-            print(f"Installed {standards_copied} standards to {mekara_standards_dir}")
+            print(f"Installed {standards_copied} standards to {agents_standards_dir}")
 
-    # Install compiled scripts
-    scripts_source = bundled_scripts_dir()
-    if scripts_source.exists():
-        mekara_compiled_dir.mkdir(parents=True, exist_ok=True)
-        scripts_copied = 0
-        scripts_skipped = 0
-        for source_file in scripts_source.rglob("*.py"):
-            relative_path = source_file.relative_to(scripts_source)
-            target_file = mekara_compiled_dir / relative_path
-            target_file.parent.mkdir(parents=True, exist_ok=True)
-
-            content = source_file.read_text()
-            if target_file.exists() and target_file.read_text() == content:
-                scripts_skipped += 1
-                continue
-
-            target_file.write_text(content)
-            scripts_copied += 1
-
-        print(f"Installed {scripts_copied} compiled scripts to {mekara_compiled_dir}")
-        if scripts_skipped > 0:
-            print(f"  ({scripts_skipped} already up to date)")
-
-    # Install NL commands
+    # Install skills
     commands_source = bundled_commands_dir()
     if not commands_source.exists():
-        print(f"Error: bundled commands directory not found: {commands_source}", file=sys.stderr)
+        print(f"Error: bundled skills directory not found: {commands_source}", file=sys.stderr)
         return 1
 
     agents_skills_dir.mkdir(parents=True, exist_ok=True)
-    for symlink_path in (mekara_nl_dir, claude_skills_dir):
-        symlink_path.parent.mkdir(parents=True, exist_ok=True)
-        if symlink_path.is_symlink():
-            if symlink_path.resolve() == agents_skills_dir.resolve():
-                continue
-            symlink_path.unlink()
-        elif symlink_path.exists():
-            print(
-                f"Error: expected {symlink_path} to be a symlink to {agents_skills_dir}",
-                file=sys.stderr,
-            )
-            return 1
-        symlink_path.symlink_to(agents_skills_dir)
-        print(f"Created symlink: {symlink_path} -> {agents_skills_dir}")
 
-    # Copy all .md files to the canonical directory, preserving directory structure
-    # Replace @standard:name with @~/.mekara/standards/name.md for Claude Code resolution
+    # Create ~/.claude/skills/ symlink to ~/.agents/skills/
+    claude_skills_dir.parent.mkdir(parents=True, exist_ok=True)
+    if claude_skills_dir.is_symlink():
+        if claude_skills_dir.resolve() != agents_skills_dir.resolve():
+            claude_skills_dir.unlink()
+            claude_skills_dir.symlink_to(agents_skills_dir)
+            print(f"Updated symlink: {claude_skills_dir} -> {agents_skills_dir}")
+    elif claude_skills_dir.exists():
+        print(
+            f"Error: expected {claude_skills_dir} to be a symlink to {agents_skills_dir}",
+            file=sys.stderr,
+        )
+        return 1
+    else:
+        claude_skills_dir.symlink_to(agents_skills_dir)
+        print(f"Created symlink: {claude_skills_dir} -> {agents_skills_dir}")
+
+    # Copy all skill files (SKILL.md and mekara.py) to the canonical directory
+    # Replace @standard:name with @~/.agents/standards/name.md for Claude Code resolution
     copied_count = 0
     skipped_count = 0
 
@@ -559,29 +534,37 @@ def _install_commands() -> int:
         relative_path = source_file.relative_to(commands_source)
         target_file = agents_skills_dir / relative_path
 
-        # Create parent directories if needed
         target_file.parent.mkdir(parents=True, exist_ok=True)
 
-        # Read and transform content
         content = source_file.read_text()
-        # Replace @standard:name with file path for Claude Code's @ reference
         content = re.sub(
             r"@standard:(\w+)",
-            rf"@{mekara_standards_dir}/\1.md",
+            rf"@{agents_standards_dir}/\1.md",
             content,
         )
 
-        # Check if file exists and has same content
-        if target_file.exists():
-            if target_file.read_text() == content:
-                skipped_count += 1
-                continue
+        if target_file.exists() and target_file.read_text() == content:
+            skipped_count += 1
+            continue
 
-        # Write the transformed file
         target_file.write_text(content)
         copied_count += 1
 
-    print(f"Installed {copied_count} commands to {agents_skills_dir}")
+    for source_file in commands_source.rglob("mekara.py"):
+        relative_path = source_file.relative_to(commands_source)
+        target_file = agents_skills_dir / relative_path
+
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+
+        content = source_file.read_text()
+        if target_file.exists() and target_file.read_text() == content:
+            skipped_count += 1
+            continue
+
+        target_file.write_text(content)
+        copied_count += 1
+
+    print(f"Installed {copied_count} skill files to {agents_skills_dir}")
     if skipped_count > 0:
         print(f"  ({skipped_count} already up to date)")
 

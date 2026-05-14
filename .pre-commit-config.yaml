@@ -3,35 +3,35 @@ repos:
     hooks:
       - id: ruff-format
         name: Ruff Format
-        entry: poetry run ruff format --exclude 'src/mekara/bundled/scripts' .mekara src tests
+        entry: poetry run ruff format --exclude 'src/mekara/bundled/skills' src tests
         language: system
         pass_filenames: false
-        files: ^(\.mekara|src|tests)/.*\.py$
+        files: ^(src|tests)/.*\.py$
       - id: ruff-lint
         name: Ruff Lint
-        entry: poetry run ruff check --exclude 'src/mekara/bundled/scripts' .mekara src tests
+        entry: poetry run ruff check --exclude 'src/mekara/bundled/skills' src tests
         language: system
         pass_filenames: false
-        files: ^(\.mekara|src|tests)/.*\.py$
+        files: ^(src|tests)/.*\.py$
       - id: vulture
         name: Vulture Dead Code
-        entry: poetry run vulture .mekara/scripts/compiled/ src/mekara/ --exclude 'src/mekara/bundled/scripts' --min-confidence 100
+        entry: poetry run vulture src/mekara/ --exclude 'src/mekara/bundled/skills' --min-confidence 100
         language: system
         pass_filenames: false
-        files: ^(\.mekara|src)/.*\.py$
+        files: ^src/.*\.py$
       - id: pyright
         name: Pyright Type Check
         entry: poetry run pyright
         language: system
         pass_filenames: false
-        files: ^(\.mekara|src|tests)/
+        files: ^(src|tests)/
       - id: forbid-type-workarounds
         name: Forbid type checking workarounds
         entry: bash scripts/hooks/forbid_type_workarounds.sh
         language: system
         pass_filenames: true
-        files: ^(\.mekara|src|tests)/.*\.py$
-        exclude: ^src/mekara/bundled/scripts/
+        files: ^(src|tests)/.*\.py$
+        exclude: ^src/mekara/bundled/skills/
       - id: prettier-format
         name: Prettier Format
         entry: bash -c 'cd docs && pnpm prettier --write --list-different "${@#docs/}"' --
@@ -73,13 +73,13 @@ repos:
         entry: poetry run python3 scripts/sync_nl.py
         language: system
         pass_filenames: false
-        files: ^(\.agents/skills/|\.mekara/scripts/compiled/|src/mekara/bundled/scripts/|docs/wiki/)
+        files: ^(\.agents/skills/|src/mekara/bundled/skills/|docs/wiki/)
       - id: skill-frontmatter
         name: Skill frontmatter validation
         entry: poetry run python scripts/hooks/check_skill_frontmatter.py
         language: system
         pass_filenames: true
-        files: ^(\.mekara/scripts/nl/|\.agents/skills/|\.claude/skills/).*/SKILL\.md$
+        files: ^(\.agents/skills/|\.claude/skills/).*/SKILL\.md$
       - id: wiki-sidebar-label
         name: Wiki sidebar label validation
         entry: poetry run python scripts/hooks/check_wiki_frontmatter.py

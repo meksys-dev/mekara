@@ -10,7 +10,7 @@ This page documents workflows specific to developing mekara itself, as opposed t
 
 ### Generalizing Scripts for Bundled Distribution
 
-When mekara ships bundled scripts in `src/mekara/bundled/scripts/`, these must work for all projects, not just mekara. Use `/mekara:generalize-bundled-script <script-name>` to:
+When mekara ships bundled skills in `src/mekara/bundled/skills/`, these must work for all projects, not just mekara. Use `/mekara:generalize-bundled-skill <skill-name>` to:
 
 1. Read standards and generalization guidance
 2. Compare source and bundled versions
@@ -20,12 +20,11 @@ When mekara ships bundled scripts in `src/mekara/bundled/scripts/`, these must w
 
 See [bundled-script-generalization.md](../code-base/mekara/bundled-script-generalization.md) for what was stripped from each script.
 
-### Script Organization
+### Skill Organization
 
-- **`.mekara/scripts/nl/`** - Mekara's own customized scripts (source of truth for this repo)
-- **`docs/wiki/`** - Documentation copy of generic scripts usable for any project, not just Mekara, with frontmatter (synced bidirectionally)
-- **`src/mekara/bundled/scripts/nl/`** - Generic versions shipped with mekara (edited independently)
-- **`src/mekara/bundled/scripts/compiled/`** - Compiled Python versions (must be updated alongside NL)
+- **`.agents/skills/`** - Mekara's own customized skills (source of truth for this repo)
+- **`docs/wiki/`** - Documentation copy of generic skills usable for any project, not just Mekara, with frontmatter (synced bidirectionally)
+- **`src/mekara/bundled/skills/`** - Generic versions shipped with mekara (edited independently, includes both SKILL.md and mekara.py)
 
 ## PyPI Releases
 

@@ -30,7 +30,7 @@ Then integrate it into Claude Code with `mekara install`, or if you want a more 
 
 mekara comes with a set of bundled commands like `/start`, `/finish`, `/change`, and others. You can access them in two ways:
 
-- **Recommended**: Run `mekara install` or `mekara install commands` to copy the bundled commands to `~/.agents/skills/` (canonical; symlinked as `~/.mekara/scripts/nl/` and `~/.claude/skills/`), making them available as regular skills and mekara commands
+- **Recommended**: Run `mekara install` or `mekara install commands` to copy the bundled commands to `~/.agents/skills/` (symlinked as `~/.claude/skills/`), making them available as regular skills and mekara commands
 - **Alternative**: If you haven't installed the bundled commands, **you can still use them by typing `//command-name` (with a double slash) in Claude Code**. So long as you've installed the Mekara hooks with `mekara install hooks`, the hooks will inject the bundled command content directly into the conversation. This is useful if you want to try Mekara before committing to installing the bundled commands globally.
 
 See [mekara install](./commands/install.md) for detailed installation instructions.
@@ -45,7 +45,7 @@ Captures a successful problem-solving approach and turns it into a reusable comm
 
 **When to use:** After solving a problem through trial-and-error that you expect to encounter again. The command reviews the conversation, identifies what made the approach work, and produces a parameterized script.
 
-**What it produces:** A new `.mekara/scripts/nl/<name>.md` file following the [Command Standard](../standards/command.md), with:
+**What it produces:** A new `.agents/skills/<name>/SKILL.md` file following the [Command Standard](../standards/command.md), with:
 
 - Numbered steps capturing the problem-solving process
 - Parameterized inputs (replacing specific file paths, error messages, etc.)
@@ -77,11 +77,11 @@ Defines explicit standards and applies them consistently across multiple scripts
 
 ### `/compile`
 
-Compiles natural language scripts into executable Python generator functions. This is the bridge between human-readable command files (`.mekara/scripts/nl/*.md`) and the mekara runtime that executes them.
+Compiles natural language scripts into executable Python generator functions. This is the bridge between human-readable skill files (`.agents/skills/*/SKILL.md`) and the mekara runtime that executes them.
 
 **When to use:** After creating or editing a command file that has deterministic parts that can be automated and streamlined, or when dealing with a complicated command that requires keeping the LLM on guardrails. The command analyzes each step to determine whether it requires LLM judgment or can be automated deterministically.
 
-**What it produces:** A compiled `.mekara/scripts/compiled/<name>.py` file containing:
+**What it produces:** A compiled `.agents/skills/<name>/mekara.py` file containing:
 
 - `auto()` steps for deterministic operations (shell commands, file operations)
 - `llm()` steps for decisions requiring judgment or user interaction

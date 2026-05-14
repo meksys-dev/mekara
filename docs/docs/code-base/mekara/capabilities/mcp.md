@@ -6,7 +6,7 @@ sidebar_position: 3
 
 The MCP (Model Context Protocol) integration allows mekara scripts to run inside Claude Code as custom [Claude Code slash commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands). This enables users to type `/command` in Claude Code and have it execute through mekara's step-based execution model.
 
-The `.agents/skills/` directory (symlinked as `.mekara/scripts/nl/` and `.claude/skills/`) contains the natural language script sources that become slash commands when the mekara MCP server is configured.
+The `.agents/skills/` directory (symlinked as `.claude/skills/`) contains the natural language script sources that become slash commands when the mekara MCP server is configured.
 
 ## Architecture
 

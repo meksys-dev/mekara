@@ -1,8 +1,8 @@
 """Utilities for finding the project root directory.
 
 The project root is defined as the first parent directory containing
-either a `.mekara` or `.claude` directory. This allows mekara to locate
-scripts and commands regardless of the current working directory.
+either a `.agents` or `.claude` directory. This allows mekara to locate
+skills and standards regardless of the current working directory.
 """
 
 from __future__ import annotations
@@ -17,15 +17,15 @@ def find_project_root(start_dir: Path | None = None) -> Path | None:
         start_dir: Directory to start search from (defaults to cwd)
 
     Returns:
-        Path to project root (containing .mekara or .claude), or None if not found
+        Path to project root (containing .agents or .claude), or None if not found
     """
     current = start_dir or Path.cwd()
     current = current.resolve()
 
     # Walk up the directory tree
     while True:
-        # Check for .mekara or .claude directory
-        if (current / ".mekara").exists() or (current / ".claude").exists():
+        # Check for .agents or .claude directory
+        if (current / ".agents").exists() or (current / ".claude").exists():
             return current
 
         # Check if we've reached the filesystem root
@@ -37,90 +37,13 @@ def find_project_root(start_dir: Path | None = None) -> Path | None:
         current = parent
 
 
-def scripts_dir(base_dir: Path | None = None) -> Path:
-    """Get the scripts directory, finding project root if needed.
-
-    Args:
-        base_dir: Base directory (if None, will find project root from cwd)
-
-    Returns:
-        Path to .mekara/scripts directory
-
-    Raises:
-        RuntimeError: If project root cannot be found
-    """
-    if base_dir is None:
-        base_dir = find_project_root()
-        if base_dir is None:
-            raise RuntimeError(
-                "Could not find project root (.mekara or .claude directory). "
-                "Please run from within a mekara project."
-            )
-
-    scripts = base_dir / ".mekara" / "scripts"
-    scripts.mkdir(parents=True, exist_ok=True)
-    return scripts
-
-
-def commands_dir(base_dir: Path | None = None) -> Path:
-    """Get the commands directory, finding project root if needed.
-
-    Args:
-        base_dir: Base directory (if None, will find project root from cwd)
-
-    Returns:
-        Path to .mekara/scripts/nl symlink to .agents/skills
-
-    Raises:
-        RuntimeError: If project root cannot be found
-    """
-    if base_dir is None:
-        base_dir = find_project_root()
-        if base_dir is None:
-            raise RuntimeError(
-                "Could not find project root (.mekara or .claude directory). "
-                "Please run from within a mekara project."
-            )
-
-    return base_dir / ".mekara" / "scripts" / "nl"
-
-
-def bundled_scripts_dir() -> Path:
-    """Get the bundled compiled scripts directory from the installed package.
-
-    Returns:
-        Path to bundled/scripts/compiled/ in the installed mekara package
-    """
-    # Go up from utils/ to mekara/ to find bundled/scripts/
-    return Path(__file__).parent.parent / "bundled" / "scripts" / "compiled"
-
-
 def bundled_commands_dir() -> Path:
-    """Get the bundled natural language commands directory from the installed package.
+    """Get the bundled skills directory from the installed package.
 
     Returns:
-        Path to bundled/scripts/nl/ Agent Skills in the installed mekara package
+        Path to bundled/skills/ in the installed mekara package
     """
-    # Go up from utils/ to mekara/ to find bundled/scripts/
-    return Path(__file__).parent.parent / "bundled" / "scripts" / "nl"
-
-
-def user_scripts_dir() -> Path:
-    """Get the user-installed compiled scripts directory in the home directory.
-
-    Returns:
-        Path to ~/.mekara/scripts/compiled/
-    """
-    return Path.home() / ".mekara" / "scripts" / "compiled"
-
-
-def user_commands_dir() -> Path:
-    """Get the user-installed natural language commands directory in the home directory.
-
-    Returns:
-        Path to ~/.mekara/scripts/nl/ symlink to ~/.agents/skills/
-    """
-    return Path.home() / ".mekara" / "scripts" / "nl"
+    return Path(__file__).parent.parent / "bundled" / "skills"
 
 
 def bundled_standards_dir() -> Path:
@@ -136,6 +59,6 @@ def user_standards_dir() -> Path:
     """Get the user-installed standards directory in the home directory.
 
     Returns:
-        Path to ~/.mekara/standards/
+        Path to ~/.agents/standards/
     """
-    return Path.home() / ".mekara" / "standards"
+    return Path.home() / ".agents" / "standards"

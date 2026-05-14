@@ -1,1 +1,0 @@
-"""Auto-generated scripts package."""
