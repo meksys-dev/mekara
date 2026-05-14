@@ -65,7 +65,7 @@ Bundled skills in `src/mekara/bundled/skills/` are edited independently (no auto
 
 1. **Validates generalized NL/compiled pairs** — if a bundled NL skill listed in `bundled-script-generalization.md` changes and a corresponding bundled compiled file exists, that compiled file must also change in the same commit
 2. **Validates non-generalized compiled equality** — if both `.agents/skills/<skill>/mekara.py` and `src/mekara/bundled/skills/<skill>/mekara.py` exist and the skill is not listed in `bundled-script-generalization.md`, those two compiled files must be exactly identical
-3. **Alerts on potential sync needs** — warns when `.agents/skills/` or bundled skills change without corresponding changes in the other location, prompting you to check if synced updates are needed
+3. **Alerts on potential sync needs** — warns when `.agents/skills/` or bundled skills change without corresponding changes in the other location, prompting you to check if synced updates are needed. For generalized skills (listed in `bundled-script-generalization.md`), the message is specific: it names the exact bundled file that needs manual review. This output is always visible because the hook has `verbose: true` set in `.pre-commit-config.yaml`, which causes pre-commit to show hook output even when the hook passes.
 
    When the hook requires a generated or compiled file update, the agent should be informed that the file update should reflect the real source change. The agent should not add filler comments or docstrings just to force a diff.
 

@@ -134,3 +134,4 @@ Wait for the user to confirm successful install before creating the release.
 - **Verify before publishing**: Always build and verify the package contents before handing off to the user for publishing
 - **Test on TestPyPI first**: TestPyPI exists specifically for testing the full publish/install flow without affecting the real PyPI index
 - **User publishes manually**: The user should always manually run the publish command after reviewing the prepared package—never auto-publish
+

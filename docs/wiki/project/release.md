@@ -30,7 +30,7 @@ Gather the following information from the user-provided context:
 
 - Target version (e.g., `0.1.0a1` for first alpha, `0.1.0` for stable)
 
-If unclear, ask the user for the target version.
+If unclear, look up the currently published version on the appropriate registry and suggest the next patch increment (e.g., if `0.1.1` is published, suggest `0.1.2`). Ask the user to confirm or provide a different version.
 
 ### Step 2: Check for broken external links
 
@@ -69,6 +69,22 @@ Build the distribution using the project's build tool (e.g., `poetry build`, `ca
 ### Step 6: Provide publishing instructions
 
 Tell the user the package is ready and provide instructions for publishing to the appropriate registry (e.g., PyPI, crates.io, npm). Recommend testing on a staging registry first if one is available.
+
+### Step 7: Create release tag and GitHub release
+
+After the user confirms the package is published successfully, create a git tag and GitHub release. First, find the previous version tag to scope the release notes:
+
+```bash
+git tag --sort=-version:refname | grep '^v' | sed -n '2p'
+```
+
+Then create the tag and release:
+
+```bash
+git tag v<target-version>
+git push origin v<target-version>
+gh release create v<target-version> --title "v<target-version>" --generate-notes --notes-start-tag v<previous-version>
+```
 
 ## Key Principles
 

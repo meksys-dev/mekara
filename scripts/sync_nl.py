@@ -347,7 +347,7 @@ def _check_bundled_nl_compiled(changed: set[str], repo_root: Path) -> int:
     return 0
 
 
-def _warn_sync_mismatch(changed: set[str], repo_root: Path) -> None:
+def _warn_sync_mismatch(changed: set[str], repo_root: Path, generalized: set[str]) -> None:
     """Warn when .mekara and bundled scripts change without corresponding updates."""
     nl_changed = any(changed_skill_relative(f, LOCAL_SKILLS_PREFIX) is not None for f in changed)
     bundled_nl_changed = any(changed_skill_relative(f, BUNDLED_SKILLS_PREFIX) is not None for f in changed)
@@ -358,12 +358,17 @@ def _warn_sync_mismatch(changed: set[str], repo_root: Path) -> None:
             if relative is None:
                 continue
             bundled = f"{BUNDLED_SKILLS_PREFIX}{relative.removesuffix('.md')}/SKILL.md"
-            if (repo_root / bundled).exists():
-                print()
+            if not (repo_root / bundled).exists():
+                continue
+            print()
+            if relative in generalized:
+                print(f"Note: {nl_file} is a generalized script.")
+                print(f"Manually update {bundled} to reflect any applicable changes.")
+            else:
                 print("Warning: .agents/skills/ changed but bundled scripts didn't.")
                 print("Check if src/mekara/bundled/skills/ needs corresponding updates.")
-                print()
-                break
+            print()
+            break
 
     if bundled_nl_changed and not nl_changed:
         for bundled_file in changed:
@@ -420,7 +425,7 @@ def main() -> int:
     if _check_non_generalized_compiled_match(repo_root, generalized) != 0:
         return 1
 
-    _warn_sync_mismatch(changed, repo_root)
+    _warn_sync_mismatch(changed, repo_root, generalized)
     return 0
 
 
