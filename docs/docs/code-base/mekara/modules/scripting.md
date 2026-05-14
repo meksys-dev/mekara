@@ -72,10 +72,11 @@ Compiled scripts express their execution flow by yielding step objects. The modu
 
 **`Auto`** — a deterministic automation step (shell command or Python function call):
 
-| Field     | Type         | Description                                       |
-| --------- | ------------ | ------------------------------------------------- |
-| `action`  | `AutoAction` | The action to execute (shell command or callable) |
-| `context` | `str`        | Context explaining WHY this step runs (verbatim)  |
+| Field           | Type         | Description                                                                         |
+| --------------- | ------------ | ----------------------------------------------------------------------------------- |
+| `action`        | `AutoAction` | The action to execute (shell command or callable)                                   |
+| `context`       | `str`        | Context explaining WHY this step runs (verbatim)                                    |
+| `allow_failure` | `bool`       | If true, non-zero exit advances the generator instead of halting (default: `false`) |
 
 `AutoAction` is either a `ShellAction` (with `cmd: str`) or a `CallAction` (with `func: Callable` and `kwargs: dict`). `Auto` also exposes a `description` property (human-readable: the command string for shell, `func_name(kwargs)` for call).
 
@@ -96,7 +97,7 @@ Compiled scripts express their execution flow by yielding step objects. The modu
 
 Scripts construct these via factory functions rather than directly:
 
-- `auto(action, kwargs=None, *, context) -> Auto`
+- `auto(action, kwargs=None, *, context, allow_failure=False) -> Auto`
 - `llm(prompt, expects=None) -> Llm`
 - `call_script(name, request="", working_dir=None) -> CallScript`
 

@@ -347,6 +347,64 @@ class TestNestedScriptFailureHaltsParent:
         assert "This should never be reached" not in result2.pending.step.prompt
 
 
+class TestAutoAllowFailure:
+    """Tests for allow_failure behavior on auto steps."""
+
+    @pytest.mark.asyncio
+    async def test_allow_failure_continues_on_nonzero_exit(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """allow_failure=True should advance the generator past a failed step."""
+
+        def script_with_allow_failure(
+            _request: str,
+        ) -> Generator[Auto | Llm | CallScript, Any, Any]:
+            yield auto("exit 1", context="Step that exits nonzero", allow_failure=True)
+            yield llm("Reached after nonzero exit")
+
+        ScriptLoaderStub(
+            monkeypatch,
+            tmp_path,
+            {"test": script_with_allow_failure},
+        ).apply()
+
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
+        executor.push_script("test", "", tmp_path)
+
+        result = await executor.run_until_llm()
+
+        # Execution should have continued past the failed step to the llm step
+        assert isinstance(result.pending, PendingLlmStep)
+        assert result.pending.step.prompt == "Reached after nonzero exit"
+
+    @pytest.mark.asyncio
+    async def test_default_halts_on_nonzero_exit(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Without allow_failure, non-zero exit halts with PendingLlmStep error."""
+
+        def script_fails_without_flag(
+            _request: str,
+        ) -> Generator[Auto | Llm | CallScript, Any, Any]:
+            yield auto("exit 1", context="Step that exits nonzero")
+            yield llm("This should never be reached")  # pragma: no cover
+
+        ScriptLoaderStub(
+            monkeypatch,
+            tmp_path,
+            {"test": script_fails_without_flag},
+        ).apply()
+
+        executor = McpScriptExecutor(tmp_path, AutoExecutor())
+        executor.push_script("test", "", tmp_path)
+
+        result = await executor.run_until_llm()
+
+        assert isinstance(result.pending, PendingLlmStep)
+        assert "failed" in result.pending.step.prompt.lower()
+        assert "This should never be reached" not in result.pending.step.prompt
+
+
 class TestWriteBundled:
     """Tests for MekaraServer.write_bundled."""
 

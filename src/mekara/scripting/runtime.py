@@ -94,6 +94,7 @@ class Auto:
 
     action: AutoAction
     context: str  # Context explaining WHY this step runs (verbatim from source)
+    allow_failure: bool = False  # If True, non-zero exit advances the generator instead of halting
 
     @property
     def description(self) -> str:
@@ -179,6 +180,7 @@ def auto(
     kwargs: dict[str, Any] | None = None,
     *,
     context: str,
+    allow_failure: bool = False,
 ) -> Auto:
     """Create a deterministic automation step.
 
@@ -186,6 +188,8 @@ def auto(
         action: Shell command string or callable to execute
         kwargs: Keyword arguments dict for callable (ignored for shell commands)
         context: Context explaining WHY this step runs (verbatim from source script)
+        allow_failure: If True, non-zero exit sends the result back to the generator
+            instead of halting execution and handing control to the LLM.
 
     Returns:
         An Auto step to yield from a script
@@ -193,13 +197,15 @@ def auto(
     Examples:
         yield auto("git status", context="Check working tree status")
         yield auto(my_func, {"arg": val}, context="Process the file")
+        result = yield auto("git branch --list main", context="Check branch", allow_failure=True)
     """
     if isinstance(action, str):
-        return Auto(action=ShellAction(cmd=action), context=context)
+        return Auto(action=ShellAction(cmd=action), context=context, allow_failure=allow_failure)
     else:
         return Auto(
             action=CallAction(func=action, kwargs=kwargs or {}),
             context=context,
+            allow_failure=allow_failure,
         )
 
 

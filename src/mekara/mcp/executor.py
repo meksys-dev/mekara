@@ -557,8 +557,8 @@ class McpScriptExecutor:
                 )
             )
 
-            # On failure, fall back to LLM for error handling
-            if not result.success:
+            # On failure, fall back to LLM for error handling — unless the step allows failure
+            if not result.success and not step.allow_failure:
                 if isinstance(result, ShellResult):
                     error_detail = f"exit code {result.exit_code}"
                     if result.output:
