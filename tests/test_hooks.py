@@ -14,8 +14,48 @@ from mekara.cli import (
     _hook_pre_tool_use,
     _hook_user_prompt_submit,
     _install_commands,
+    parse_slash_command,
 )
 from mekara.scripting.resolution import ResolvedTarget, ScriptInfo
+
+
+class TestParseSlashCommand:
+    def test_simple_command_no_args(self) -> None:
+        assert parse_slash_command("/finish") == ("finish", "")
+
+    def test_command_with_single_line_args(self) -> None:
+        assert parse_slash_command("/start my feature") == ("start", "my feature")
+
+    def test_command_with_multiline_args(self) -> None:
+        prompt = "/start line one\n\nline two\nline three"
+        assert parse_slash_command(prompt) == ("start", "line one\n\nline two\nline three")
+
+    def test_double_slash_treated_as_single(self) -> None:
+        assert parse_slash_command("//finish") == ("finish", "")
+        assert parse_slash_command("//start arg") == ("start", "arg")
+
+    def test_colon_separator_preserved(self) -> None:
+        assert parse_slash_command("/test:random") == ("test:random", "")
+
+    def test_slash_separator_preserved(self) -> None:
+        assert parse_slash_command("/test/random some args") == ("test/random", "some args")
+
+    def test_not_a_slash_command(self) -> None:
+        assert parse_slash_command("hello world") is None
+        assert parse_slash_command("") is None
+
+    def test_leading_whitespace_ignored(self) -> None:
+        assert parse_slash_command("  /finish  ") == ("finish", "")
+
+    def test_multiline_args_fully_captured(self) -> None:
+        prompt = "/start Three fixes:\n\n  1. fix one\n  2. fix two\n\nmake it optional"
+        result = parse_slash_command(prompt)
+        assert result is not None
+        name, args = result
+        assert name == "start"
+        assert "Three fixes:" in args
+        assert "fix two" in args
+        assert "make it optional" in args
 
 
 class TestCommandAffectsAgentsDir:

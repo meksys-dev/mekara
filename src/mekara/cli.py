@@ -25,6 +25,21 @@ def _env_bool(name: str) -> bool:
     return val in ("true", "1", "yes")
 
 
+def parse_slash_command(prompt: str) -> tuple[str, str] | None:
+    """Parse a /command prompt into (command_name, arguments).
+
+    Handles single and double leading slashes, colon and slash path separators.
+    Arguments may span multiple lines. Returns None if not a slash command.
+    """
+    stripped = prompt.strip()
+    match = re.match(r"^//?(/?[a-zA-Z0-9_/:/-]+)", stripped)
+    if not match:
+        return None
+    command_name = match.group(1).lstrip("/")
+    arguments = stripped[match.end() :].lstrip()
+    return command_name, arguments
+
+
 # Create Click group (main CLI)
 @click.group(
     help="Your automation Mecha.",
@@ -280,17 +295,11 @@ def _hook_user_prompt_submit() -> int:
     if not prompt:
         return 0
 
-    # Check if prompt starts with / or // followed by a command name
-    # Double-slash is treated identically to single-slash (first slash ignored)
-    # Claude Code may use : or / as path separators (e.g., /test:random or /test/random)
-    match = re.match(r"^//?(/?[a-zA-Z0-9_/:/-]+)(?:\s+(.*))?$", prompt.strip())
-    if not match:
+    parsed = parse_slash_command(prompt)
+    if parsed is None:
         return 0
 
-    command_name = match.group(1)
-    # Strip any leading slash from the command name (handles // case)
-    command_name = command_name.lstrip("/")
-    arguments = match.group(2) or ""
+    command_name, arguments = parsed
 
     # Normalize: convert colons to slashes for mekara resolution
     command_name_normalized = command_name.replace(":", "/")
