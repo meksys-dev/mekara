@@ -224,13 +224,5 @@ def execute(request: str):
         "cd ../main && pnpm --dir docs/ install --frozen-lockfile", context=main_deps_context
     )
 
-    # Step 13: Sync local settings
-    yield llm(
-        "If everything was successful, read `.claude/settings.local.json` and manually "
-        "update `../main/.claude/settings.local.json` with any new permissions. "
-        "**Do NOT use `cp`** as this would overwrite settings that may have been added "
-        "in other worktree branches."
-    )
-
-    # Step 14: Tear down worktree
+    # Step 13: Tear down worktree
     yield call_script("teardown-worktree")

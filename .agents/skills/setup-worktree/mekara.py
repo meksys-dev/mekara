@@ -32,11 +32,3 @@ def execute(request: str):
         context="Install `docs/` dependencies with `pnpm --dir docs/ i --frozen-lockfile`",
     )
 
-    # Step 3: Copy settings
-    yield auto(
-        f"cp .claude/settings.local.json ../{branch}/.claude/settings.local.json",
-        context=(
-            "Copy settings with `cp .claude/settings.local.json "
-            "../<branch-name>/.claude/settings.local.json`."
-        ),
-    )

@@ -56,7 +56,6 @@ Takes `$ARGUMENTS` as the branch name. Steps:
 1. Create worktree: `git worktree add -b mekara/<branch> ../<branch>` — if the branch already exists, choose a different name
 2. Install Python deps: `cd ../<branch> && poetry install --with dev`
 3. Install docs deps: `cd ../<branch> && pnpm --dir docs/ i --frozen-lockfile`
-4. Copy settings: `cp .claude/settings.local.json ../<branch>/.claude/settings.local.json`
 
 ### `/teardown-worktree`
 
@@ -70,7 +69,7 @@ No arguments — auto-detects from the current directory. Steps:
 
 ### Invariants
 
-- `/setup-worktree` is always called from the `main` worktree (where `.claude/settings.local.json` lives)
+- `/setup-worktree` is always called from the `main` worktree
 - `/teardown-worktree` is always called from inside the worktree being torn down
 
 ## Implementation Plan

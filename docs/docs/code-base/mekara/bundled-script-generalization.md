@@ -62,7 +62,6 @@ If a bundled NL skill is _not_ intentionally generalized (i.e. it's not present 
 - Worktree workflow
 - `/merge-main` script call
 - GitHub PR workflow with auto-merge
-- `.claude/settings.local.json` syncing (made conditional)
 - `main/` directory name
 - CI checks concept (generalized)
 
@@ -135,8 +134,7 @@ If a bundled NL skill is _not_ intentionally generalized (i.e. it's not present 
 **Kept:**
 
 - `mekara/` branch prefix and worktree creation
-- `.claude/settings.local.json` copy to new worktree
-- Key Principles (updated to reference Step 2 only)
+- Key Principles (updated to reference Step 1 only)
 
 ### standardize.md
 

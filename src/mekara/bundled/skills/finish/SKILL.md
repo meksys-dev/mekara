@@ -99,10 +99,6 @@ Examples:
 - Node/pnpm: `cd ../main && pnpm install --frozen-lockfile`
 - Rust/Cargo: `cd ../main && cargo build`
 
-### Step 13: Sync local settings
-
-If the project uses `.claude/settings.local.json` (or similar local configuration), read the worktree's version and manually update `../main/.claude/settings.local.json` with any new permissions or settings. **Do NOT use `cp`** as this would overwrite settings that may have been added in other worktree branches.
-
-### Step 14: Tear down worktree
+### Step 13: Tear down worktree
 
 Run `/teardown-worktree` to remove the virtual environment, delete the remote branch if it exists, and remove the worktree directory and local branch.
