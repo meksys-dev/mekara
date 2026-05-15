@@ -82,10 +82,6 @@ Run `cd ../main && git pull` to update our local version of main
 
 Update dependencies on main after the merge: run `cd ../main && poetry install --with dev` and `cd ../main && pnpm --dir docs/ install --frozen-lockfile`. This ensures the main environment is in sync with any new dependencies that were added during this PR.
 
-### Step 13: Sync local settings
-
-If everything was successful, read `.claude/settings.local.json` and manually update `../main/.claude/settings.local.json` with any new permissions. **Do NOT use `cp`** as this would overwrite settings that may have been added in other worktree branches.
-
-### Step 14: Tear down worktree
+### Step 13: Tear down worktree
 
 Run `/teardown-worktree` to remove the virtual environment, delete the remote branch if it exists, and remove the worktree directory and local branch.

@@ -1,9 +1,9 @@
 ---
 name: setup-worktree
-description: Set up a new git worktree, install dependencies, and copy local settings.
+description: Set up a new git worktree and install dependencies.
 ---
 
-Sets up a new git worktree for development, installing all dependencies and copying local settings. Takes the branch name as `$ARGUMENTS`.
+Sets up a new git worktree for development, installing all dependencies. Takes the branch name as `$ARGUMENTS`.
 
 <UserContext>$ARGUMENTS</UserContext>
 
@@ -21,11 +21,6 @@ Install Python dev dependencies with `poetry install --with dev`.
 
 Install `docs/` dependencies with `pnpm --dir docs/ i --frozen-lockfile`.
 
-### Step 3: Copy settings
-
-Copy settings with `cp .claude/settings.local.json ../<branch-name>/.claude/settings.local.json`.
-
 ## Key Principles
 
 - **Run install steps in the new worktree**: Steps 1 and 2 must run inside `../<branch-name>`, not the current directory.
-- **Copy, don't symlink**: Settings are copied so each worktree has its own independent copy.
